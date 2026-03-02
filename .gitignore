@@ -11,6 +11,7 @@ frontend/out/
 frontend/dist-electron/
 
 # Environment
+.env.dev
 .env.prod
 frontend/.env
 frontend/.env.local
