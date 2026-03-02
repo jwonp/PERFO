@@ -4,6 +4,8 @@ import NaverProvider from "next-auth/providers/naver"
 import LineProvider from "next-auth/providers/line"
 import { NextAuthOptions } from "next-auth"
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:18080"
+
 export const authOptions: NextAuthOptions = {
     providers: [
         GoogleProvider({
@@ -24,4 +26,58 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
+    callbacks: {
+        async signIn({ user, account, profile }) {
+            if (!account) return false
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/auth/oauth`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        provider: account.provider,
+                        providerId: account.providerAccountId,
+                        email: user.email,
+                        name: user.name,
+                        profileImage: user.image,
+                    }),
+                })
+
+                if (!res.ok) return false
+
+                const backendUser = await res.json()
+                // 백엔드에서 반환한 사용자 정보를 user 객체에 저장
+                user.id = String(backendUser.id)
+                user.name = backendUser.name
+                user.image = backendUser.profileImage
+
+                return true
+            } catch (error) {
+                console.error("OAuth backend sync failed:", error)
+                return false
+            }
+        },
+
+        async jwt({ token, user, account }) {
+            // 최초 로그인 시 user 정보를 token에 저장
+            if (user && account) {
+                token.provider = account.provider
+                token.backendId = user.id
+                token.profileImage = user.image ?? undefined
+            }
+            return token
+        },
+
+        async session({ session, token }) {
+            if (session.user) {
+                session.user.id = token.backendId as string
+                session.user.provider = token.provider as string
+                session.user.image = token.profileImage as string
+            }
+            return session
+        },
+    },
+    pages: {
+        signIn: "/login",
+    },
 }
