@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  /* PERFO brand colors for direct use */
+  --color-perfo-primary: #103783;
+  --color-perfo-secondary: #9BAFD9;
+  --color-perfo-bg: #F3FBFF;
+  --color-perfo-text: #342A2D;
+  --color-perfo-primary-hover: #0d2d6b;
+  --color-perfo-success: #16a34a;
+}
+
+:root {
+  --radius: 0.625rem;
+  /* PERFO Design System */
+  --background: #F3FBFF;
+  --foreground: #342A2D;
+  --card: #ffffff;
+  --card-foreground: #342A2D;
+  --popover: #ffffff;
+  --popover-foreground: #342A2D;
+  --primary: #103783;
+  --primary-foreground: #F3FBFF;
+  --secondary: #9BAFD9;
+  --secondary-foreground: #ffffff;
+  --muted: #e8f0fe;
+  --muted-foreground: #6b7c9a;
+  --accent: #e8f0fe;
+  --accent-foreground: #103783;
+  --destructive: #dc2626;
+  --border: #d1ddf0;
+  --input: #d1ddf0;
+  --ring: #9BAFD9;
+  --chart-1: #103783;
+  --chart-2: #9BAFD9;
+  --chart-3: #F3FBFF;
+  --chart-4: #342A2D;
+  --chart-5: #6b7c9a;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #342A2D;
+  --sidebar-primary: #103783;
+  --sidebar-primary-foreground: #F3FBFF;
+  --sidebar-accent: #e8f0fe;
+  --sidebar-accent-foreground: #103783;
+  --sidebar-border: #d1ddf0;
+  --sidebar-ring: #9BAFD9;
+}
+
+.dark {
+  --background: #0f1729;
+  --foreground: #e8f0fe;
+  --card: #1a2744;
+  --card-foreground: #e8f0fe;
+  --popover: #1a2744;
+  --popover-foreground: #e8f0fe;
+  --primary: #9BAFD9;
+  --primary-foreground: #0f1729;
+  --secondary: #1e3a6e;
+  --secondary-foreground: #e8f0fe;
+  --muted: #1e3a6e;
+  --muted-foreground: #9BAFD9;
+  --accent: #1e3a6e;
+  --accent-foreground: #e8f0fe;
+  --destructive: #ef4444;
+  --border: rgba(155, 175, 217, 0.2);
+  --input: rgba(155, 175, 217, 0.25);
+  --ring: #103783;
+  --chart-1: #9BAFD9;
+  --chart-2: #103783;
+  --chart-3: #1e3a6e;
+  --chart-4: #e8f0fe;
+  --chart-5: #6b7c9a;
+  --sidebar: #1a2744;
+  --sidebar-foreground: #e8f0fe;
+  --sidebar-primary: #9BAFD9;
+  --sidebar-primary-foreground: #0f1729;
+  --sidebar-accent: #1e3a6e;
+  --sidebar-accent-foreground: #e8f0fe;
+  --sidebar-border: rgba(155, 175, 217, 0.2);
+  --sidebar-ring: #103783;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
