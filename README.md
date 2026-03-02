@@ -54,13 +54,20 @@ cd backend
 
 ## Docker Compose
 
+### 환경변수 파일
+
+| 파일 | 용도 | Git 추적 |
+|------|------|----------|
+| `.env.dev` | 로컬 개발용 (기본값 포함) | ✅ 추적됨 |
+| `.env.prod` | 프로덕션용 (배포 시 값 변경 필수) | ❌ gitignore |
+
 ### 프로필 (Profiles)
 
 | 명령어 | 실행 대상 | 용도 |
 |--------|----------|------|
-| `docker compose up -d` | Postgres, Redis, Kafka, Zookeeper | 로컬 개발 (인프라만) |
-| `docker compose --profile dev up -d` | 인프라 + frontend-dev | Docker로 프론트 개발 |
-| `docker compose --profile full up -d --build` | 인프라 + backend + frontend (prod) | 전체 프로덕션 배포 |
+| `docker compose --env-file .env.dev up -d` | 인프라만 | 로컬 개발 |
+| `docker compose --env-file .env.dev --profile dev up -d` | 인프라 + frontend-dev | Docker 프론트 개발 |
+| `docker compose --env-file .env.prod --profile full up -d --build` | 전체 | 프로덕션 배포 |
 
 ### 서비스 상세
 
@@ -76,19 +83,7 @@ cd backend
 
 ### 주요 환경변수
 
-**PostgreSQL:**
-```
-POSTGRES_USER=perfo
-POSTGRES_PASSWORD=perfo123
-POSTGRES_DB=perfo
-```
-
-**Backend (Spring Boot):**
-```
-SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/perfo
-SPRING_DATASOURCE_USERNAME=perfo
-SPRING_DATASOURCE_PASSWORD=perfo123
-```
+> `.env.dev` / `.env.prod` 파일 참고. 전체 변수 목록은 해당 파일에 정의되어 있습니다.
 
 ### 데이터 볼륨
 
