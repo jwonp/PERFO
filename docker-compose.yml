@@ -43,11 +43,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "${BACKEND_PORT}:18080"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
       - postgres
       - redis
     environment:
+      SERVER_PORT: ${BACKEND_PORT}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
@@ -63,12 +65,13 @@ services:
       dockerfile: Dockerfile
       target: dev
     ports:
-      - "${FRONTEND_PORT}:13000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     volumes:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
     environment:
+      - PORT=${FRONTEND_PORT}
       - WATCHPACK_POLLING=true
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
@@ -96,10 +99,11 @@ services:
       dockerfile: Dockerfile
       target: prod
     ports:
-      - "${FRONTEND_PORT}:13000"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
       - backend
     environment:
+      - PORT=${FRONTEND_PORT}
       - NODE_ENV=production
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
