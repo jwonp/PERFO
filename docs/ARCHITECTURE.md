@@ -244,21 +244,21 @@ export const authOptions: NextAuthOptions = {
 ### 4.4 OAuth Client ID/Secret 발급
 
 #### Google
-1. [Google Cloud Console](https://console.cloud.google.com/) → OAuth 2.0 Client ID
+1. **[Google Cloud Console](https://console.cloud.google.com/apis/credentials)** → OAuth 2.0 Client ID
 2. Callback: `/api/auth/callback/google`
 
 #### Kakao
-1. [Kakao Developers](https://developers.kakao.com/) → REST API 키 (Client ID)
+1. **[Kakao Developers](https://developers.kakao.com/console/app)** → 내 애플리케이션 → 앱 키 (REST API 키)
 2. 보안 메뉴에서 Client Secret 생성
 3. Callback: `/api/auth/callback/kakao`
 
 #### Naver
-1. [Naver Developers](https://developers.naver.com/) → 애플리케이션 등록
+1. **[Naver Developers](https://developers.naver.com/apps/#/list)** → Application → 애플리케이션 등록
 2. Callback: `/api/auth/callback/naver`
 
 #### Line
-1. [Line Developers](https://developers.line.biz/) → LINE Login channel
-2. Channel ID (Client ID), Channel Secret
+1. **[Line Developers Console](https://developers.line.biz/console/)** → Providers → LINE Login channel
+2. Channel ID (Client ID), Channel Secret 발급
 3. Callback: `/api/auth/callback/line`
 
 ---
