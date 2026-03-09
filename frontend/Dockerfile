@@ -14,7 +14,6 @@ COPY . .
 
 # --- Development ---
 FROM base AS dev
-EXPOSE 13000
 CMD ["pnpm", "dev"]
 
 # --- Production build ---
@@ -27,6 +26,4 @@ WORKDIR /app
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-EXPOSE 13000
-ENV PORT=13000
 CMD ["node", "server.js"]
