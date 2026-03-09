@@ -63,7 +63,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      # Using a multi-stage target if available, or overriding the command
+      target: dev
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -72,7 +72,6 @@ services:
     volumes:
       - ./backend:/app
       - ~/.gradle:/root/.gradle
-    command: ./gradlew bootRun --no-daemon
     environment:
       SERVER_PORT: ${BACKEND_PORT}
       SPRING_PROFILES_ACTIVE: dev
