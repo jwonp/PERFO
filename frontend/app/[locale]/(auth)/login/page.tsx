@@ -3,10 +3,15 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
     const t = useTranslations();
     const [email, setEmail] = useState("");
+
+    const handleSocialLogin = (provider: string) => {
+        signIn(provider, { callbackUrl: "/" });
+    };
 
     return (
         <div className="flex flex-col items-center">
@@ -64,6 +69,7 @@ export default function LoginPage() {
             <div className="w-full flex flex-col gap-3">
                 <button
                     type="button"
+                    onClick={() => handleSocialLogin("google")}
                     className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -77,6 +83,7 @@ export default function LoginPage() {
 
                 <button
                     type="button"
+                    onClick={() => handleSocialLogin("kakao")}
                     className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#FEE500">
@@ -87,6 +94,7 @@ export default function LoginPage() {
 
                 <button
                     type="button"
+                    onClick={() => handleSocialLogin("naver")}
                     className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#03C75A">
@@ -97,6 +105,7 @@ export default function LoginPage() {
 
                 <button
                     type="button"
+                    onClick={() => handleSocialLogin("line")}
                     className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#06C755">

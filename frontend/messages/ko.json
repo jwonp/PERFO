@@ -4,6 +4,7 @@
         "back": "뒤로",
         "next": "다음",
         "or": "또는",
+        "logout": "로그아웃",
         "email": "이메일 주소",
         "emailPlaceholder": "name@example.com",
         "password": "비밀번호",
