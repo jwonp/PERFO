@@ -101,6 +101,9 @@ docker compose down
 # 전체 중지 + 볼륨 삭제 (데이터 초기화)
 docker compose down -v
 
+# 미사용 도커 리소스 정리 (이미지, 컨테이너, 네트워크 전체 삭제)
+docker system prune -a --volumes
+
 # 샌드박스 전용 개발 실행 (포어그라운드 로그 확인 가능)
 docker compose --profile dev up
 ```
