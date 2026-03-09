@@ -1,0 +1,78 @@
+{
+    "common": {
+        "perfo": "PERFO",
+        "back": "戻る",
+        "next": "次へ",
+        "or": "または",
+        "logout": "ログアウト",
+        "email": "メールアドレス",
+        "emailPlaceholder": "name@example.com",
+        "password": "パスワード",
+        "confirmPassword": "パスワード確認",
+        "passwordPlaceholder": "パスワードを入力",
+        "createPasswordPlaceholder": "パスワードを作成",
+        "confirmPasswordPlaceholder": "パスワードを再入力",
+        "newPassword": "新しいパスワード",
+        "newPasswordPlaceholder": "新しいパスワードを入力",
+        "confirmNewPasswordPlaceholder": "新しいパスワードを再入力",
+        "goToLogin": "ログインページへ",
+        "termsPrefix": "サインアップすると、",
+        "termsLink": "利用規約"
+    },
+    "landing": {
+        "title": "お客様を待たせないでください",
+        "description": "チケット管理・フロー・データ分析をサポートし、プレミアムなチケッティングソリューションを提供します。",
+        "cta": "無料で始める",
+        "login": "ログイン",
+        "trust": "クレジットカード不要 · 無料で開始",
+        "copyright": "© 2026 PERFO. All rights reserved."
+    },
+    "login": {
+        "welcome": "ようこそ、ログインしてください",
+        "subtitle": "メールアドレスを入力してください",
+        "google": "Google",
+        "kakao": "Kakao",
+        "naver": "Naver",
+        "line": "LINE"
+    },
+    "passwordLogin": {
+        "welcome": "ようこそ、{email}",
+        "subtitle": "パスワードを入力してください",
+        "forgotPassword": "パスワードをお忘れですか？"
+    },
+    "verify": {
+        "title": "{email}に6桁の認証コードを送信しました",
+        "subtitle": "受信トレイを確認し、以下にコードを入力してください",
+        "verify": "認証",
+        "resend": "コード再送信"
+    },
+    "signup": {
+        "title": "以下の要件を満たすパスワードを入力してください。",
+        "subtitle": "アカウントの安全なパスワードを作成",
+        "signUp": "サインアップ"
+    },
+    "signupComplete": {
+        "title": "{email}のアカウントが作成されました",
+        "description": "アカウントが正常に作成されました。ログインして始めましょう。"
+    },
+    "resetPassword": {
+        "title": "以下の要件を満たすパスワードを入力してください。",
+        "subtitle": "{email}のパスワードをリセット",
+        "resetButton": "パスワードをリセット"
+    },
+    "resetComplete": {
+        "title": "{email}のパスワードが更新されました",
+        "description": "パスワードが正常に更新されました。新しい認証情報でログインできます。"
+    },
+    "passwordRules": {
+        "minLength": "8文字以上",
+        "uppercase": "大文字を含む",
+        "lowercase": "小文字を含む",
+        "number": "数字を含む",
+        "special": "特殊文字を含む",
+        "match": "パスワードが一致"
+    },
+    "authLayout": {
+        "slogan": "お客様を待たせないでください"
+    }
+}

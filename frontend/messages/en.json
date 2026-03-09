@@ -1,0 +1,78 @@
+{
+    "common": {
+        "perfo": "PERFO",
+        "back": "Back",
+        "next": "Next",
+        "or": "OR",
+        "logout": "Logout",
+        "email": "Email address",
+        "emailPlaceholder": "name@example.com",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "passwordPlaceholder": "Enter your password",
+        "createPasswordPlaceholder": "Create a password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "newPassword": "New Password",
+        "newPasswordPlaceholder": "Enter new password",
+        "confirmNewPasswordPlaceholder": "Confirm new password",
+        "goToLogin": "Go to Login Page",
+        "termsPrefix": "By signing up, you agree to our",
+        "termsLink": "Terms of Service"
+    },
+    "landing": {
+        "title": "Stop making your customers wait in line",
+        "description": "We help you manage ticket & flow & data analytics, offering a premium ticketing solution.",
+        "cta": "Start for free",
+        "login": "Log in",
+        "trust": "No credit card required · Free to get started",
+        "copyright": "© 2026 PERFO. All rights reserved."
+    },
+    "login": {
+        "welcome": "Welcome, please log in",
+        "subtitle": "Enter your email to continue",
+        "google": "Google",
+        "kakao": "Kakao",
+        "naver": "Naver",
+        "line": "LINE"
+    },
+    "passwordLogin": {
+        "welcome": "Welcome, {email}",
+        "subtitle": "Enter your password to continue",
+        "forgotPassword": "Forgot password?"
+    },
+    "verify": {
+        "title": "We've sent a 6-digit verification code to {email}",
+        "subtitle": "Check your inbox and enter the code below",
+        "verify": "Verify",
+        "resend": "Resend Code"
+    },
+    "signup": {
+        "title": "Enter a password that meets the requirements below.",
+        "subtitle": "Create a secure password for your account",
+        "signUp": "Sign Up"
+    },
+    "signupComplete": {
+        "title": "Account created for {email}",
+        "description": "Your account has been created successfully. You can now log in to get started."
+    },
+    "resetPassword": {
+        "title": "Enter a password that meets the requirements below.",
+        "subtitle": "Reset your password for {email}",
+        "resetButton": "Reset Password"
+    },
+    "resetComplete": {
+        "title": "Password updated for {email}",
+        "description": "Your password has been updated successfully. You can now log in with your new credentials."
+    },
+    "passwordRules": {
+        "minLength": "At least 8 characters",
+        "uppercase": "Contains uppercase letter",
+        "lowercase": "Contains lowercase letter",
+        "number": "Contains a number",
+        "special": "Contains special character",
+        "match": "Passwords match"
+    },
+    "authLayout": {
+        "slogan": "Stop making your customers wait in line"
+    }
+}
