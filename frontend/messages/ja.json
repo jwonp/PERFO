@@ -4,6 +4,7 @@
         "back": "戻る",
         "next": "次へ",
         "or": "または",
+        "logout": "ログアウト",
         "email": "メールアドレス",
         "emailPlaceholder": "name@example.com",
         "password": "パスワード",

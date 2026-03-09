@@ -4,6 +4,7 @@
         "back": "Back",
         "next": "Next",
         "or": "OR",
+        "logout": "Logout",
         "email": "Email address",
         "emailPlaceholder": "name@example.com",
         "password": "Password",
