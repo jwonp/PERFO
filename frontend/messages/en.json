@@ -92,12 +92,26 @@
     "myTickets": {
         "title": "My Issued Tickets",
         "scan": "Scan",
+        "edit": "Edit",
         "issuedCount": "Issued",
         "statusIssuing": "Issuing",
         "statusInactive": "Inactive",
         "statusExpired": "Expired",
         "statusVerifying": "Verifying",
-        "empty": "No issued tickets"
+        "empty": "No issued tickets",
+        "createTitle": "Issue Ticket",
+        "editTitle": "Edit Ticket",
+        "fieldName": "Ticket Name",
+        "fieldNamePlaceholder": "e.g. PERFO Summer Festival",
+        "fieldVenue": "Venue",
+        "fieldVenuePlaceholder": "e.g. Olympic Park Gymnastics Arena",
+        "fieldDate": "Valid Date",
+        "fieldTotal": "Total Tickets",
+        "fieldAllowDuplicate": "Allow duplicate purchase",
+        "fieldMaxPerUser": "Max per user",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Issue"
     },
     "profile": {
         "title": "Profile",
