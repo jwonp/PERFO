@@ -23,6 +23,7 @@ const MOCK_TICKETS: Ticket[] = [
         venue: "올림픽공원 체조경기장",
         validDate: "2026.08.15",
         status: "MY_TURN",
+        imageUrl: "https://picsum.photos/seed/concert1/600/300",
     },
     {
         id: "2",
@@ -31,6 +32,7 @@ const MOCK_TICKETS: Ticket[] = [
         venue: "블루스퀘어 마스터카드홀",
         validDate: "2026.07.20",
         status: "WAITING",
+        imageUrl: "https://picsum.photos/seed/jazz2/600/300",
     },
     {
         id: "3",
@@ -39,6 +41,7 @@ const MOCK_TICKETS: Ticket[] = [
         venue: "국립현대미술관",
         validDate: "2026.06.01",
         status: "BEFORE_USE",
+        imageUrl: "https://picsum.photos/seed/art3/600/300",
     },
     {
         id: "4",
@@ -47,6 +50,7 @@ const MOCK_TICKETS: Ticket[] = [
         venue: "KSPO DOME",
         validDate: "2026.05.10",
         status: "USED",
+        imageUrl: "https://picsum.photos/seed/kpop4/600/300",
     },
 ];
 
@@ -100,35 +104,39 @@ function BellIcon() {
 }
 
 function TicketCard({ ticket, t }: { ticket: Ticket; t: ReturnType<typeof useTranslations> }) {
+    const isUsed = ticket.status === "USED";
+
     return (
-        <div className="relative rounded-2xl overflow-hidden bg-perfo-primary shadow-md shadow-perfo-primary/20">
-            {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-perfo-primary via-[#1a4a9a] to-[#0a2460]" />
+        <div className="relative rounded-2xl overflow-hidden shadow-md h-36">
+            {/* Background image */}
+            {ticket.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={ticket.imageUrl}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+            )}
 
-            {/* Decorative circle */}
-            <div className="absolute top-[-40px] right-[-40px] w-32 h-32 rounded-full bg-white/5" />
-            <div className="absolute bottom-[-20px] left-[-20px] w-24 h-24 rounded-full bg-white/5" />
+            {/* Dark overlay — 사용 완료 시 더 진하게 */}
+            <div className={`absolute inset-0 ${isUsed ? "bg-black/70" : "bg-black/50"}`} />
 
-            <div className="relative p-4">
-                {/* Status badge */}
-                <span className={`inline-block text-[11px] font-semibold px-2.5 py-1 rounded-full mb-3 ${statusColor(ticket.status)}`}>
+            <div className="relative h-full flex flex-col justify-between p-4">
+                {/* Top: status badge */}
+                <span className={`self-start text-[11px] font-semibold px-2.5 py-1 rounded-full ${statusColor(ticket.status)}`}>
                     {statusLabel(ticket.status, t)}
                 </span>
 
-                {/* Ticket name */}
-                <h3 className="text-white font-bold text-base leading-tight mb-1">
-                    {ticket.name}
-                </h3>
-
-                {/* Ticket number */}
-                <p className="text-white/60 text-xs mb-3">
-                    No. {String(ticket.ticketNumber).padStart(4, "0")}
-                </p>
-
-                {/* Info row */}
+                {/* Bottom: info + QR button */}
                 <div className="flex items-end justify-between">
-                    <div className="space-y-1">
-                        <p className="text-white/70 text-xs flex items-center gap-1">
+                    <div className="space-y-0.5">
+                        <h3 className="text-white font-bold text-base leading-tight">
+                            {ticket.name}
+                        </h3>
+                        <p className="text-white/60 text-xs">
+                            No. {String(ticket.ticketNumber).padStart(4, "0")}
+                        </p>
+                        <p className="text-white/70 text-xs flex items-center gap-1 pt-0.5">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3 h-3 shrink-0">
                                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                                 <circle cx="12" cy="10" r="3" />
@@ -146,9 +154,9 @@ function TicketCard({ ticket, t }: { ticket: Ticket; t: ReturnType<typeof useTra
                         </p>
                     </div>
 
-                    {ticket.status !== "USED" && (
+                    {!isUsed && (
                         <button
-                            className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs font-medium px-3 py-2 rounded-xl transition-colors"
+                            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white text-xs font-medium px-3 py-2 rounded-xl transition-colors shrink-0"
                             aria-label="QR 코드 보기"
                         >
                             <QRIcon />
