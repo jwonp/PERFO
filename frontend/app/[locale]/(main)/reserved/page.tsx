@@ -3,7 +3,11 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-type TicketStatus = "BEFORE_USE" | "WAITING" | "MY_TURN" | "USED";
+/** 티켓 구매 프로세스 상태 (Kafka → WebSocket 실시간) — ARCHITECTURE.md 6.2 */
+type TicketingStatus = "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED" | "SOLD_OUT" | "DUPLICATE";
+
+/** 발급된 티켓의 사용 상태 — storyboard.md 3.1 */
+type TicketUsageStatus = "BEFORE_USE" | "WAITING" | "MY_TURN" | "USED";
 
 interface Ticket {
     id: string;
@@ -11,7 +15,8 @@ interface Ticket {
     ticketNumber: number;
     venue: string;
     validDate: string;
-    status: TicketStatus;
+    ticketingStatus: TicketingStatus;  // 구매 프로세스 상태
+    usageStatus: TicketUsageStatus;    // 사용 상태
     imageUrl?: string;
 }
 
@@ -22,7 +27,8 @@ const MOCK_TICKETS: Ticket[] = [
         ticketNumber: 42,
         venue: "올림픽공원 체조경기장",
         validDate: "2026.08.15",
-        status: "MY_TURN",
+        ticketingStatus: "SUCCESS",
+        usageStatus: "MY_TURN",
         imageUrl: "https://picsum.photos/seed/concert1/600/300",
     },
     {
@@ -31,7 +37,8 @@ const MOCK_TICKETS: Ticket[] = [
         ticketNumber: 17,
         venue: "블루스퀘어 마스터카드홀",
         validDate: "2026.07.20",
-        status: "WAITING",
+        ticketingStatus: "SUCCESS",
+        usageStatus: "WAITING",
         imageUrl: "https://picsum.photos/seed/jazz2/600/300",
     },
     {
@@ -40,7 +47,8 @@ const MOCK_TICKETS: Ticket[] = [
         ticketNumber: 5,
         venue: "국립현대미술관",
         validDate: "2026.06.01",
-        status: "BEFORE_USE",
+        ticketingStatus: "SUCCESS",
+        usageStatus: "BEFORE_USE",
         imageUrl: "https://picsum.photos/seed/art3/600/300",
     },
     {
@@ -49,13 +57,14 @@ const MOCK_TICKETS: Ticket[] = [
         ticketNumber: 88,
         venue: "KSPO DOME",
         validDate: "2026.05.10",
-        status: "USED",
+        ticketingStatus: "SUCCESS",
+        usageStatus: "USED",
         imageUrl: "https://picsum.photos/seed/kpop4/600/300",
     },
 ];
 
-function statusLabel(status: TicketStatus, t: ReturnType<typeof useTranslations>): string {
-    const map: Record<TicketStatus, string> = {
+function usageStatusLabel(status: TicketUsageStatus, t: ReturnType<typeof useTranslations>): string {
+    const map: Record<TicketUsageStatus, string> = {
         BEFORE_USE: t("reserved.statusBeforeUse"),
         WAITING: t("reserved.statusWaiting"),
         MY_TURN: t("reserved.statusMyTurn"),
@@ -64,8 +73,8 @@ function statusLabel(status: TicketStatus, t: ReturnType<typeof useTranslations>
     return map[status];
 }
 
-function statusColor(status: TicketStatus): string {
-    const map: Record<TicketStatus, string> = {
+function usageStatusColor(status: TicketUsageStatus): string {
+    const map: Record<TicketUsageStatus, string> = {
         BEFORE_USE: "bg-perfo-secondary/30 text-perfo-primary",
         WAITING: "bg-yellow-100 text-yellow-700",
         MY_TURN: "bg-green-100 text-green-700",
@@ -104,7 +113,7 @@ function BellIcon() {
 }
 
 function TicketCard({ ticket, t }: { ticket: Ticket; t: ReturnType<typeof useTranslations> }) {
-    const isUsed = ticket.status === "USED";
+    const isUsed = ticket.usageStatus === "USED";
 
     return (
         <div className="relative rounded-2xl overflow-hidden shadow-md h-36">
@@ -123,8 +132,8 @@ function TicketCard({ ticket, t }: { ticket: Ticket; t: ReturnType<typeof useTra
 
             <div className="relative h-full flex flex-col justify-between p-4">
                 {/* Top: status badge */}
-                <span className={`self-start text-[11px] font-semibold px-2.5 py-1 rounded-full ${statusColor(ticket.status)}`}>
-                    {statusLabel(ticket.status, t)}
+                <span className={`self-start text-[11px] font-semibold px-2.5 py-1 rounded-full ${usageStatusColor(ticket.usageStatus)}`}>
+                    {usageStatusLabel(ticket.usageStatus, t)}
                 </span>
 
                 {/* Bottom: info + QR button */}
@@ -174,7 +183,7 @@ export default function ReservedPage() {
     const [showUsedOnly, setShowUsedOnly] = useState(false);
 
     const filtered = showUsedOnly
-        ? MOCK_TICKETS.filter((tk) => tk.status === "USED")
+        ? MOCK_TICKETS.filter((tk) => tk.usageStatus === "USED")
         : MOCK_TICKETS;
 
     return (
