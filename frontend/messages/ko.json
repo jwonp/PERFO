@@ -74,5 +74,39 @@
     },
     "authLayout": {
         "slogan": "고객을 더 이상 줄 세우지 마세요"
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "예약한 티켓",
+        "showUsedOnly": "사용한 티켓만 표시",
+        "statusBeforeUse": "사용 전",
+        "statusWaiting": "순서 대기중",
+        "statusMyTurn": "현재 순서임",
+        "statusUsed": "사용 완료",
+        "empty": "예약한 티켓이 없습니다"
+    },
+    "myTickets": {
+        "title": "내가 발급한 티켓",
+        "scan": "검표",
+        "issuedCount": "발급 현황",
+        "statusIssuing": "발급중",
+        "statusInactive": "비활성화",
+        "statusExpired": "기간만료",
+        "statusVerifying": "검표중",
+        "empty": "발급한 티켓이 없습니다"
+    },
+    "profile": {
+        "title": "Profile",
+        "appSettings": "App Settings",
+        "darkMode": "다크 모드",
+        "pushNotification": "푸시 알림 설정",
+        "support": "Support",
+        "customerSupport": "고객 문의",
+        "privacyPolicy": "Privacy Policy",
+        "logout": "로그아웃"
     }
 }
