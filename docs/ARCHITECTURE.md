@@ -340,14 +340,24 @@ pnpm add -D @types/ws
 ### 6.2 상태 정의
 
 ```typescript
-type TicketingStatus = 
-  | "PENDING"      // 대기 중
-  | "PROCESSING"   // 처리 중
-  | "SUCCESS"      // 성공
+/** 티켓 구매 프로세스 상태 — Kafka Consumer → WebSocket 실시간 전송 */
+type TicketingStatus =
+  | "PENDING"      // 대기 중 (큐에 적재됨)
+  | "PROCESSING"   // 처리 중 (Consumer 처리 중)
+  | "SUCCESS"      // 성공 (티켓 발급 완료)
   | "FAILED"       // 실패 (재시도 가능)
   | "SOLD_OUT"     // 매진
   | "DUPLICATE"    // 중복 구매 불가
+
+/** 발급된 티켓의 사용 상태 — Reserved 탭 리스트에서 표시 */
+type TicketUsageStatus =
+  | "BEFORE_USE"   // 사용 전
+  | "WAITING"      // 순서 대기중
+  | "MY_TURN"      // 현재 순서임
+  | "USED"         // 사용 완료
 ```
+
+> `TicketingStatus`는 구매 플로우(WebSocket)에서만 사용하며, `SUCCESS` 이후에는 `TicketUsageStatus`로 전환됩니다.
 
 ### 6.3 통신 전략
 
