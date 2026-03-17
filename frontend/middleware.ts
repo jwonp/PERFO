@@ -5,18 +5,15 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
-// 인증 없이 접근 가능한 경로
-const publicPaths = [
-    "/login",
-    "/signup",
-    "/reset-password",
-    "/verify",
-];
+// 로그인 후 접근 불가 경로 (로그인 상태면 /reserved 로 리다이렉트)
+const guestOnlyPaths = ["/", "/login", "/signup", "/reset-password", "/verify"];
 
-function isPublicPath(pathname: string): boolean {
+function isGuestOnlyPath(pathname: string): boolean {
     // locale prefix 제거 (e.g., /ko/login -> /login)
     const pathWithoutLocale = pathname.replace(/^\/(ko|en|ja)/, "") || "/";
-    return publicPaths.some((path) => pathWithoutLocale.startsWith(path));
+    return guestOnlyPaths.some((path) =>
+        path === "/" ? pathWithoutLocale === "/" : pathWithoutLocale.startsWith(path)
+    );
 }
 
 export default async function middleware(request: NextRequest) {
@@ -33,18 +30,18 @@ export default async function middleware(request: NextRequest) {
         secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // 공개 경로가 아닌데 토큰이 없으면 → 로그인으로 리다이렉트
-    if (!token && !isPublicPath(pathname)) {
-        const locale = pathname.match(/^\/(ko|en|ja)/)?.[1] || routing.defaultLocale;
+    const locale = pathname.match(/^\/(ko|en|ja)/)?.[1] || routing.defaultLocale;
+
+    // 로그인한 사용자가 guest-only 경로 접근 시 → /reserved 로 리다이렉트
+    if (token && isGuestOnlyPath(pathname)) {
+        return NextResponse.redirect(new URL(`/${locale}/reserved`, request.url));
+    }
+
+    // 비로그인 사용자가 보호된 경로 접근 시 → 로그인으로 리다이렉트
+    if (!token && !isGuestOnlyPath(pathname)) {
         const loginUrl = new URL(`/${locale}/login`, request.url);
         loginUrl.searchParams.set("callbackUrl", pathname);
         return NextResponse.redirect(loginUrl);
-    }
-
-    // 이미 로그인한 사용자가 로그인/회원가입 페이지 접근 시 → 홈으로 리다이렉트
-    if (token && isPublicPath(pathname)) {
-        const locale = pathname.match(/^\/(ko|en|ja)/)?.[1] || routing.defaultLocale;
-        return NextResponse.redirect(new URL(`/${locale}`, request.url));
     }
 
     // i18n 미들웨어 실행
