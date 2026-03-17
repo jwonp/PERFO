@@ -74,5 +74,39 @@
     },
     "authLayout": {
         "slogan": "Stop making your customers wait in line"
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "Reserved Tickets",
+        "showUsedOnly": "Show used tickets only",
+        "statusBeforeUse": "Not used",
+        "statusWaiting": "Waiting",
+        "statusMyTurn": "Your turn!",
+        "statusUsed": "Used",
+        "empty": "No reserved tickets"
+    },
+    "myTickets": {
+        "title": "My Issued Tickets",
+        "scan": "Scan",
+        "issuedCount": "Issued",
+        "statusIssuing": "Issuing",
+        "statusInactive": "Inactive",
+        "statusExpired": "Expired",
+        "statusVerifying": "Verifying",
+        "empty": "No issued tickets"
+    },
+    "profile": {
+        "title": "Profile",
+        "appSettings": "App Settings",
+        "darkMode": "Dark Mode",
+        "pushNotification": "Push Notifications",
+        "support": "Support",
+        "customerSupport": "Customer Support",
+        "privacyPolicy": "Privacy Policy",
+        "logout": "Log out"
     }
 }
