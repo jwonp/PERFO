@@ -92,12 +92,26 @@
     "myTickets": {
         "title": "내가 발급한 티켓",
         "scan": "검표",
+        "edit": "수정",
         "issuedCount": "발급 현황",
         "statusIssuing": "발급중",
         "statusInactive": "비활성화",
         "statusExpired": "기간만료",
         "statusVerifying": "검표중",
-        "empty": "발급한 티켓이 없습니다"
+        "empty": "발급한 티켓이 없습니다",
+        "createTitle": "티켓 발급",
+        "editTitle": "티켓 수정",
+        "fieldName": "티켓 이름",
+        "fieldNamePlaceholder": "예) PERFO Summer Festival",
+        "fieldVenue": "사용 장소",
+        "fieldVenuePlaceholder": "예) 올림픽공원 체조경기장",
+        "fieldDate": "유효 날짜",
+        "fieldTotal": "총 티켓 수",
+        "fieldAllowDuplicate": "중복 구매 허용",
+        "fieldMaxPerUser": "1인당 최대 수량",
+        "cancel": "취소",
+        "save": "저장",
+        "create": "발급하기"
     },
     "profile": {
         "title": "Profile",
