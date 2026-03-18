@@ -497,9 +497,11 @@ export default function MyTicketsPage() {
                         <p className="text-sm">{t("myTickets.empty")}</p>
                     </div>
                 ) : (
-                    tickets.map((ticket) => (
-                        <IssuedTicketCard key={ticket.id} ticket={ticket} t={t} onEdit={openEdit} />
-                    ))
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {tickets.map((ticket) => (
+                            <IssuedTicketCard key={ticket.id} ticket={ticket} t={t} onEdit={openEdit} />
+                        ))}
+                    </div>
                 )}
             </div>
 
