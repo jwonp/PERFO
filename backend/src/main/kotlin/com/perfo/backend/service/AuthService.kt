@@ -39,7 +39,7 @@ class AuthService(
 
     fun login(request: AuthDto.LoginRequest): AuthDto.AuthResponse {
         val user = userRepository.findByEmail(request.email)
-            .orElseThrow { RuntimeException("User not found") }
+            ?: throw RuntimeException("User not found")
 
         if (user.provider != "credentials") {
             throw RuntimeException("This email uses ${user.provider} login")
@@ -63,9 +63,7 @@ class AuthService(
         val user = userRepository.findByProviderAndProviderId(
             request.provider,
             request.providerId
-        ).orElseGet {
-            userRepository.findByEmail(request.email).orElse(null)
-        }
+        ) ?: userRepository.findByEmail(request.email)
 
         val ensured = user ?: run {
             val created = User(
@@ -88,8 +86,11 @@ class AuthService(
     }
 
     fun checkEmail(email: String): AuthDto.CheckEmailResponse {
-        return userRepository.findByEmail(email)
-            .map { user -> AuthDto.CheckEmailResponse(true, user.provider) }
-            .orElse(AuthDto.CheckEmailResponse(false, null))
+        val user = userRepository.findByEmail(email)
+        return if (user != null) {
+            AuthDto.CheckEmailResponse(true, user.provider)
+        } else {
+            AuthDto.CheckEmailResponse(false, null)
+        }
     }
 }
