@@ -30,6 +30,7 @@
 ```
 
 **흐름:**
+
 1. 사용자가 `PushNotification` 컴포넌트에서 "알림 받기" 클릭
 2. 브라우저가 알림 권한 요청 → Service Worker 등록 → 푸시 구독
 3. 구독 정보가 `/api/push/subscribe`로 전송되어 저장
@@ -85,7 +86,7 @@ npx web-push generate-vapid-keys --json
 ### 4.1 컴포넌트 사용
 
 ```tsx
-import { PushNotification } from '@/components/push/PushNotification';
+import { PushNotification } from "@/components/push/PushNotification";
 
 export default function Page() {
   return (
@@ -99,22 +100,22 @@ export default function Page() {
 ### 4.2 서버에서 푸시 발송
 
 ```typescript
-import { sendPushNotification } from '@/lib/push/server';
+import { sendPushNotification } from "@/lib/push/server";
 
 // 구독 정보 (DB에서 조회)
 const subscription = {
-  endpoint: 'https://fcm.googleapis.com/...',
+  endpoint: "https://fcm.googleapis.com/...",
   keys: {
-    p256dh: '...',
-    auth: '...'
-  }
+    p256dh: "...",
+    auth: "...",
+  },
 };
 
 // 푸시 발송
 await sendPushNotification(subscription, {
-  title: '티켓팅 성공! 🎉',
-  body: '좌석이 배정되었습니다.',
-  url: '/tickets/12345'
+  title: "티켓팅 성공! 🎉",
+  body: "좌석이 배정되었습니다.",
+  url: "/tickets/12345",
 });
 ```
 
@@ -138,16 +139,16 @@ Kafka Consumer에서 티켓팅 결과에 따라 푸시를 발송합니다:
 
 ```typescript
 // workers/ticketing-consumer.ts
-import { sendPushNotification } from '@/lib/push/server';
+import { sendPushNotification } from "@/lib/push/server";
 
 // 티켓팅 성공 시
-if (ticketingResult.status === 'SUCCESS') {
+if (ticketingResult.status === "SUCCESS") {
   const subscription = await getUserPushSubscription(userId);
   if (subscription) {
     await sendPushNotification(subscription, {
-      title: '티켓팅 성공! 🎉',
+      title: "티켓팅 성공! 🎉",
       body: `${eventName} 좌석이 배정되었습니다.`,
-      url: `/tickets/${ticketId}`
+      url: `/tickets/${ticketId}`,
     });
   }
 }
@@ -162,6 +163,7 @@ if (ticketingResult.status === 'SUCCESS') {
 **원인:** 환경변수가 설정되지 않음
 
 **해결:**
+
 1. `.env.local`에 VAPID 키 확인
 2. 개발 서버 재시작 (`pnpm dev`)
 
@@ -170,6 +172,7 @@ if (ticketingResult.status === 'SUCCESS') {
 **원인:** HTTPS가 아닌 환경에서 실행
 
 **해결:**
+
 - localhost는 HTTPS 없이 동작
 - 배포 환경에서는 반드시 HTTPS 필요
 
@@ -178,6 +181,7 @@ if (ticketingResult.status === 'SUCCESS') {
 **원인:** iOS Safari 브라우저에서는 푸시 미지원
 
 **해결:**
+
 1. 사용자에게 "홈 화면에 추가" 안내
 2. PWA로 실행해야 푸시 가능 (iOS 16.4+)
 
@@ -186,6 +190,7 @@ if (ticketingResult.status === 'SUCCESS') {
 **원인:** 구독이 만료되었거나 사용자가 해제함
 
 **해결:**
+
 ```typescript
 try {
   await sendPushNotification(subscription, payload);
@@ -201,24 +206,24 @@ try {
 
 ## 7. 플랫폼 지원
 
-| 플랫폼 | 브라우저 | 푸시 지원 |
-|--------|----------|----------|
-| Android | Chrome | ✅ 완전 지원 |
-| Android | Firefox | ✅ 완전 지원 |
-| Android | Samsung Internet | ✅ 완전 지원 |
-| iOS 16.4+ | Safari (PWA) | ✅ 홈 화면 추가 시 |
-| iOS | Safari (브라우저) | ❌ 미지원 |
-| Desktop | Chrome/Firefox/Edge | ✅ 완전 지원 |
+| 플랫폼    | 브라우저            | 푸시 지원          |
+| --------- | ------------------- | ------------------ |
+| Android   | Chrome              | ✅ 완전 지원       |
+| Android   | Firefox             | ✅ 완전 지원       |
+| Android   | Samsung Internet    | ✅ 완전 지원       |
+| iOS 16.4+ | Safari (PWA)        | ✅ 홈 화면 추가 시 |
+| iOS       | Safari (브라우저)   | ❌ 미지원          |
+| Desktop   | Chrome/Firefox/Edge | ✅ 완전 지원       |
 
 ### iOS PWA 설치 안내 UI 예시
 
 ```tsx
 function IOSInstallPrompt() {
   const isIOS = /iPad|iPhone/.test(navigator.userAgent);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-  
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+
   if (!isIOS || isStandalone) return null;
-  
+
   return (
     <div className="p-4 bg-blue-50 rounded-lg">
       <p>알림을 받으려면 홈 화면에 추가하세요:</p>
@@ -237,22 +242,23 @@ function IOSInstallPrompt() {
 Android Chrome에서는 `beforeinstallprompt` 이벤트를 사용하여 사용자에게 자동으로 설치를 권장할 수 있습니다.
 
 ```tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export function InstallPWA() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     // 이미 설치되었는지 확인
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
       setIsInstalled(true);
       return;
     }
@@ -263,10 +269,10 @@ export function InstallPWA() {
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener("beforeinstallprompt", handler);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener("beforeinstallprompt", handler);
     };
   }, []);
 
@@ -275,15 +281,15 @@ export function InstallPWA() {
 
     // 설치 프롬프트 표시
     await deferredPrompt.prompt();
-    
+
     // 사용자 선택 결과 대기
     const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('사용자가 PWA 설치를 수락했습니다');
+
+    if (outcome === "accepted") {
+      console.log("사용자가 PWA 설치를 수락했습니다");
       setIsInstalled(true);
     }
-    
+
     setDeferredPrompt(null);
   };
 
@@ -306,53 +312,57 @@ export function InstallPWA() {
 iOS는 자동 프롬프트가 불가능하므로 수동 설치 안내가 필요합니다.
 
 ```tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { X, Share, Plus } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { X, Share, Plus } from "lucide-react";
 
 export function PWAInstallBanner() {
-  const [platform, setPlatform] = useState<'ios' | 'android' | 'desktop' | null>(null);
+  const [platform, setPlatform] = useState<
+    "ios" | "android" | "desktop" | null
+  >(null);
   const [showBanner, setShowBanner] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     // 이미 설치되었는지 확인
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isStandalone = window.matchMedia(
+      "(display-mode: standalone)",
+    ).matches;
     if (isStandalone) return;
 
     // 플랫폼 감지
     const userAgent = navigator.userAgent;
     if (/iPad|iPhone|iPod/.test(userAgent)) {
-      setPlatform('ios');
+      setPlatform("ios");
       setShowBanner(true);
     } else if (/android/i.test(userAgent)) {
-      setPlatform('android');
-      
+      setPlatform("android");
+
       // Android는 beforeinstallprompt 대기
       const handler = (e: Event) => {
         e.preventDefault();
         setDeferredPrompt(e);
         setShowBanner(true);
       };
-      window.addEventListener('beforeinstallprompt', handler);
-      
-      return () => window.removeEventListener('beforeinstallprompt', handler);
+      window.addEventListener("beforeinstallprompt", handler);
+
+      return () => window.removeEventListener("beforeinstallprompt", handler);
     }
 
     // 배너를 한 번만 표시 (로컬스토리지 활용)
-    const dismissed = localStorage.getItem('pwa-banner-dismissed');
+    const dismissed = localStorage.getItem("pwa-banner-dismissed");
     if (dismissed) setShowBanner(false);
   }, []);
 
   const handleInstall = async () => {
-    if (platform === 'android' && deferredPrompt) {
+    if (platform === "android" && deferredPrompt) {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
-      if (outcome === 'accepted') {
+
+      if (outcome === "accepted") {
         setShowBanner(false);
-        localStorage.setItem('pwa-banner-dismissed', 'true');
+        localStorage.setItem("pwa-banner-dismissed", "true");
       }
       setDeferredPrompt(null);
     }
@@ -360,7 +370,7 @@ export function PWAInstallBanner() {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    localStorage.setItem('pwa-banner-dismissed', 'true');
+    localStorage.setItem("pwa-banner-dismissed", "true");
   };
 
   if (!showBanner || !platform) return null;
@@ -370,19 +380,23 @@ export function PWAInstallBanner() {
       <div className="max-w-md mx-auto flex items-start gap-4">
         <div className="flex-1">
           <h3 className="font-bold text-lg mb-1">PERFO 앱 설치</h3>
-          
-          {platform === 'ios' && (
+
+          {platform === "ios" && (
             <div className="text-sm space-y-2">
               <p>알림을 받으려면 홈 화면에 추가하세요:</p>
               <ol className="list-decimal list-inside space-y-1 text-xs">
-                <li>Safari 하단 <Share className="inline w-4 h-4" /> 공유 버튼 탭</li>
-                <li>"홈 화면에 추가" <Plus className="inline w-4 h-4" /> 선택</li>
+                <li>
+                  Safari 하단 <Share className="inline w-4 h-4" /> 공유 버튼 탭
+                </li>
+                <li>
+                  "홈 화면에 추가" <Plus className="inline w-4 h-4" /> 선택
+                </li>
                 <li>우측 상단 "추가" 버튼 탭</li>
               </ol>
             </div>
           )}
-          
-          {platform === 'android' && (
+
+          {platform === "android" && (
             <p className="text-sm">
               빠른 접근과 푸시 알림을 받으려면 앱을 설치하세요
             </p>
@@ -397,7 +411,7 @@ export function PWAInstallBanner() {
         </button>
       </div>
 
-      {platform === 'android' && deferredPrompt && (
+      {platform === "android" && deferredPrompt && (
         <button
           onClick={handleInstall}
           className="w-full mt-3 px-4 py-2 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition"
@@ -413,9 +427,9 @@ export function PWAInstallBanner() {
 ### 8.3 설치 상태 확인 훅
 
 ```tsx
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useIsInstalled() {
   const [isInstalled, setIsInstalled] = useState(false);
@@ -423,18 +437,20 @@ export function useIsInstalled() {
   useEffect(() => {
     const checkInstallation = () => {
       // PWA로 실행 중인지 확인
-      const standalone = window.matchMedia('(display-mode: standalone)').matches;
-      
+      const standalone = window.matchMedia(
+        "(display-mode: standalone)",
+      ).matches;
+
       // iOS Safari에서 standalone 모드 확인
       const iosStandalone = (navigator as any).standalone === true;
-      
+
       setIsInstalled(standalone || iosStandalone);
     };
 
     checkInstallation();
 
     // 앱이 설치되었을 때 이벤트
-    window.addEventListener('appinstalled', () => {
+    window.addEventListener("appinstalled", () => {
       setIsInstalled(true);
     });
   }, []);
@@ -445,7 +461,7 @@ export function useIsInstalled() {
 // 사용 예시
 function MyComponent() {
   const isInstalled = useIsInstalled();
-  
+
   return (
     <div>
       {isInstalled ? (
@@ -462,7 +478,7 @@ function MyComponent() {
 
 ```tsx
 // app/layout.tsx
-import { PWAInstallBanner } from '@/components/push/PWAInstallBanner';
+import { PWAInstallBanner } from "@/components/push/PWAInstallBanner";
 
 export default function RootLayout({ children }) {
   return (
@@ -479,16 +495,19 @@ export default function RootLayout({ children }) {
 ### 8.5 주의사항
 
 ⚠️ **iOS 제약사항**
+
 - iOS는 `beforeinstallprompt` 이벤트를 지원하지 않음
 - 사용자가 수동으로 Safari 공유 메뉴를 통해 설치해야 함
 - 안내 UI만 표시 가능, 자동 프롬프트 불가
 
 ✅ **Android 장점**
+
 - `beforeinstallprompt` 이벤트로 자동 프롬프트 가능
 - 설치 버튼 클릭 시 네이티브 설치 다이얼로그 표시
 - 사용자 선택 결과를 JavaScript로 추적 가능
 
 💡 **최적화 팁**
+
 - 배너를 닫은 사용자는 localStorage에 기록하여 재표시 방지
 - 이미 설치된 사용자에게는 배너 표시 안 함
 - 첫 방문이 아닌 2-3번째 방문 시 표시하여 UX 향상
@@ -499,11 +518,11 @@ export default function RootLayout({ children }) {
 
 ```typescript
 interface PushPayload {
-  title: string;       // 알림 제목
-  body: string;        // 알림 본문
-  icon?: string;       // 아이콘 (기본: /Icons/icon-192.png)
-  tag?: string;        // 그룹 태그 (같은 태그는 덮어씀)
-  url?: string;        // 클릭 시 이동할 URL
+  title: string; // 알림 제목
+  body: string; // 알림 본문
+  icon?: string; // 아이콘 (기본: /favicon-128.png)
+  tag?: string; // 그룹 태그 (같은 태그는 덮어씀)
+  url?: string; // 클릭 시 이동할 URL
 }
 ```
 
