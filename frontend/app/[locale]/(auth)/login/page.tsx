@@ -83,17 +83,6 @@ export default function LoginPage() {
 
                 <button
                     type="button"
-                    onClick={() => handleSocialLogin("kakao")}
-                    className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
-                >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#FEE500">
-                        <path d="M12 3C6.48 3 2 6.58 2 11c0 2.84 1.87 5.33 4.68 6.73l-.96 3.53c-.05.18.02.38.17.49.09.06.19.1.3.1.09 0 .18-.03.26-.08L10.3 18.8c.55.07 1.12.1 1.7.1 5.52 0 10-3.58 10-8s-4.48-8-10-8z" />
-                    </svg>
-                    {t("login.kakao")}
-                </button>
-
-                <button
-                    type="button"
                     onClick={() => handleSocialLogin("naver")}
                     className="w-full h-12 flex items-center justify-center gap-3 border-2 border-perfo-secondary/30 rounded-xl bg-white hover:bg-perfo-bg text-perfo-text font-medium transition-colors"
                 >
