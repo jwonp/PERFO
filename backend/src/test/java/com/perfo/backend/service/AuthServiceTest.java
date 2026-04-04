@@ -42,18 +42,23 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        signUpRequest = new AuthDto.SignUpRequest();
-        signUpRequest.setEmail("test@example.com");
-        signUpRequest.setPassword("password123!");
-        signUpRequest.setName("테스터");
+        signUpRequest = new AuthDto.SignUpRequest(
+                "test@example.com",
+                "password123!",
+                "테스터"
+        );
 
-        savedUser = User.builder()
-                .id(1L)
-                .email("test@example.com")
-                .password("encoded_password")
-                .name("테스터")
-                .provider("credentials")
-                .build();
+        savedUser = new User(
+                1L,
+                "test@example.com",
+                "encoded_password",
+                "테스터",
+                "credentials",
+                null,
+                null,
+                null,
+                null
+        );
     }
 
     @Test
@@ -92,9 +97,10 @@ class AuthServiceTest {
     @DisplayName("로그인 성공 - 올바른 이메일/비밀번호면 사용자 정보를 반환한다")
     void login_success() {
         // given
-        AuthDto.LoginRequest loginRequest = new AuthDto.LoginRequest();
-        loginRequest.setEmail("test@example.com");
-        loginRequest.setPassword("password123!");
+        AuthDto.LoginRequest loginRequest = new AuthDto.LoginRequest(
+                "test@example.com",
+                "password123!"
+        );
 
         given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(savedUser));
         given(passwordEncoder.matches("password123!", "encoded_password")).willReturn(true);
@@ -110,9 +116,10 @@ class AuthServiceTest {
     @DisplayName("로그인 실패 - 존재하지 않는 이메일은 예외를 던진다")
     void login_userNotFound_throwsException() {
         // given
-        AuthDto.LoginRequest loginRequest = new AuthDto.LoginRequest();
-        loginRequest.setEmail("notexist@example.com");
-        loginRequest.setPassword("password123!");
+        AuthDto.LoginRequest loginRequest = new AuthDto.LoginRequest(
+                "notexist@example.com",
+                "password123!"
+        );
 
         given(userRepository.findByEmail("notexist@example.com")).willReturn(Optional.empty());
 
@@ -132,7 +139,7 @@ class AuthServiceTest {
         AuthDto.CheckEmailResponse response = authService.checkEmail("test@example.com");
 
         // then
-        assertThat(response.isExists()).isTrue();
+        assertThat(response.getExists()).isTrue();
         assertThat(response.getProvider()).isEqualTo("credentials");
     }
 
@@ -146,7 +153,7 @@ class AuthServiceTest {
         AuthDto.CheckEmailResponse response = authService.checkEmail("new@example.com");
 
         // then
-        assertThat(response.isExists()).isFalse();
+        assertThat(response.getExists()).isFalse();
         assertThat(response.getProvider()).isNull();
     }
 }
