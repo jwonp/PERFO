@@ -74,5 +74,53 @@
     },
     "authLayout": {
         "slogan": "Stop making your customers wait in line"
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "Reserved Tickets",
+        "showUsedOnly": "Show used tickets only",
+        "statusBeforeUse": "Not used",
+        "statusWaiting": "Waiting",
+        "statusMyTurn": "Your turn!",
+        "statusUsed": "Used",
+        "empty": "No reserved tickets"
+    },
+    "myTickets": {
+        "title": "My Issued Tickets",
+        "scan": "Scan",
+        "edit": "Edit",
+        "issuedCount": "Issued",
+        "statusIssuing": "Issuing",
+        "statusInactive": "Inactive",
+        "statusExpired": "Expired",
+        "statusVerifying": "Verifying",
+        "empty": "No issued tickets",
+        "createTitle": "Issue Ticket",
+        "editTitle": "Edit Ticket",
+        "fieldName": "Ticket Name",
+        "fieldNamePlaceholder": "e.g. PERFO Summer Festival",
+        "fieldVenue": "Venue",
+        "fieldVenuePlaceholder": "e.g. Olympic Park Gymnastics Arena",
+        "fieldDate": "Valid Date",
+        "fieldTotal": "Total Tickets",
+        "fieldAllowDuplicate": "Allow duplicate purchase",
+        "fieldMaxPerUser": "Max per user",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Issue"
+    },
+    "profile": {
+        "title": "Profile",
+        "appSettings": "App Settings",
+        "darkMode": "Dark Mode",
+        "pushNotification": "Push Notifications",
+        "support": "Support",
+        "customerSupport": "Customer Support",
+        "privacyPolicy": "Privacy Policy",
+        "logout": "Log out"
     }
 }

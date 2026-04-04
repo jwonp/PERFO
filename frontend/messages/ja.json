@@ -74,5 +74,53 @@
     },
     "authLayout": {
         "slogan": "お客様を待たせないでください"
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "予約チケット",
+        "showUsedOnly": "使用済みのみ表示",
+        "statusBeforeUse": "未使用",
+        "statusWaiting": "順番待ち",
+        "statusMyTurn": "あなたの番です",
+        "statusUsed": "使用済み",
+        "empty": "予約チケットはありません"
+    },
+    "myTickets": {
+        "title": "発行したチケット",
+        "scan": "検票",
+        "edit": "編集",
+        "issuedCount": "発行状況",
+        "statusIssuing": "発行中",
+        "statusInactive": "無効",
+        "statusExpired": "期限切れ",
+        "statusVerifying": "検票中",
+        "empty": "発行したチケットはありません",
+        "createTitle": "チケット発行",
+        "editTitle": "チケット編集",
+        "fieldName": "チケット名",
+        "fieldNamePlaceholder": "例）PERFO Summer Festival",
+        "fieldVenue": "会場",
+        "fieldVenuePlaceholder": "例）オリンピック公園体操競技場",
+        "fieldDate": "有効日",
+        "fieldTotal": "総チケット数",
+        "fieldAllowDuplicate": "重複購入を許可",
+        "fieldMaxPerUser": "1人あたりの最大数",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "create": "発行する"
+    },
+    "profile": {
+        "title": "プロフィール",
+        "appSettings": "アプリ設定",
+        "darkMode": "ダークモード",
+        "pushNotification": "プッシュ通知設定",
+        "support": "サポート",
+        "customerSupport": "お問い合わせ",
+        "privacyPolicy": "プライバシーポリシー",
+        "logout": "ログアウト"
     }
 }

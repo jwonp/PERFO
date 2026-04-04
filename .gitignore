@@ -11,6 +11,7 @@ frontend/out/
 frontend/dist-electron/
 
 # Environment
+.env
 .env.dev
 .env.prod
 frontend/.env
@@ -18,9 +19,9 @@ frontend/.env.local
 frontend/.env.production.local
 
 # Spring Boot
-backend/.gradle/
-backend/build/
-backend/bin/
+backend/.gradle/**
+backend/build/**
+backend/bin/**
 !backend/gradle/wrapper/gradle-wrapper.jar
 
 # IDE

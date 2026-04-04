@@ -1,0 +1,16 @@
+server:
+  port: ${SERVER_PORT:18274}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:15329/perfo}
+    username: ${SPRING_DATASOURCE_USERNAME:perfo}
+    password: ${SPRING_DATASOURCE_PASSWORD:perfo123}
+
+  security:
+    jwt:
+      secret: ${SPRING_SECURITY_JWT_SECRET:dev-jwt-secret-key-not-for-production-use-min-256-bits}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:14138}
