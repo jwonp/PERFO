@@ -30,7 +30,7 @@ public class User {
     private String name;
 
     @Column
-    private String provider; // "credentials", "google", "kakao", "naver"
+    private String provider; // "credentials", "google", "naver", "line"
 
     @Column(name = "provider_id")
     private String providerId;
