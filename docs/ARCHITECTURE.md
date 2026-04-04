@@ -3,6 +3,7 @@
 > 작업 순서대로 정리된 개발 가이드
 
 ## 목차
+
 1. [프로젝트 개요](#1-프로젝트-개요)
 2. [프로젝트 구조](#2-프로젝트-구조)
 3. [Phase 1: Docker Compose 설정](#3-phase-1-docker-compose-설정)
@@ -16,9 +17,9 @@
 11. [Phase 9: PWA 푸시 알림](#11-phase-9-pwa-푸시-알림)
 
 ### 📚 관련 문서
+
 - [PWA 푸시 알림 가이드](./PWA_PUSH_GUIDE.md)
 - [윈도우 서버 배포 가이드](./WINDOWS_SERVER_GUIDE.md)
-
 
 ---
 
@@ -27,6 +28,7 @@
 온라인 티켓팅 + 오프라인 QR 인증이 가능한 모바일 퍼스트 티켓팅 플랫폼
 
 ### 핵심 기능
+
 - **티켓팅**: Kafka + Redis 기반 대기열 처리 (WebSocket 실시간 상태)
 - **인증**: QR 코드 기반 오프라인 티켓 검증
 - **로그인**: NextAuth 소셜 로그인 (Google, Kakao, Naver, Line)
@@ -41,21 +43,21 @@ graph TB
         UI[Next.js Frontend]
         WS[WebSocket Client]
     end
-    
+
     subgraph Backend["백엔드"]
         API[Next.js API Routes]
         WSServer[WebSocket Server]
     end
-    
+
     subgraph Queue["메시지 큐"]
         Kafka[Kafka] --> Consumer[Consumer]
     end
-    
+
     subgraph Storage["저장소"]
         Redis[Redis]
         DB[(PostgreSQL)]
     end
-    
+
     UI --> API
     WS <--> WSServer
     API --> Kafka
@@ -111,7 +113,7 @@ pnpm add prisma @prisma/client kafkajs ioredis
 ### 3.2 docker-compose.yml
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   zookeeper:
@@ -194,10 +196,6 @@ NEXTAUTH_SECRET=your-secret-key
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 
-# Kakao
-KAKAO_CLIENT_ID=
-KAKAO_CLIENT_SECRET=
-
 # Naver
 NAVER_CLIENT_ID=
 NAVER_CLIENT_SECRET=
@@ -213,20 +211,15 @@ DATABASE_URL=postgresql://perfo:perfo123@localhost:5432/perfo
 ### 4.3 Auth 설정 (lib/auth/auth.config.ts)
 
 ```typescript
-import GoogleProvider from "next-auth/providers/google"
-import KakaoProvider from "next-auth/providers/kakao"
-import NaverProvider from "next-auth/providers/naver"
-import LineProvider from "next-auth/providers/line"
+import GoogleProvider from "next-auth/providers/google";
+import NaverProvider from "next-auth/providers/naver";
+import LineProvider from "next-auth/providers/line";
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    KakaoProvider({
-      clientId: process.env.KAKAO_CLIENT_ID!,
-      clientSecret: process.env.KAKAO_CLIENT_SECRET!,
     }),
     NaverProvider({
       clientId: process.env.NAVER_CLIENT_ID!,
@@ -238,27 +231,25 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
-}
+};
 ```
 
 ### 4.4 OAuth Client ID/Secret 발급
 
 #### Google
-1. **[Google Cloud Console](https://console.cloud.google.com/apis/credentials)** → OAuth 2.0 Client ID
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → OAuth 2.0 Client ID
 2. Callback: `/api/auth/callback/google`
 
-#### Kakao
-1. **[Kakao Developers](https://developers.kakao.com/console/app)** → 내 애플리케이션 → 앱 키 (REST API 키)
-2. 보안 메뉴에서 Client Secret 생성
-3. Callback: `/api/auth/callback/kakao`
-
 #### Naver
-1. **[Naver Developers](https://developers.naver.com/apps/#/list)** → Application → 애플리케이션 등록
+
+1. [Naver Developers](https://developers.naver.com/) → 애플리케이션 등록
 2. Callback: `/api/auth/callback/naver`
 
 #### Line
-1. **[Line Developers Console](https://developers.line.biz/console/)** → Providers → LINE Login channel
-2. Channel ID (Client ID), Channel Secret 발급
+
+1. [Line Developers](https://developers.line.biz/) → LINE Login channel
+2. Channel ID (Client ID), Channel Secret
 3. Callback: `/api/auth/callback/line`
 
 ---
@@ -269,10 +260,10 @@ export const authOptions: NextAuthOptions = {
 
 ```typescript
 interface TicketEvent {
-  id: string
-  totalTickets: number              // 총 N개 발행
-  allowDuplicatePurchase: boolean   // 중복 구매 허용 (기본: false)
-  maxTicketsPerUser: number         // 1인당 최대 수량 (기본: 1)
+  id: string;
+  totalTickets: number; // 총 N개 발행
+  allowDuplicatePurchase: boolean; // 중복 구매 허용 (기본: false)
+  maxTicketsPerUser: number; // 1인당 최대 수량 (기본: 1)
 }
 ```
 
@@ -280,20 +271,20 @@ interface TicketEvent {
 
 ```typescript
 // lib/kafka/producer.ts
-import { Kafka } from 'kafkajs'
+import { Kafka } from "kafkajs";
 
-const kafka = new Kafka({ brokers: ['localhost:9092'] })
-const producer = kafka.producer()
+const kafka = new Kafka({ brokers: ["localhost:9092"] });
+const producer = kafka.producer();
 
 export async function produceTicketingRequest(data: {
-  userId: string
-  eventId: string
-  requestId: string
+  userId: string;
+  eventId: string;
+  requestId: string;
 }) {
   await producer.send({
-    topic: 'ticketing-requests',
+    topic: "ticketing-requests",
     messages: [{ value: JSON.stringify(data) }],
-  })
+  });
 }
 ```
 
@@ -301,28 +292,28 @@ export async function produceTicketingRequest(data: {
 
 ```typescript
 // workers/ticketing-consumer.ts
-const consumer = kafka.consumer({ groupId: 'ticketing-group' })
+const consumer = kafka.consumer({ groupId: "ticketing-group" });
 
-await consumer.subscribe({ topic: 'ticketing-requests' })
+await consumer.subscribe({ topic: "ticketing-requests" });
 await consumer.run({
   eachMessage: async ({ message }) => {
-    const { userId, eventId, requestId } = JSON.parse(message.value.toString())
+    const { userId, eventId, requestId } = JSON.parse(message.value.toString());
     // Redis에서 재고 확인 → DB 저장 → WebSocket 알림
   },
-})
+});
 ```
 
 ### 5.4 Redis 재고 관리
 
 ```typescript
 // lib/redis/inventory.ts
-import Redis from 'ioredis'
+import Redis from "ioredis";
 
-const redis = new Redis()
+const redis = new Redis();
 
 export async function decrementStock(eventId: string): Promise<boolean> {
-  const remaining = await redis.decr(`stock:${eventId}`)
-  return remaining >= 0
+  const remaining = await redis.decr(`stock:${eventId}`);
+  return remaining >= 0;
 }
 ```
 
@@ -340,32 +331,22 @@ pnpm add -D @types/ws
 ### 6.2 상태 정의
 
 ```typescript
-/** 티켓 구매 프로세스 상태 — Kafka Consumer → WebSocket 실시간 전송 */
 type TicketingStatus =
-  | "PENDING"      // 대기 중 (큐에 적재됨)
-  | "PROCESSING"   // 처리 중 (Consumer 처리 중)
-  | "SUCCESS"      // 성공 (티켓 발급 완료)
-  | "FAILED"       // 실패 (재시도 가능)
-  | "SOLD_OUT"     // 매진
-  | "DUPLICATE"    // 중복 구매 불가
-
-/** 발급된 티켓의 사용 상태 — Reserved 탭 리스트에서 표시 */
-type TicketUsageStatus =
-  | "BEFORE_USE"   // 사용 전
-  | "WAITING"      // 순서 대기중
-  | "MY_TURN"      // 현재 순서임
-  | "USED"         // 사용 완료
+  | "PENDING" // 대기 중
+  | "PROCESSING" // 처리 중
+  | "SUCCESS" // 성공
+  | "FAILED" // 실패 (재시도 가능)
+  | "SOLD_OUT" // 매진
+  | "DUPLICATE"; // 중복 구매 불가
 ```
-
-> `TicketingStatus`는 구매 플로우(WebSocket)에서만 사용하며, `SUCCESS` 이후에는 `TicketUsageStatus`로 전환됩니다.
 
 ### 6.3 통신 전략
 
-| 기능 | 방식 | 이유 |
-|------|------|------|
-| 티켓팅 상태 | **WebSocket** | 실시간 필요 |
-| 이벤트/티켓 목록 | Polling | 갱신 빈도 낮음 |
-| QR 검증 | HTTP | 단발성 요청 |
+| 기능             | 방식          | 이유           |
+| ---------------- | ------------- | -------------- |
+| 티켓팅 상태      | **WebSocket** | 실시간 필요    |
+| 이벤트/티켓 목록 | Polling       | 갱신 빈도 낮음 |
+| QR 검증          | HTTP          | 단발성 요청    |
 
 ---
 
@@ -380,25 +361,25 @@ pnpm add html5-qrcode qrcode @types/qrcode
 ### 7.2 QR 생성
 
 ```typescript
-import QRCode from 'qrcode'
+import QRCode from "qrcode";
 
 interface TicketQRData {
-  ticketId: string
-  eventId: string
-  userId: string
-  signature: string  // HMAC 서명
+  ticketId: string;
+  eventId: string;
+  userId: string;
+  signature: string; // HMAC 서명
 }
 
-const qrDataUrl = await QRCode.toDataURL(JSON.stringify(data))
+const qrDataUrl = await QRCode.toDataURL(JSON.stringify(data));
 ```
 
 ### 7.3 QR 스캔 (모바일)
 
 ```typescript
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5QrcodeScanner } from "html5-qrcode";
 
-const scanner = new Html5QrcodeScanner("reader", { fps: 10 })
-scanner.render(onSuccess, onError)
+const scanner = new Html5QrcodeScanner("reader", { fps: 10 });
+scanner.render(onSuccess, onError);
 ```
 
 ---
@@ -416,12 +397,12 @@ scanner.render(onSuccess, onError)
 
 ### 8.2 핵심 고려사항
 
-| 요소 | 모바일 | 데스크톱 |
-|------|--------|----------|
-| 네비게이션 | 하단 탭 바 | 상단 바 |
-| 버튼 | 최소 48px | 표준 |
-| 폰트 | 16px+ | 표준 |
-| QR 스캐너 | 전체 화면 | 모달 |
+| 요소       | 모바일     | 데스크톱 |
+| ---------- | ---------- | -------- |
+| 네비게이션 | 하단 탭 바 | 상단 바  |
+| 버튼       | 최소 48px  | 표준     |
+| 폰트       | 16px+      | 표준     |
+| QR 스캐너  | 전체 화면  | 모달     |
 
 ---
 
@@ -429,14 +410,14 @@ scanner.render(onSuccess, onError)
 
 ### 9.1 AWS 배포
 
-| 컴포넌트 | AWS 서비스 |
-|----------|-----------|
-| App | ECS Fargate |
-| Kafka | Amazon MSK |
-| Redis | ElastiCache |
-| DB | RDS PostgreSQL |
-| LB | ALB |
-| CDN | CloudFront |
+| 컴포넌트 | AWS 서비스     |
+| -------- | -------------- |
+| App      | ECS Fargate    |
+| Kafka    | Amazon MSK     |
+| Redis    | ElastiCache    |
+| DB       | RDS PostgreSQL |
+| LB       | ALB            |
+| CDN      | CloudFront     |
 
 **예상 비용**: 최소 ~$265/월, 프로덕션 ~$837/월
 
@@ -468,11 +449,11 @@ location /api/ws {
 ### 10.2 Rate Limiting
 
 ```typescript
-import { Ratelimit } from "@upstash/ratelimit"
+import { Ratelimit } from "@upstash/ratelimit";
 
 const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, "10 s"),
-})
+});
 ```
 
 ---
@@ -502,28 +483,28 @@ components/push/
 ### 11.2 사용 예시
 
 ```tsx
-import { PushNotification } from '@/components/push/PushNotification';
+import { PushNotification } from "@/components/push/PushNotification";
 
 // 페이지에 알림 구독 버튼 추가
-<PushNotification />
+<PushNotification />;
 
 // 서버에서 푸시 발송
-import { sendPushNotification } from '@/lib/push/server';
+import { sendPushNotification } from "@/lib/push/server";
 await sendPushNotification(subscription, {
-  title: '티켓팅 성공!',
-  body: '좌석이 배정되었습니다.',
-  url: '/tickets/123'
+  title: "티켓팅 성공!",
+  body: "좌석이 배정되었습니다.",
+  url: "/tickets/123",
 });
 ```
 
 ### 11.3 플랫폼 지원
 
-| 플랫폼 | 지원 |
-|--------|------|
-| Android Chrome | ✅ |
-| iOS Safari (PWA) | ✅ 16.4+ |
-| iOS Safari (브라우저) | ❌ |
-| Desktop | ✅ |
+| 플랫폼                | 지원     |
+| --------------------- | -------- |
+| Android Chrome        | ✅       |
+| iOS Safari (PWA)      | ✅ 16.4+ |
+| iOS Safari (브라우저) | ❌       |
+| Desktop               | ✅       |
 
 ---
 

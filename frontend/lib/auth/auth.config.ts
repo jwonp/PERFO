@@ -1,8 +1,8 @@
 import GoogleProvider from "next-auth/providers/google"
-import KakaoProvider from "next-auth/providers/kakao"
 import NaverProvider from "next-auth/providers/naver"
 import LineProvider from "next-auth/providers/line"
 import { NextAuthOptions } from "next-auth"
+import axios from "axios"
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:18080"
 
@@ -11,10 +11,6 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
-        KakaoProvider({
-            clientId: process.env.KAKAO_CLIENT_ID!,
-            clientSecret: process.env.KAKAO_CLIENT_SECRET!,
         }),
         NaverProvider({
             clientId: process.env.NAVER_CLIENT_ID!,
@@ -33,21 +29,20 @@ export const authOptions: NextAuthOptions = {
             if (!account) return false
 
             try {
-                const res = await fetch(`${BACKEND_URL}/api/auth/oauth`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        provider: account.provider,
-                        providerId: account.providerAccountId,
-                        email: user.email,
-                        name: user.name,
-                        profileImage: user.image,
-                    }),
-                })
+                const oauthPayload = {
+                    provider: account.provider,
+                    providerId: account.providerAccountId,
+                    email: user.email,
+                    name: user.name,
+                    profileImage: user.image,
+                }
 
-                if (!res.ok) return false
+                console.log({ oauthPayload, BACKEND_URL })
 
-                const backendUser = await res.json()
+                const { data: backendUser } = await axios.post(
+                    `${BACKEND_URL}/api/auth/oauth`,
+                    oauthPayload
+                )
                 // 백엔드에서 반환한 사용자 정보를 user 객체에 저장
                 user.id = String(backendUser.id)
                 user.name = backendUser.name
