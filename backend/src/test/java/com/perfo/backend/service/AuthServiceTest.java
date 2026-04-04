@@ -12,8 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -102,7 +100,7 @@ class AuthServiceTest {
                 "password123!"
         );
 
-        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(savedUser));
+        given(userRepository.findByEmail("test@example.com")).willReturn(savedUser);
         given(passwordEncoder.matches("password123!", "encoded_password")).willReturn(true);
 
         // when
@@ -121,7 +119,7 @@ class AuthServiceTest {
                 "password123!"
         );
 
-        given(userRepository.findByEmail("notexist@example.com")).willReturn(Optional.empty());
+        given(userRepository.findByEmail("notexist@example.com")).willReturn(null);
 
         // when & then
         assertThatThrownBy(() -> authService.login(loginRequest))
@@ -133,7 +131,7 @@ class AuthServiceTest {
     @DisplayName("이메일 확인 - 가입된 이메일이면 exists=true와 provider를 반환한다")
     void checkEmail_existingEmail_returnsExistsTrue() {
         // given
-        given(userRepository.findByEmail("test@example.com")).willReturn(Optional.of(savedUser));
+        given(userRepository.findByEmail("test@example.com")).willReturn(savedUser);
 
         // when
         AuthDto.CheckEmailResponse response = authService.checkEmail("test@example.com");
@@ -147,7 +145,7 @@ class AuthServiceTest {
     @DisplayName("이메일 확인 - 미가입 이메일이면 exists=false를 반환한다")
     void checkEmail_newEmail_returnsExistsFalse() {
         // given
-        given(userRepository.findByEmail("new@example.com")).willReturn(Optional.empty());
+        given(userRepository.findByEmail("new@example.com")).willReturn(null);
 
         // when
         AuthDto.CheckEmailResponse response = authService.checkEmail("new@example.com");
