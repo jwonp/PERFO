@@ -23,13 +23,12 @@ PERFO/
 
 ## 시작하기
 
-### 1. 인프라 실행 (필수)
+### 1. 인프라 준비 (필수)
 
 ```bash
 docker compose up -d
 ```
-
-PostgreSQL (`:15432`), Redis (`:16379`), Kafka (`:19092`) 가 실행됩니다.
+> PostgreSQL (`:15329`), Redis (`:16192`), Kafka (`:19043`) 시스템이 백그라운드에서 실행됩니다. 개발 시 보통 .env에 심볼릭 링크 형태로 걸려있는 .env.dev 환경변수가 적용됩니다.
 
 ### 2. Frontend 로컬 개발
 
@@ -38,17 +37,16 @@ cd frontend
 pnpm install
 pnpm dev
 ```
-
-→ http://localhost:13000
+> http://localhost:14138 접근 가능
 
 ### 3. Backend 로컬 개발
+Docker-compose `backend-dev` 프로필을 통한 Hot Reload 개발이 가능하며, 로컬에서 직접 구동할수도 있습니다.
 
 ```bash
 cd backend
 ./gradlew bootRun
 ```
-
-→ http://localhost:18080
+> http://localhost:18274 접근 가능
 
 ---
 
@@ -58,28 +56,30 @@ cd backend
 
 | 파일 | 용도 | Git 추적 |
 |------|------|----------|
-| `.env.dev` | 로컬 개발용 (기본값 포함) | ✅ 추적됨 |
-| `.env.prod` | 프로덕션용 (배포 시 값 변경 필수) | ❌ gitignore |
+| `.env.dev` | 로컬 개발용 포트 및 DB 세팅 (1**** 단위 포트 포워딩) | ✅ 추적됨 |
+| `.env.prod` | 운영 환경 세팅 (4자리 단위 포워딩) | ✅ 추적됨 |
+| `.env` | 컨테이너 자동 반영을 위해 심볼릭 링크 처리된 상태 (ex `ln -sf .env.dev .env`) | ❌ gitignore |
 
 ### 프로필 (Profiles)
 
-| 명령어 | 실행 대상 | 용도 |
+| 명령어 (가정: .env 연동 완료시) | 실행 대상 | 용도 |
 |--------|----------|------|
-| `docker compose --env-file .env.dev up -d` | 인프라만 | 로컬 개발 |
-| `docker compose --env-file .env.dev --profile dev up -d` | 인프라 + frontend-dev | Docker 프론트 개발 |
-| `docker compose --env-file .env.prod --profile full up -d --build` | 전체 | 프로덕션 배포 |
+| `docker compose up -d` | 인프라 기본 (DB, Redis, Kafka) | 로컬 개발용 인프라만 구성 |
+| `docker compose --profile dev up -d` | 인프라 + backend-dev + frontend-dev | 소스코드 Hot Reload 개발 샌드박스 |
+| `docker compose --profile full up -d --build` | 서비스 전체 | 운영 서버 반영 용도 |
 
 ### 서비스 상세
 
-| 서비스 | 이미지 / 빌드 | 포트 | 프로필 |
+| 서비스 | 이미지 / 빌드 | 포트 (Dev/Prod) | 프로필 |
 |--------|--------------|------|--------|
-| `postgres` | postgres:16-alpine | `15432` → 5432 | (기본) |
-| `redis` | redis:7-alpine | `16379` → 6379 | (기본) |
-| `zookeeper` | cp-zookeeper:7.5.0 | `12181` → 2181 | (기본) |
-| `kafka` | cp-kafka:7.5.0 | `19092` → 9092 | (기본) |
-| `backend` | ./backend (Spring Boot) | `18080` | `full` |
-| `frontend-dev` | ./frontend (dev target) | `13000` | `dev` |
-| `frontend` | ./frontend (prod target) | `13000` | `full` |
+| `postgres` | postgres:16-alpine | `15329` / `5329` | (기본) |
+| `redis` | redis:7-alpine | `16192` / `6192` | (기본) |
+| `zookeeper` | cp-zookeeper:7.5.0 | `12815` / `2815` | (기본) |
+| `kafka` | cp-kafka:7.5.0 | `19043` / `9043` | (기본) |
+| `backend` | ./backend (Spring Boot) | `18274` / `8274` | `full` |
+| `backend-dev` | ./backend (Hot Reload bootRun) | `18274` (Dev 고정) | `dev` |
+| `frontend` | ./frontend (prod target) | `14138` / `4138` | `full` |
+| `frontend-dev` | ./frontend (dev target) | `14138` (Dev 고정) | `dev` |
 
 ### 주요 환경변수
 
@@ -101,28 +101,24 @@ docker compose down
 # 전체 중지 + 볼륨 삭제 (데이터 초기화)
 docker compose down -v
 
-# 백엔드만 재빌드
-docker compose --profile full up backend -d --build
+# 미사용 도커 리소스 정리 (이미지, 컨테이너, 네트워크 전체 삭제)
+docker system prune -a --volumes
 
-# 로그 확인
-docker compose logs -f backend
-docker compose logs -f frontend
-
-# 실행 중인 서비스 확인
-docker compose ps
+# 샌드박스 전용 개발 실행 (포어그라운드 로그 확인 가능)
+docker compose --profile dev up
 ```
 
 ---
 
 ## 포트 정리
 
-| 포트 | 서비스 |
-|------|--------|
-| `13000` | Frontend (Next.js) |
-| `18080` | Backend (Spring Boot) |
-| `15432` | PostgreSQL |
-| `16379` | Redis |
-| `19092` | Kafka |
-| `12181` | Zookeeper |
+| 포트 (Dev/Prod) | 서비스 |
+|------------------|--------|
+| `14138` / `4138` | Frontend (Next.js) |
+| `18274` / `8274` | Backend (Spring Boot) |
+| `15329` / `5329` | PostgreSQL |
+| `16192` / `6192`  | Redis |
+| `19043` / `9043`  | Kafka |
+| `12815` / `2815`  | Zookeeper |
 
-> 모든 포트는 기본 포트와 충돌을 피하기 위해 커스텀 포트를 사용합니다.
+> 로컬 충돌을 피하기 위해 생성된 랜덤 5자리(Dev), 4자리(Prod) 포트를 사용합니다.

@@ -28,6 +28,8 @@ export const authOptions: NextAuthOptions = {
     session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
     callbacks: {
         async signIn({ user, account, profile }) {
+            console.log("signIn", user, account, profile);
+
             if (!account) return false
 
             try {

@@ -244,21 +244,21 @@ export const authOptions: NextAuthOptions = {
 ### 4.4 OAuth Client ID/Secret 발급
 
 #### Google
-1. [Google Cloud Console](https://console.cloud.google.com/) → OAuth 2.0 Client ID
+1. **[Google Cloud Console](https://console.cloud.google.com/apis/credentials)** → OAuth 2.0 Client ID
 2. Callback: `/api/auth/callback/google`
 
 #### Kakao
-1. [Kakao Developers](https://developers.kakao.com/) → REST API 키 (Client ID)
+1. **[Kakao Developers](https://developers.kakao.com/console/app)** → 내 애플리케이션 → 앱 키 (REST API 키)
 2. 보안 메뉴에서 Client Secret 생성
 3. Callback: `/api/auth/callback/kakao`
 
 #### Naver
-1. [Naver Developers](https://developers.naver.com/) → 애플리케이션 등록
+1. **[Naver Developers](https://developers.naver.com/apps/#/list)** → Application → 애플리케이션 등록
 2. Callback: `/api/auth/callback/naver`
 
 #### Line
-1. [Line Developers](https://developers.line.biz/) → LINE Login channel
-2. Channel ID (Client ID), Channel Secret
+1. **[Line Developers Console](https://developers.line.biz/console/)** → Providers → LINE Login channel
+2. Channel ID (Client ID), Channel Secret 발급
 3. Callback: `/api/auth/callback/line`
 
 ---
@@ -340,14 +340,24 @@ pnpm add -D @types/ws
 ### 6.2 상태 정의
 
 ```typescript
-type TicketingStatus = 
-  | "PENDING"      // 대기 중
-  | "PROCESSING"   // 처리 중
-  | "SUCCESS"      // 성공
+/** 티켓 구매 프로세스 상태 — Kafka Consumer → WebSocket 실시간 전송 */
+type TicketingStatus =
+  | "PENDING"      // 대기 중 (큐에 적재됨)
+  | "PROCESSING"   // 처리 중 (Consumer 처리 중)
+  | "SUCCESS"      // 성공 (티켓 발급 완료)
   | "FAILED"       // 실패 (재시도 가능)
   | "SOLD_OUT"     // 매진
   | "DUPLICATE"    // 중복 구매 불가
+
+/** 발급된 티켓의 사용 상태 — Reserved 탭 리스트에서 표시 */
+type TicketUsageStatus =
+  | "BEFORE_USE"   // 사용 전
+  | "WAITING"      // 순서 대기중
+  | "MY_TURN"      // 현재 순서임
+  | "USED"         // 사용 완료
 ```
+
+> `TicketingStatus`는 구매 플로우(WebSocket)에서만 사용하며, `SUCCESS` 이후에는 `TicketUsageStatus`로 전환됩니다.
 
 ### 6.3 통신 전략
 
