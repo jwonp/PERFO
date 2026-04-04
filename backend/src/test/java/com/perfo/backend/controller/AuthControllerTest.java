@@ -42,10 +42,11 @@ class AuthControllerTest {
     @WithMockUser
     void signUp_returns200() throws Exception {
         // given
-        AuthDto.SignUpRequest request = new AuthDto.SignUpRequest();
-        request.setEmail("test@example.com");
-        request.setPassword("password123!");
-        request.setName("테스터");
+        AuthDto.SignUpRequest request = new AuthDto.SignUpRequest(
+                "test@example.com",
+                "password123!",
+                "테스터"
+        );
 
         AuthDto.AuthResponse response = new AuthDto.AuthResponse(
                 1L, "test@example.com", "테스터", "credentials", null);
@@ -68,9 +69,11 @@ class AuthControllerTest {
     @WithMockUser
     void signUp_invalidEmail_returns400() throws Exception {
         // given
-        AuthDto.SignUpRequest request = new AuthDto.SignUpRequest();
-        request.setEmail("not-an-email");
-        request.setPassword("password123!");
+        AuthDto.SignUpRequest request = new AuthDto.SignUpRequest(
+                "not-an-email",
+                "password123!",
+                null
+        );
 
         // when & then
         mockMvc.perform(post("/api/auth/signup")
