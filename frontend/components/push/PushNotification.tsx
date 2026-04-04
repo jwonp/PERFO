@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 interface PushNotificationProps {
     vapidPublicKey?: string;
@@ -94,13 +95,7 @@ export function PushNotification({
             });
 
             // 서버에 구독 정보 저장
-            const response = await fetch('/api/push/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(subscription.toJSON()),
-            });
-
-            if (!response.ok) throw new Error('구독 저장 실패');
+            await axios.post('/api/push/subscribe', subscription.toJSON());
 
             setIsSubscribed(true);
         } catch (err) {
@@ -122,10 +117,8 @@ export function PushNotification({
             if (subscription) {
                 await subscription.unsubscribe();
 
-                await fetch('/api/push/subscribe', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ endpoint: subscription.endpoint }),
+                await axios.delete('/api/push/subscribe', {
+                    data: { endpoint: subscription.endpoint },
                 });
             }
 
