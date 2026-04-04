@@ -6,10 +6,9 @@ import com.perfo.backend.service.AuthService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
-import org.mockito.ArgumentMatchers.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
@@ -23,7 +22,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
  * AuthController 슬라이스 테스트 (Web Layer Test)
  *
  * - @WebMvcTest: Controller + MockMvc만 로드 (DB/Service는 mock)
- * - @MockBean: Spring 컨텍스트에 mock 빈 등록
+ * - @MockitoBean: Spring 컨텍스트에 mock 빈 등록
  * - @WithMockUser: 인증된 사용자로 요청 시뮬레이션
  */
 @WebMvcTest(AuthController::class)
@@ -35,7 +34,7 @@ class AuthControllerTest {
     @Autowired
     private lateinit var objectMapper: ObjectMapper
 
-    @MockBean
+    @field:MockitoBean
     private lateinit var authService: AuthService
 
     @Test
@@ -53,7 +52,7 @@ class AuthControllerTest {
             1L, "test@example.com", "테스터", "credentials", null
         )
 
-        given(authService.signUp(any())).willReturn(response)
+        given(authService.signUp(request)).willReturn(response)
 
         // when & then
         mockMvc.perform(
