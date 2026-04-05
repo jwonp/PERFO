@@ -1,6 +1,8 @@
 # PERFO Frontend — FSD (Feature-Sliced Design) 아키텍처 가이드
 
 > Next.js App Router 환경에 맞게 조정된 FSD 규칙
+> 이 문서는 현재 코드의 단순 스냅샷이 아니라, 앞으로 수렴해야 할 목표 구조를 먼저 정의한다.
+> 현재 코드와 차이가 있더라도 새 코드와 수정되는 코드부터 이 구조를 기준으로 맞춘다.
 
 ---
 
@@ -120,10 +122,6 @@ src/shared/
 │   └── label.tsx
 ├── lib/
 │   ├── utils.ts            # 현재 lib/lib/utils.ts
-│   └── kafka/              # 현재 lib/kafka/
-│   └── redis/              # 현재 lib/redis/
-├── api/
-│   └── push/               # 현재 lib/push/
 ├── i18n/                   # 현재 i18n/
 │   ├── routing.ts
 │   ├── navigation.ts
@@ -133,6 +131,22 @@ src/shared/
 └── types/                  # 현재 types/
     ├── next-auth.d.ts
     └── routes.d.ts
+```
+
+### `server/` — Next.js server-only 인프라
+- 브라우저 번들에 포함되면 안 되는 서버 전용 코드를 둔다
+- Next.js Route Handler, Server Action, 서버 전용 인프라 어댑터를 관리한다
+- 프론트엔드 저장소 안에 있더라도 브라우저 공용 `shared`와는 엄격히 분리한다
+
+```
+src/server/
+├── infra/
+│   ├── redis/              # 현재 lib/redis/
+│   ├── push/               # 현재 lib/push/
+│   └── messaging/          # Kafka 등 메시징 어댑터
+├── auth/
+│   └── token/
+└── index.ts
 ```
 
 ---
@@ -185,9 +199,9 @@ import { TicketCard, type TicketUsageStatus } from "@/entities/ticket";
 | `components/push/PushNotification.tsx` | `src/features/push-notification/ui/PushToggle.tsx` |
 | `components/providers/SessionProvider.tsx` | `src/shared/providers/SessionProvider.tsx` |
 | `lib/auth/auth.config.ts` | `src/shared/config/auth.config.ts` |
-| `lib/push/` | `src/shared/api/push/` |
-| `lib/kafka/` | `src/shared/lib/kafka/` |
-| `lib/redis/` | `src/shared/lib/redis/` |
+| `lib/push/` | `src/server/infra/push/` |
+| `lib/kafka/` | `src/server/infra/messaging/` |
+| `lib/redis/` | `src/server/infra/redis/` |
 | `lib/lib/utils.ts` | `src/shared/lib/utils.ts` |
 | `i18n/` | `src/shared/i18n/` |
 | `types/` | `src/shared/types/` |
@@ -219,3 +233,12 @@ import { TicketCard, type TicketUsageStatus } from "@/entities/ticket";
 1. **즉시 적용**: 새 컴포넌트/기능은 FSD 경로에 작성
 2. **단계적 이전**: 기능 수정이 생길 때 해당 파일을 FSD 위치로 이동
 3. **일괄 이전 금지**: 리팩토링 PR을 기능 PR과 섞지 않는다
+
+## 8. 경계 원칙
+
+- 프론트엔드 문서 범위는 Next.js 전반으로 본다.
+- 백엔드 문서 범위는 Spring 전반으로 분리해서 관리한다.
+- `shared/`에는 브라우저와 서버가 공통으로 써도 되는 범용 코드만 둔다.
+- Redis, Kafka, 푸시 발송처럼 server-only 성격의 모듈은 `server/` 아래로 분리한다.
+- 새 코드는 목표 구조를 반드시 따른다.
+- 기존 코드는 수정이 발생한 시점에 점진적으로 목표 구조로 이동한다.
