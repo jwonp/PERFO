@@ -49,3 +49,5 @@ coverage/
 *.pem
 .claude/settings.local.json
 backend/.kotlin
+docs/00_Study
+
