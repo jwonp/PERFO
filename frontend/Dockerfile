@@ -5,9 +5,13 @@ WORKDIR /app
 
 # Install dependencies
 # --mount=type=cache: pnpm store를 호스트에 캐시 → package.json이 바뀌어도 재다운로드 없음
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile
+    if [ -f pnpm-lock.yaml ]; then \
+      pnpm install --frozen-lockfile; \
+    else \
+      pnpm install --no-frozen-lockfile; \
+    fi
 
 # Copy source
 COPY . .
