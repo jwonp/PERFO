@@ -9,6 +9,10 @@ plugins {
 group = 'com.perfo'
 version = '0.0.1-SNAPSHOT'
 
+springBoot {
+    mainClass = 'com.perfo.backend.BackendApplicationKt'
+}
+
 kotlin {
     jvmToolchain(17)
 }
