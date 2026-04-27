@@ -1,8 +1,9 @@
 # PERFO 인프라 개발 계획
 
 > 기준 문서:
-> `docs/01_Design/00_Architecture/ARCHITECTURE.md`
-> `docs/01_Design/WINDOWS_SERVER_GUIDE.md`
+> `docs/01_Design/00_Architecture/01_ARCHITECTURE.md`
+> `docs/01_Design/00_Architecture/02_AUTH_ACCOUNT_STRATEGY.md`
+> `docs/01_Design/07_WINDOWS_SERVER_GUIDE.md`
 
 ## 1. 목표
 
@@ -40,6 +41,7 @@
 - 운영 OS와 배포 대상 확정
 - Docker / Compose 정리
 - 환경 변수와 Secret 관리 방식 정리
+- Resend 개발/운영 API key와 발신 도메인 분리
 
 ### 3.2 네트워크와 진입 계층
 
@@ -60,15 +62,23 @@
 - request id 연계
 - 배포 버전 표기
 - 에러 추적 연동
+- 인증 메일 발송 성공률, 실패율, provider 응답 로그 확인
 
-### 3.5 배포 자동화
+### 3.5 메일 발송
+
+- 초기 메일 provider는 Resend로 둔다.
+- 개발과 운영은 API key, 발신 도메인, 환경 변수를 분리한다.
+- 운영 발송 전 SPF, DKIM, DMARC 설정을 완료한다.
+- 장기적으로 AWS SES 전환을 고려하되, 애플리케이션은 `MailSender` 인터페이스로 provider 교체 가능하게 둔다.
+
+### 3.6 배포 자동화
 
 - CI에서 테스트와 이미지 빌드
 - 레지스트리 업로드
 - 초기 수동 배포 절차 정리
 - 이후 GitOps 전환 경로 확보
 
-### 3.6 IaC와 자동화
+### 3.7 IaC와 자동화
 
 - 초기에는 문서화와 스크립트 자동화 위주
 - 확장 단계에서 Terraform / Ansible / Helm / Argo CD 역할 분리

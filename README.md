@@ -66,11 +66,11 @@ cd backend
 
 ### 프로필 (Profiles)
 
-| 명령어                                   | 실행 대상                           | 용도                              |
-| ---------------------------------------- | ----------------------------------- | --------------------------------- |
-| `docker compose up -d`                   | 인프라 기본 (DB, Redis, Kafka)      | 로컬 개발용 인프라만 구성         |
-| `docker compose --profile dev up -d`     | 인프라 + backend-dev + frontend-dev | 소스코드 Hot Reload 개발 샌드박스 |
-| `docker compose --env-file .env.prod --profile full up -d --build` | 서비스 전체                         | 운영 서버 반영 용도               |
+| 명령어                                        | 실행 대상                           | 용도                              |
+| --------------------------------------------- | ----------------------------------- | --------------------------------- |
+| `docker compose up -d`                        | 인프라 기본 (DB, Redis, Kafka)      | 로컬 개발용 인프라만 구성         |
+| `docker compose --profile dev up -d`          | 인프라 + backend-dev + frontend-dev | 소스코드 Hot Reload 개발 샌드박스 |
+| `docker compose --profile full up -d --build` | 서비스 전체                         | 운영 서버 반영 용도               |
 
 ### 서비스 상세
 
