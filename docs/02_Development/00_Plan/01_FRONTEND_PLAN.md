@@ -1,8 +1,9 @@
 # PERFO 프론트엔드 개발 계획
 
 > 기준 문서:
-> `docs/01_Design/00_Architecture/FSD.md`
-> `docs/01_Design/00_architecture/REQUEST_PROCESSING_STRATEGY.md`
+> `docs/01_Design/00_Architecture/03_FSD.md`
+> `docs/01_Design/00_Architecture/04_REQUEST_PROCESSING_STRATEGY.md`
+> `docs/01_Design/00_Architecture/02_AUTH_ACCOUNT_STRATEGY.md`
 
 ## 1. 목표
 
@@ -15,6 +16,8 @@
 
 - 라우팅 구조 확정
 - 인증 흐름 확정
+- 소셜 최초 가입 후 약관/프로필 입력 화면 확정
+- 계정 연동/해제 UX 확정
 - 공통 API 응답 형식 확정
 - 티켓팅 상태 enum 확정
 - A/B variant 주입 방식 확정
@@ -30,6 +33,9 @@
 ### 3.2 사용자 기능
 
 - 로그인/로그아웃
+- 일반 회원가입
+- 소셜 최초 가입 후 약관 동의와 `displayName` 입력
+- 계정 연동/해제
 - 이벤트 목록 조회
 - 티켓 예약/발급 요청
 - 내 티켓 목록 조회
@@ -76,6 +82,8 @@
 ### 5.2 상태 관리
 
 - 인증 상태 관리
+- 소셜 최초 가입 임시 상태 관리
+- 계정 연동/해제 진행 상태 관리
 - 티켓 상태 관리
 - SSE 연결 상태 관리
 - fallback 상태 관리
