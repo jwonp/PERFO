@@ -4,6 +4,7 @@ export interface IssuedTicketCardData {
     name: string;
     venue: string;
     validDate: string;
+    imageUrl?: string;
     status: string;
     issuedCount: number;
     totalCount: number;

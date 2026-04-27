@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { PasswordRule } from "@/components/auth/password-rules";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,34 +28,33 @@ const ResetPasswordPage = () => {
     const passwordsMatch = password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)]">
-            <div className="px-6 pt-6">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div>
                 <Link
                     href="/login/password"
-                    className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-perfo-primary"
                 >
                     <ArrowLeft className="h-5 w-5" />
-                    <span className="text-sm font-medium">{t("common.back")}</span>
+                    <span className="sr-only">{t("common.back")}</span>
                 </Link>
             </div>
 
-            <div className="px-6 pt-6 lg:hidden">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">PERFO</h1>
+                    <h1 className="text-2xl font-extrabold text-perfo-primary">PERFO</h1>
                 </Link>
             </div>
 
-            <CardHeader className="px-6 pb-0">
-                <Badge variant="warning" className="w-fit">Recovery</Badge>
-                <CardTitle className="text-2xl text-center">{t("resetPassword.title")}</CardTitle>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">{t("resetPassword.title")}</CardTitle>
                 <CardDescription className="text-center">
                     {t("resetPassword.subtitle", { email: "user@example.com" })}
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 px-6">
+            <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="new-password">{t("common.newPassword")}</Label>
+                    <Label htmlFor="new-password" className="text-xs font-bold text-perfo-primary">{t("common.newPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="new-password"
@@ -64,7 +62,7 @@ const ResetPasswordPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.newPasswordPlaceholder")}
-                        className="h-12 pr-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
                         />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -73,7 +71,7 @@ const ResetPasswordPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="confirm-new-password">{t("common.confirmPassword")}</Label>
+                    <Label htmlFor="confirm-new-password" className="text-xs font-bold text-perfo-primary">{t("common.confirmPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="confirm-new-password"
@@ -81,7 +79,7 @@ const ResetPasswordPage = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmNewPasswordPlaceholder")}
-                        className="h-12 pr-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
                         />
                         <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
                             {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -89,7 +87,7 @@ const ResetPasswordPage = () => {
                     </div>
                 </div>
 
-                <div className="rounded-lg border border-border bg-[var(--surface-muted)] p-4 space-y-2.5">
+                <div className="space-y-2.5">
                     {rules.map((rule) => (
                         <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
                     ))}

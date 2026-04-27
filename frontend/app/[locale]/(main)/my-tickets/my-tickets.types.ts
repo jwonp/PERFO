@@ -8,6 +8,7 @@ export interface IssuedTicket {
     name: string;
     venue: string;
     validDate: string;
+    imageUrl?: string;
     status: IssueStatus;
     issuedCount: number;
     totalCount: number;

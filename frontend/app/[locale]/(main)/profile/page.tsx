@@ -3,15 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { Bell, Headphones, Moon, Pencil, Shield, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, ChevronRight, Headphones, Moon, Pencil, Shield, UserRound } from "lucide-react";
 import { PushNotification } from "@/components/push/PushNotification";
-import { ActionRow, ActionRowChevron, ActionRowLeading, ActionRowText } from "@/components/ui/action-row";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatCard, StatLabel, StatMeta, StatValue } from "@/components/ui/stat-card";
 import { ToggleRow } from "@/components/ui/toggle-row";
-import { Toolbar, ToolbarActions, ToolbarDescription, ToolbarHeader, ToolbarTitle } from "@/components/ui/toolbar";
 
 const ProfilePage = () => {
     const t = useTranslations("profile");
@@ -24,74 +19,42 @@ const ProfilePage = () => {
 
     return (
         <div className="min-h-full ds-shell">
-            <div className="space-y-4 px-5 pt-6 pb-28 lg:pb-6">
-                <Toolbar className="sticky top-4 z-10">
-                    <ToolbarHeader>
-                        <div className="space-y-2">
-                            <p className="ds-eyebrow">Account</p>
-                            <ToolbarTitle>{t("title")}</ToolbarTitle>
-                            <ToolbarDescription>{displayName} · ID: {userId}</ToolbarDescription>
-                        </div>
-                        <ToolbarActions>
-                            <Badge variant="info">Active Session</Badge>
-                        </ToolbarActions>
-                    </ToolbarHeader>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <StatCard>
-                            <StatLabel>{t("appSettings")}</StatLabel>
-                            <StatValue>{darkMode ? "Dark" : "Light"}</StatValue>
-                            <StatMeta>{t("darkMode")}</StatMeta>
-                        </StatCard>
-                        <StatCard>
-                            <StatLabel>{t("pushNotification")}</StatLabel>
-                            <StatValue>{pushEnabled ? "On" : "Off"}</StatValue>
-                            <StatMeta>{t("support")}</StatMeta>
-                        </StatCard>
-                        <StatCard>
-                            <StatLabel>{t("support")}</StatLabel>
-                            <StatValue>2 links</StatValue>
-                            <StatMeta>{t("customerSupport")}</StatMeta>
-                        </StatCard>
-                    </div>
-                </Toolbar>
+            <div className="space-y-6 px-5 pt-8 pb-40">
+                <header className="flex items-center gap-8">
+                    <ArrowLeft className="h-8 w-8 text-[var(--text)]" />
+                    <h1 className="text-4xl font-extrabold leading-none text-perfo-primary">{t("title")}</h1>
+                </header>
 
-                <Card className="border-border/80 bg-[var(--surface-raised)]">
-                    <CardContent className="flex flex-col items-center gap-4 px-6 py-6 text-center sm:flex-row sm:text-left">
-                        <div className="relative">
-                            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-perfo-secondary/20">
+                <section className="pt-12 text-center">
+                    <div className="relative mx-auto h-32 w-32">
+                        <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-8 border-white bg-[#ffc39f] shadow-sm">
                             {session?.user?.image ? (
                                 /* eslint-disable-next-line @next/next/no-img-element */
                                 <img src={session.user.image} alt={displayName} className="w-full h-full object-cover" />
                             ) : (
-                                <UserRound className="h-12 w-12 text-perfo-secondary" />
+                                <UserRound className="h-16 w-16 text-[#5a9a9a]" />
                             )}
-                            </div>
-                            <Button size="icon-xs" className="absolute right-0 bottom-0 rounded-full" aria-label="Edit profile">
-                                <Pencil className="h-3.5 w-3.5" />
-                            </Button>
                         </div>
+                        <Button size="icon-sm" className="absolute right-0 bottom-1 rounded-full" aria-label="Edit profile">
+                            <Pencil className="h-5 w-5" />
+                        </Button>
+                    </div>
 
-                        <div className="flex-1">
-                            <div className="flex items-center justify-center gap-2 sm:justify-start">
-                                <h2 className="text-lg font-semibold text-[var(--text)]">{displayName}</h2>
-                                <Badge variant="neutral">Member</Badge>
-                            </div>
-                            <p className="mt-1 text-sm text-[var(--text-muted)]">ID: {userId}</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    <h2 className="mt-6 text-3xl font-extrabold text-[var(--text)]">{displayName}</h2>
+                    <p className="mt-3 text-2xl font-medium text-[#9bafd9]">ID: {userId}</p>
+                </section>
 
-                <Card className="border-border/80 bg-[var(--surface-raised)]">
-                    <CardHeader className="px-6 pb-0">
-                        <CardTitle className="text-base">{t("appSettings")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-6">
+                <section className="space-y-4">
+                    <h3 className="px-2 text-xl font-extrabold uppercase tracking-wide text-[#9bafd9]">{t("appSettings")}</h3>
+                    <div className="app-card overflow-hidden">
                         <div className="divide-y divide-border">
                             <ToggleRow
                                 checked={darkMode}
                                 label={t("darkMode")}
                                 icon={<Moon className="h-5 w-5" />}
                                 onToggle={() => setDarkMode((v) => !v)}
+                                className="min-h-16 px-5"
+                                labelClassName="text-xl font-bold"
                             />
 
                             <ToggleRow
@@ -99,6 +62,8 @@ const ProfilePage = () => {
                                 label={t("pushNotification")}
                                 icon={<Bell className="h-5 w-5" />}
                                 onToggle={() => setPushEnabled((v) => !v)}
+                                className="min-h-16 px-5"
+                                labelClassName="text-xl font-bold"
                             />
 
                         {pushEnabled && (
@@ -107,38 +72,34 @@ const ProfilePage = () => {
                             </div>
                         )}
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </section>
 
-                <Card className="border-border/80 bg-[var(--surface-raised)]">
-                    <CardHeader className="px-6 pb-0">
-                        <CardTitle className="text-base">{t("support")}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="px-6">
-                        <div className="divide-y divide-border">
-                            <ActionRow>
-                                <ActionRowLeading>
-                                    <Headphones className="h-5 w-5" />
-                                    <ActionRowText>{t("customerSupport")}</ActionRowText>
-                                </ActionRowLeading>
-                                <ActionRowChevron />
-                            </ActionRow>
+                <section className="space-y-4">
+                    <h3 className="px-2 text-xl font-extrabold uppercase tracking-wide text-[#9bafd9]">{t("support")}</h3>
+                    <div className="app-card overflow-hidden">
+                        <button className="flex h-16 w-full items-center justify-between border-b border-border px-5 text-left">
+                            <span className="flex items-center gap-5 text-xl font-bold text-[var(--text)]">
+                                <Headphones className="h-7 w-7 text-[#9bafd9]" />
+                                {t("customerSupport")}
+                            </span>
+                            <ChevronRight className="h-8 w-8 text-[var(--text)]" />
+                        </button>
 
-                            <ActionRow>
-                                <ActionRowLeading>
-                                    <Shield className="h-5 w-5" />
-                                    <ActionRowText>{t("privacyPolicy")}</ActionRowText>
-                                </ActionRowLeading>
-                                <ActionRowChevron />
-                            </ActionRow>
-                        </div>
-                    </CardContent>
-                </Card>
+                        <button className="flex h-16 w-full items-center justify-between px-5 text-left">
+                            <span className="flex items-center gap-5 text-xl font-bold text-[var(--text)]">
+                                <Shield className="h-7 w-7 text-[#9bafd9]" />
+                                {t("privacyPolicy")}
+                            </span>
+                            <ChevronRight className="h-8 w-8 text-[var(--text)]" />
+                        </button>
+                    </div>
+                </section>
 
                 <Button
                     onClick={() => signOut({ callbackUrl: "/" })}
-                    variant="outline"
-                    className="h-11 w-full text-[var(--text-muted)] hover:text-[var(--danger)]"
+                    variant="ghost"
+                    className="mt-10 h-12 w-full text-3xl font-medium text-[var(--text)] hover:text-[var(--danger)]"
                 >
                     {t("logout")}
                 </Button>

@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { PasswordRule } from "@/components/auth/password-rules";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,22 +28,21 @@ const SignUpPage = () => {
     const passwordsMatch = password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)]">
-            <div className="px-6 pt-6 lg:hidden">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">PERFO</h1>
+                    <h1 className="text-2xl font-extrabold text-perfo-primary">PERFO</h1>
                 </Link>
             </div>
 
-            <CardHeader className="px-6 pb-0">
-                <Badge variant="success" className="w-fit">New Account</Badge>
-                <CardTitle className="text-2xl text-center">{t("signup.title")}</CardTitle>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">{t("signup.title")}</CardTitle>
                 <CardDescription className="text-center">{t("signup.subtitle")}</CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 px-6">
+            <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="password">{t("common.password")}</Label>
+                    <Label htmlFor="password" className="text-xs font-bold text-perfo-primary">{t("common.password")}</Label>
                     <div className="relative">
                         <Input
                         id="password"
@@ -52,7 +50,7 @@ const SignUpPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.createPasswordPlaceholder")}
-                        className="h-12 pr-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
                         />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -61,7 +59,7 @@ const SignUpPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="confirm-password">{t("common.confirmPassword")}</Label>
+                    <Label htmlFor="confirm-password" className="text-xs font-bold text-perfo-primary">{t("common.confirmPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="confirm-password"
@@ -69,7 +67,7 @@ const SignUpPage = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmPasswordPlaceholder")}
-                        className="h-12 pr-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
                         />
                         <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
                             {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -77,7 +75,7 @@ const SignUpPage = () => {
                     </div>
                 </div>
 
-                <div className="rounded-lg border border-border bg-[var(--surface-muted)] p-4 space-y-2.5">
+                <div className="space-y-2.5">
                     {rules.map((rule) => (
                         <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
                     ))}

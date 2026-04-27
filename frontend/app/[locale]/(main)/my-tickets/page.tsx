@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Bell, Plus, Search } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { IssuedTicketCard } from "@/components/tickets/IssuedTicketCard";
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -227,23 +227,27 @@ const MyTicketsPage = () => {
 
     return (
         <div className="min-h-full ds-shell">
-            {/* Header */}
-            <div className="ds-toolbar sticky top-0 z-10 flex items-center justify-between border-b border-border px-5 py-4">
-                <div>
-                    <p className="ds-eyebrow">Operations</p>
-                    <h1 className="text-lg font-bold text-perfo-primary">{t("myTickets.title")}</h1>
-                </div>
-                <div className="flex items-center gap-3 text-perfo-secondary">
-                    <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
+            <div className="space-y-5 px-5 pt-8">
+                <header className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-lg font-extrabold text-perfo-primary">{t("myTickets.title")}</h1>
+                        <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-primary hover:text-perfo-primary">
                         <Search className="size-5" />
-                    </Button>
-                    <Button aria-label="알림" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
-                        <Bell className="size-5" />
-                    </Button>
-                </div>
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button className="h-9 rounded-full px-4 text-xs">
+                            {t("myTickets.title")}
+                        </Button>
+                        <Button variant="outline" className="h-9 rounded-full border-perfo-primary px-4 text-xs text-perfo-primary shadow-none">
+                            {t("myTickets.fieldAllowDuplicate")}
+                            <SlidersHorizontal className="size-3.5" />
+                        </Button>
+                    </div>
+                </header>
             </div>
 
-            <div className="space-y-3 px-5 pt-4 pb-28 lg:pb-4">
+            <div className="space-y-3 px-5 pt-5 pb-28">
                 {tickets.length === 0 ? (
                     <EmptyState>
                         <EmptyStateIcon>
@@ -255,7 +259,7 @@ const MyTicketsPage = () => {
                         <EmptyStateTitle>{t("myTickets.empty")}</EmptyStateTitle>
                     </EmptyState>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 gap-5">
                         {tickets.map((ticket) => (
                             <IssuedTicketCard
                                 key={ticket.id}
@@ -277,7 +281,7 @@ const MyTicketsPage = () => {
             <Button
                 onClick={openCreate}
                 size="icon-lg"
-                className="fixed right-5 bottom-24 z-30 size-14 rounded-full shadow-lg shadow-perfo-primary/30"
+                className="fixed right-[calc(50%-195px)] bottom-24 z-30 size-14 rounded-full shadow-lg shadow-perfo-primary/30 max-[430px]:right-5"
                 aria-label="티켓 발급"
             >
                 <Plus className="size-6" />
