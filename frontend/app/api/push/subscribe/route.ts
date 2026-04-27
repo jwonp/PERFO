@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // TODO: Prisma로 교체
 const subscriptions = new Map<string, PushSubscriptionJSON>();
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
     try {
         const subscription = await request.json();
 
@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+};
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = async (request: NextRequest) => {
     try {
         const { endpoint } = await request.json();
 
@@ -43,12 +43,12 @@ export async function DELETE(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+};
 
 // 현재 구독 목록 조회 (디버깅용)
-export async function GET() {
+export const GET = async () => {
     return NextResponse.json({
         count: subscriptions.size,
         endpoints: Array.from(subscriptions.keys()),
     });
-}
+};

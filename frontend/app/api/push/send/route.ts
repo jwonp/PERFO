@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendPushNotification } from '@/lib/push/server';
 import type { PushPayload, PushSubscriptionData } from '@/lib/push/config';
 
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
     try {
         const body = await request.json();
         const { subscription, payload } = body as {
@@ -27,4 +27,4 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
-}
+};

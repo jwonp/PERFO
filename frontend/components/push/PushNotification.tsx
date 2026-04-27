@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import type { PushNotificationProps } from '@/components/push/push-notification.types';
 
-interface PushNotificationProps {
-    vapidPublicKey?: string;
-}
-
-export function PushNotification({
+const PushNotification = ({
     vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-}: PushNotificationProps) {
+}: PushNotificationProps) => {
     const [isSupported, setIsSupported] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +26,7 @@ export function PushNotification({
     }, []);
 
     // 현재 구독 상태 확인
-    async function checkSubscription() {
+    const checkSubscription = async () => {
         try {
             const registration = await navigator.serviceWorker.ready;
             const subscription = await registration.pushManager.getSubscription();
@@ -36,10 +34,10 @@ export function PushNotification({
         } catch (err) {
             console.error('구독 상태 확인 실패:', err);
         }
-    }
+    };
 
     // Service Worker 등록
-    async function registerServiceWorker() {
+    const registerServiceWorker = async () => {
         if (!('serviceWorker' in navigator)) return null;
 
         try {
@@ -50,20 +48,20 @@ export function PushNotification({
             console.error('Service Worker 등록 실패:', err);
             return null;
         }
-    }
+    };
 
     // Base64 → Uint8Array 변환 (VAPID 키용)
-    function urlBase64ToUint8Array(base64String: string): Uint8Array {
+    const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
         const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
         const base64 = (base64String + padding)
             .replace(/-/g, '+')
             .replace(/_/g, '/');
         const rawData = window.atob(base64);
         return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
-    }
+    };
 
     // 푸시 알림 구독
-    async function subscribe() {
+    const subscribe = async () => {
         if (!vapidPublicKey) {
             setError('VAPID 공개키가 설정되지 않았습니다');
             return;
@@ -94,13 +92,7 @@ export function PushNotification({
             });
 
             // 서버에 구독 정보 저장
-            const response = await fetch('/api/push/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(subscription.toJSON()),
-            });
-
-            if (!response.ok) throw new Error('구독 저장 실패');
+            await axios.post('/api/push/subscribe', subscription.toJSON());
 
             setIsSubscribed(true);
         } catch (err) {
@@ -109,10 +101,10 @@ export function PushNotification({
         } finally {
             setIsLoading(false);
         }
-    }
+    };
 
     // 구독 해제
-    async function unsubscribe() {
+    const unsubscribe = async () => {
         setIsLoading(true);
 
         try {
@@ -122,10 +114,8 @@ export function PushNotification({
             if (subscription) {
                 await subscription.unsubscribe();
 
-                await fetch('/api/push/subscribe', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ endpoint: subscription.endpoint }),
+                await axios.delete('/api/push/subscribe', {
+                    data: { endpoint: subscription.endpoint },
                 });
             }
 
@@ -136,7 +126,7 @@ export function PushNotification({
         } finally {
             setIsLoading(false);
         }
-    }
+    };
 
     // 푸시 미지원 환경
     if (!isSupported) {
@@ -168,4 +158,7 @@ export function PushNotification({
             )}
         </div>
     );
-}
+};
+
+export default PushNotification;
+export { PushNotification };

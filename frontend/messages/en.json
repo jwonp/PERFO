@@ -4,6 +4,7 @@
         "back": "Back",
         "next": "Next",
         "or": "OR",
+        "logout": "Logout",
         "email": "Email address",
         "emailPlaceholder": "name@example.com",
         "password": "Password",
@@ -30,7 +31,6 @@
         "welcome": "Welcome, please log in",
         "subtitle": "Enter your email to continue",
         "google": "Google",
-        "kakao": "Kakao",
         "naver": "Naver",
         "line": "LINE"
     },
@@ -72,6 +72,70 @@
         "match": "Passwords match"
     },
     "authLayout": {
-        "slogan": "Stop making your customers wait in line"
+        "eyebrow": "PERFO Access",
+        "slogan": "Stop making your customers wait in line",
+        "description": "The auth surface keeps the same operational clarity and product trust as the rest of the ticketing system.",
+        "statTrustLabel": "Trust",
+        "statTrustValue": "Operational auth",
+        "statTrustMeta": "Brand and security steps share the same interface language.",
+        "statSpeedLabel": "Speed",
+        "statSpeedValue": "Fast entry",
+        "statSpeedMeta": "Email, social, and recovery flows follow one pattern.",
+        "statCoverageLabel": "Continuity",
+        "statCoverageValue": "Product aligned",
+        "statCoverageMeta": "The sign-in flow reads like part of the product, not a detached screen.",
+        "panelLabel": "Flow Note",
+        "panelTitle": "One screen, one step, one decision",
+        "panelDescription": "Each auth screen emphasizes a single action while secondary information stays quieter, so the next step is always obvious."
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "Reserved Tickets",
+        "showUsedOnly": "Show used tickets only",
+        "tabAll": "All",
+        "tabUsed": "Used",
+        "statusBeforeUse": "Not used",
+        "statusWaiting": "Waiting",
+        "statusMyTurn": "Your turn!",
+        "statusUsed": "Used",
+        "empty": "No reserved tickets"
+    },
+    "myTickets": {
+        "title": "My Issued Tickets",
+        "scan": "Scan",
+        "edit": "Edit",
+        "issuedCount": "Issued",
+        "statusIssuing": "Issuing",
+        "statusInactive": "Inactive",
+        "statusExpired": "Expired",
+        "statusVerifying": "Verifying",
+        "empty": "No issued tickets",
+        "createTitle": "Issue Ticket",
+        "editTitle": "Edit Ticket",
+        "fieldName": "Ticket Name",
+        "fieldNamePlaceholder": "e.g. PERFO Summer Festival",
+        "fieldVenue": "Venue",
+        "fieldVenuePlaceholder": "e.g. Olympic Park Gymnastics Arena",
+        "fieldDate": "Valid Date",
+        "fieldTotal": "Total Tickets",
+        "fieldAllowDuplicate": "Allow duplicate purchase",
+        "fieldMaxPerUser": "Max per user",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Issue"
+    },
+    "profile": {
+        "title": "Profile",
+        "appSettings": "App Settings",
+        "darkMode": "Dark Mode",
+        "pushNotification": "Push Notifications",
+        "support": "Support",
+        "customerSupport": "Customer Support",
+        "privacyPolicy": "Privacy Policy",
+        "logout": "Log out"
     }
 }
