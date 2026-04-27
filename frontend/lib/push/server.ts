@@ -15,10 +15,10 @@ if (vapidKeys.publicKey && vapidKeys.privateKey) {
  * @param subscription 구독 정보
  * @param payload 알림 내용
  */
-export async function sendPushNotification(
+export const sendPushNotification = async (
     subscription: PushSubscriptionData,
     payload: PushPayload
-): Promise<boolean> {
+): Promise<boolean> => {
     try {
         await webPush.sendNotification(
             {
@@ -32,17 +32,17 @@ export async function sendPushNotification(
         console.error('푸시 발송 실패:', error);
         return false;
     }
-}
+};
 
 /**
  * 여러 구독자에게 푸시 발송
  * @param subscriptions 구독 목록
  * @param payload 알림 내용
  */
-export async function sendPushToMany(
+export const sendPushToMany = async (
     subscriptions: PushSubscriptionData[],
     payload: PushPayload
-): Promise<{ success: number; failed: number }> {
+): Promise<{ success: number; failed: number }> => {
     const results = await Promise.allSettled(
         subscriptions.map((sub) => sendPushNotification(sub, payload))
     );
@@ -51,4 +51,4 @@ export async function sendPushToMany(
     const failed = results.length - success;
 
     return { success, failed };
-}
+};

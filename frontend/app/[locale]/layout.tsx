@@ -2,15 +2,13 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import SessionProvider from "@/components/providers/SessionProvider";
+import type { LocaleLayoutProps } from "./layout.types";
 
-export default async function LocaleLayout({
+const LocaleLayout = async ({
     children,
     params,
-}: {
-    children: React.ReactNode;
-    params: Promise<{ locale: string }>;
-}) {
-    const { locale } = await params;
+}: LocaleLayoutProps) => {
+    const { locale } = (await params) as { locale: string };
 
     if (!hasLocale(routing.locales, locale)) {
         notFound();
@@ -25,4 +23,6 @@ export default async function LocaleLayout({
             </SessionProvider>
         </NextIntlClientProvider>
     );
-}
+};
+
+export default LocaleLayout;

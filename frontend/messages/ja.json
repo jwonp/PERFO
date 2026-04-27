@@ -72,7 +72,21 @@
         "match": "パスワードが一致"
     },
     "authLayout": {
-        "slogan": "お客様を待たせないでください"
+        "eyebrow": "PERFO Access",
+        "slogan": "お客様を待たせないでください",
+        "description": "認証画面でも、チケッティング製品全体と同じ運用感と信頼感を維持するよう設計されています。",
+        "statTrustLabel": "信頼",
+        "statTrustValue": "運用型認証",
+        "statTrustMeta": "ブランドとセキュリティの手順を同じUI言語で伝えます。",
+        "statSpeedLabel": "速度",
+        "statSpeedValue": "素早い導線",
+        "statSpeedMeta": "メール、ソーシャル、復旧フローを一つのパターンでまとめます。",
+        "statCoverageLabel": "連続性",
+        "statCoverageValue": "製品と一体化",
+        "statCoverageMeta": "ログイン画面が製品から分離して見えないようにします。",
+        "panelLabel": "Flow Note",
+        "panelTitle": "1画面、1ステップ、1つの判断",
+        "panelDescription": "各認証画面は一つの行動だけを強調し、補助情報は控えめに保つことで、次に何をすべきかが明確に見えるようにします。"
     },
     "nav": {
         "reserved": "Reserved",
@@ -82,6 +96,8 @@
     "reserved": {
         "title": "予約チケット",
         "showUsedOnly": "使用済みのみ表示",
+        "tabAll": "すべて",
+        "tabUsed": "使用済み",
         "statusBeforeUse": "未使用",
         "statusWaiting": "順番待ち",
         "statusMyTurn": "あなたの番です",

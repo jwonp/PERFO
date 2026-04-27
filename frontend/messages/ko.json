@@ -72,7 +72,21 @@
         "match": "비밀번호 일치"
     },
     "authLayout": {
-        "slogan": "고객을 더 이상 줄 세우지 마세요"
+        "eyebrow": "PERFO Access",
+        "slogan": "고객을 더 이상 줄 세우지 마세요",
+        "description": "인증 단계에서도 운영 제품의 밀도와 신뢰감을 유지하도록 설계된 티켓팅 인터페이스입니다.",
+        "statTrustLabel": "신뢰",
+        "statTrustValue": "운영형 인증",
+        "statTrustMeta": "브랜드와 보안 단계를 같은 언어로 전달합니다.",
+        "statSpeedLabel": "속도",
+        "statSpeedValue": "빠른 진입",
+        "statSpeedMeta": "이메일, 소셜, 복구 흐름을 같은 패턴으로 정리합니다.",
+        "statCoverageLabel": "연결",
+        "statCoverageValue": "제품 연속성",
+        "statCoverageMeta": "로그인 화면이 제품과 분리돼 보이지 않게 유지합니다.",
+        "panelLabel": "Flow Note",
+        "panelTitle": "한 화면, 한 단계, 한 결정",
+        "panelDescription": "각 인증 화면은 하나의 행동만 강조하고, 보조 정보는 낮은 대비로 유지해 다음 단계가 분명하게 보이도록 구성합니다."
     },
     "nav": {
         "reserved": "Reserved",
@@ -82,6 +96,8 @@
     "reserved": {
         "title": "예약한 티켓",
         "showUsedOnly": "사용한 티켓만 표시",
+        "tabAll": "전체",
+        "tabUsed": "사용 완료",
         "statusBeforeUse": "사용 전",
         "statusWaiting": "순서 대기중",
         "statusMyTurn": "현재 순서임",
