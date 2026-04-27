@@ -11,14 +11,17 @@ frontend/out/
 frontend/dist-electron/
 
 # Environment
+.env
+.env.dev
+.env.prod
 frontend/.env
 frontend/.env.local
 frontend/.env.production.local
 
 # Spring Boot
-backend/.gradle/
-backend/build/
-backend/bin/
+backend/.gradle/**
+backend/build/**
+backend/bin/**
 !backend/gradle/wrapper/gradle-wrapper.jar
 
 # IDE
@@ -41,6 +44,12 @@ yarn-error.log*
 
 # Testing
 coverage/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 
 # Misc
 *.pem
+.claude/settings.local.json
+backend/.kotlin
+docs/00_Study

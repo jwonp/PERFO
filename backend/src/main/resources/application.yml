@@ -1,14 +1,10 @@
-server:
-  port: 18080
-
 spring:
   application:
     name: perfo-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   datasource:
-    url: jdbc:postgresql://localhost:15432/perfo
-    username: perfo
-    password: perfo123
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -22,10 +18,4 @@ spring:
 
   security:
     jwt:
-      secret: perfo-jwt-secret-key-change-in-production-minimum-256-bits-long
       expiration: 86400000 # 24 hours
-
-# CORS
-app:
-  cors:
-    allowed-origins: http://localhost:13000
