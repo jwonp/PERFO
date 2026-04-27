@@ -2,13 +2,11 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Bell, Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { TicketCard } from "@/components/tickets/TicketCard";
 import { Button } from "@/components/ui/button";
 import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
-import { StatCard, StatLabel, StatMeta, StatValue } from "@/components/ui/stat-card";
 import { Tabs, TabsButton } from "@/components/ui/tabs";
-import { Toolbar, ToolbarActions, ToolbarDescription, ToolbarHeader, ToolbarTitle } from "@/components/ui/toolbar";
 import { MOCK_TICKETS } from "./reserved.constants";
 
 const ReservedPage = () => {
@@ -21,42 +19,16 @@ const ReservedPage = () => {
 
     return (
         <div className="min-h-full ds-shell">
-            <div className="space-y-4 px-5 pt-4 pb-28 lg:pb-4">
-                <Toolbar className="sticky top-4 z-10">
-                    <ToolbarHeader>
-                        <div className="space-y-2">
-                            <p className="ds-eyebrow">Queue View</p>
-                            <ToolbarTitle>{t("reserved.title")}</ToolbarTitle>
-                            <ToolbarDescription>{t("reserved.showUsedOnly")}</ToolbarDescription>
-                        </div>
-                        <ToolbarActions>
-                            <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
-                                <Search className="size-5" />
-                            </Button>
-                            <Button aria-label="알림" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
-                                <Bell className="size-5" />
-                            </Button>
-                        </ToolbarActions>
-                    </ToolbarHeader>
-                    <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-center">
-                        <div className="grid gap-3 sm:grid-cols-3">
-                            <StatCard>
-                                <StatLabel>{t("reserved.tabAll")}</StatLabel>
-                                <StatValue>{MOCK_TICKETS.length}</StatValue>
-                                <StatMeta>{t("reserved.title")}</StatMeta>
-                            </StatCard>
-                            <StatCard>
-                                <StatLabel>{t("reserved.tabUsed")}</StatLabel>
-                                <StatValue>{MOCK_TICKETS.filter((ticket) => ticket.usageStatus === "USED").length}</StatValue>
-                                <StatMeta>{t("reserved.showUsedOnly")}</StatMeta>
-                            </StatCard>
-                            <StatCard>
-                                <StatLabel>{t("reserved.statusMyTurn")}</StatLabel>
-                                <StatValue>{MOCK_TICKETS.filter((ticket) => ticket.usageStatus === "MY_TURN").length}</StatValue>
-                                <StatMeta>{t("reserved.statusWaiting")}</StatMeta>
-                            </StatCard>
-                        </div>
-                        <Tabs className="w-full justify-start lg:w-auto">
+            <div className="space-y-5 px-5 pt-8 pb-28">
+                <header className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-lg font-extrabold text-perfo-primary">{t("reserved.title")}</h1>
+                        <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-primary hover:text-perfo-primary">
+                            <Search className="size-5" />
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Tabs className="rounded-full border border-perfo-primary bg-transparent p-0">
                             <TabsButton active={!showUsedOnly} onClick={() => setShowUsedOnly(false)}>
                                 {t("reserved.tabAll")}
                             </TabsButton>
@@ -64,10 +36,13 @@ const ReservedPage = () => {
                                 {t("reserved.tabUsed")}
                             </TabsButton>
                         </Tabs>
+                        <Button variant="outline" className="h-9 rounded-full border-perfo-primary px-4 text-xs text-perfo-primary shadow-none">
+                            {t("reserved.showUsedOnly")}
+                            <SlidersHorizontal className="size-3.5" />
+                        </Button>
                     </div>
-                </Toolbar>
+                </header>
 
-                {/* Ticket list */}
                 {filtered.length === 0 ? (
                     <EmptyState>
                         <EmptyStateIcon>
@@ -78,7 +53,7 @@ const ReservedPage = () => {
                         <EmptyStateTitle>{t("reserved.empty")}</EmptyStateTitle>
                     </EmptyState>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 gap-5">
                         {filtered.map((ticket) => (
                             <TicketCard
                                 key={ticket.id}

@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useState, useRef } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -29,24 +28,23 @@ const VerifyPage = () => {
     };
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)]">
-            <div className="px-6 pt-6 lg:hidden">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">
+                    <h1 className="text-2xl font-extrabold text-perfo-primary">
                         PERFO
                     </h1>
                 </Link>
             </div>
 
-            <CardHeader className="px-6 pb-0">
-                <Badge variant="warning" className="w-fit">Verification</Badge>
-                <CardTitle className="text-2xl text-center">
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">
                     {t("verify.title", { email: "user@example.com" })}
                 </CardTitle>
                 <CardDescription className="text-center">{t("verify.subtitle")}</CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6 px-6">
+            <CardContent className="space-y-6 px-0">
                 <div className="flex w-full justify-center gap-2.5 sm:gap-3">
                     {code.map((digit, index) => (
                         <input
@@ -58,7 +56,7 @@ const VerifyPage = () => {
                         value={digit}
                         onChange={(e) => handleChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className="h-14 w-12 rounded-lg border border-border bg-[var(--surface-raised)] text-center text-2xl font-bold text-[var(--text)] outline-none transition-all focus:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-16 sm:w-14"
+                        className="h-12 w-10 rounded-lg border border-[#9bafd9] bg-white text-center text-xl font-bold text-[var(--text)] outline-none transition-all focus:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-14 sm:w-12"
                     />
                     ))}
                 </div>

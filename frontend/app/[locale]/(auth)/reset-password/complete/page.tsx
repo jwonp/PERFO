@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { CheckCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,13 +8,12 @@ const ResetPasswordCompletePage = () => {
     const t = useTranslations();
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)] text-center">
+        <Card className="border-0 bg-transparent py-0 text-center shadow-none">
             <CardHeader className="items-center px-6 pb-0">
                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-perfo-primary/10">
                     <CheckCircle className="h-14 w-14 text-perfo-primary" strokeWidth={1.5} />
                 </div>
-                <Badge variant="success">Complete</Badge>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-2xl text-[var(--text)]">
                     {t("resetComplete.title", { email: "user@example.com" })}
                 </CardTitle>
                 <CardDescription className="max-w-xs leading-relaxed">
@@ -23,7 +21,7 @@ const ResetPasswordCompletePage = () => {
                 </CardDescription>
             </CardHeader>
 
-            <CardContent className="px-6">
+            <CardContent className="mt-32 px-0">
                 <Button asChild className="h-12 w-full">
                     <Link href="/login">
                         {t("common.goToLogin")}

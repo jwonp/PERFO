@@ -57,13 +57,13 @@
 :root {
   --radius: 0.5rem;
   /* PERFO Design System */
-  --background: #f4f7fb;
+  --background: #f3fbff;
   --foreground: #142033;
   --card: #fcfdff;
   --card-foreground: #142033;
   --popover: #fcfdff;
   --popover-foreground: #142033;
-  --primary: #1745a3;
+  --primary: #103783;
   --primary-foreground: #f7fbff;
   --secondary: #d6e1f5;
   --secondary-foreground: #17305f;
@@ -72,9 +72,9 @@
   --accent: #ffe2bf;
   --accent-foreground: #884800;
   --destructive: #c63b3b;
-  --border: #d4ddec;
-  --input: #ccd6e7;
-  --ring: #7d96c9;
+  --border: #d7e4f4;
+  --input: #9bafd9;
+  --ring: #9bafd9;
   --chart-1: #103783;
   --chart-2: #9BAFD9;
   --chart-3: #F3FBFF;
@@ -90,19 +90,19 @@
   --sidebar-ring: #9BAFD9;
 
   /* Semantic tokens */
-  --surface: #fcfdff;
+  --surface: #f8fcff;
   --surface-raised: #ffffff;
-  --surface-muted: #edf3fb;
-  --text: #142033;
-  --text-muted: #62718b;
-  --text-subtle: #8a96ab;
+  --surface-muted: #eef7fc;
+  --text: #342a2d;
+  --text-muted: #667085;
+  --text-subtle: #9bafd9;
   --success: #1f8f5f;
   --warning: #c97b17;
   --danger: #c63b3b;
   --info: #1745a3;
   --accent-strong: #ffb66d;
-  --shadow-soft: 0 10px 30px rgba(20, 32, 51, 0.08);
-  --shadow-panel: 0 8px 20px rgba(23, 48, 95, 0.08);
+  --shadow-soft: 0 10px 24px rgba(16, 55, 131, 0.08);
+  --shadow-panel: 0 8px 18px rgba(16, 55, 131, 0.16);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -172,10 +172,7 @@
 
 @layer utilities {
   .ds-shell {
-    background:
-      radial-gradient(circle at top left, rgba(255, 182, 109, 0.18), transparent 28%),
-      linear-gradient(180deg, rgba(214, 225, 245, 0.55) 0%, rgba(244, 247, 251, 0) 22%),
-      var(--background);
+    background: var(--background);
   }
 
   .ds-panel {
@@ -184,9 +181,9 @@
   }
 
   .ds-toolbar {
-    background: color-mix(in srgb, var(--surface-raised) 82%, white 18%);
-    box-shadow: var(--shadow-panel);
-    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--background) 88%, white 12%);
+    box-shadow: none;
+    backdrop-filter: blur(10px);
   }
 
   .ds-eyebrow {
@@ -199,5 +196,17 @@
 
   .ds-kpi {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 243, 251, 0.96));
+  }
+
+  .app-screen {
+    width: min(100%, 430px);
+    margin-inline: auto;
+  }
+
+  .app-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-soft);
   }
 }
