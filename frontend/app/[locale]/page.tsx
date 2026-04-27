@@ -6,10 +6,10 @@ const LandingPage = () => {
     const t = useTranslations("landing");
 
     return (
-        <div className="flex min-h-screen flex-col bg-perfo-bg">
-            {/* Header */}
-            <header className="flex items-center justify-between px-6 py-4 sm:px-12 lg:px-20">
-                <h1 className="text-2xl font-extrabold text-perfo-primary tracking-tight">
+        <div className="flex min-h-screen justify-center bg-perfo-bg">
+            <div className="app-screen flex min-h-screen flex-col px-5 py-8">
+            <header className="flex items-center justify-between">
+                <h1 className="text-base font-extrabold text-perfo-primary">
                     PERFO
                 </h1>
                 <div className="flex items-center gap-4">
@@ -24,40 +24,28 @@ const LandingPage = () => {
             </header>
 
             {/* Hero Section */}
-            <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                <div className="max-w-2xl">
-                    {/* Logo mark */}
-                    <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-perfo-primary shadow-xl shadow-perfo-primary/30 sm:h-24 sm:w-24">
-                        <span className="text-3xl font-extrabold text-white sm:text-4xl">P</span>
-                    </div>
-
-                    <h2 className="text-3xl font-extrabold text-perfo-text leading-tight sm:text-4xl lg:text-5xl">
+            <main className="flex flex-1 flex-col justify-center text-center">
+                <div className="mx-auto max-w-xs">
+                    <h2 className="text-2xl font-extrabold leading-tight text-[var(--text)]">
                         {t("title")}
                     </h2>
 
-                    <p className="mt-4 text-base text-perfo-text/60 leading-relaxed sm:text-lg max-w-md mx-auto">
+                    <p className="mx-auto mt-8 max-w-[260px] text-sm leading-7 text-[var(--text-muted)]">
                         {t("description")}
-                    </p>
-
-                    {/* CTA Button */}
-                    <Link
-                        href="/login"
-                        className="mt-10 inline-flex h-14 items-center justify-center rounded-xl bg-perfo-primary px-10 text-lg font-semibold text-white shadow-xl shadow-perfo-primary/30 hover:bg-perfo-primary-hover transition-all hover:scale-[1.02] active:scale-[0.98] sm:h-16 sm:px-14 sm:text-xl"
-                    >
-                        {t("cta")}
-                    </Link>
-
-                    {/* Trust indicators */}
-                    <p className="mt-6 text-xs text-perfo-text/40">
-                        {t("trust")}
                     </p>
                 </div>
             </main>
+            <Link
+                href="/login"
+                className="mb-8 inline-flex h-14 items-center justify-center rounded-lg bg-perfo-primary px-10 text-base font-bold text-white shadow-[var(--shadow-panel)] transition-colors hover:bg-perfo-primary-hover"
+            >
+                {t("cta")}
+            </Link>
 
-            {/* Footer */}
-            <footer className="py-6 text-center text-xs text-perfo-text/30">
+            <footer className="py-2 text-center text-xs text-perfo-text/30">
                 {t("copyright")}
             </footer>
+            </div>
         </div>
     );
 };

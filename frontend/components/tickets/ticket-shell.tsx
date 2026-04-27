@@ -27,26 +27,26 @@ const TicketShell = ({
     children,
 }: TicketShellProps) => {
     return (
-        <div className={cn("overflow-hidden rounded-lg border border-border bg-[var(--surface-raised)] shadow-[var(--shadow-soft)]", className)}>
+        <div className={cn("overflow-hidden rounded-lg border border-border bg-white shadow-[var(--shadow-soft)]", className)}>
             {media}
 
-            <div className="space-y-3 px-4 pt-3 pb-4">
+            <div className="space-y-3 px-4 pt-4 pb-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                        <Badge variant={badgeVariant} className="mb-2">
+                        <Badge variant={badgeVariant} className="mb-3 rounded-sm bg-perfo-primary px-2 py-1 text-[10px] text-white">
                             {badgeLabel}
                         </Badge>
-                        <p className="line-clamp-2 text-sm font-bold leading-tight text-perfo-text">{title}</p>
+                        <p className="line-clamp-2 text-base font-bold leading-tight text-perfo-text">{title}</p>
                     </div>
                     {topActions ? <div className="flex shrink-0 items-center gap-2">{topActions}</div> : null}
                 </div>
 
                 <div className="space-y-1">
-                    <p className="flex items-center gap-1.5 text-xs text-perfo-text/60">
+                    <p className="flex items-center gap-1.5 text-xs text-[#516486]">
                         <TicketPinIcon />
                         {venue}
                     </p>
-                    <p className="flex items-center gap-1.5 text-xs text-perfo-text/60">
+                    <p className="flex items-center gap-1.5 text-xs text-[#516486]">
                         <TicketCalendarIcon />
                         {validDate}
                     </p>

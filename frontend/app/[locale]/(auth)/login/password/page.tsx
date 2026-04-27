@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,36 +15,35 @@ const PasswordLoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)]">
+        <Card className="app-card gap-5 px-6 py-8">
             <div className="px-6 pt-6">
                 <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-perfo-primary"
                 >
                     <ArrowLeft className="size-5" />
-                    <span className="text-sm font-medium">{t("common.back")}</span>
+                    <span className="sr-only">{t("common.back")}</span>
                 </Link>
             </div>
 
-            <div className="px-6 pt-6 lg:hidden">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">
+                    <h1 className="text-2xl font-extrabold text-perfo-primary">
                         PERFO
                     </h1>
                 </Link>
             </div>
 
-            <CardHeader className="px-6 pb-0">
-                <Badge variant="warning" className="w-fit">Secure Step</Badge>
-                <CardTitle className="text-2xl">
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">
                     {t("passwordLogin.welcome", { email: "user@example.com" })}
                 </CardTitle>
                 <CardDescription>{t("passwordLogin.subtitle")}</CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 px-6">
+            <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="password">{t("common.password")}</Label>
+                    <Label htmlFor="password" className="text-xs font-bold text-perfo-primary">{t("common.password")}</Label>
                     <div className="relative">
                         <Input
                         id="password"
@@ -53,7 +51,7 @@ const PasswordLoginPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.passwordPlaceholder")}
-                        className="h-12 pr-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
                         />
                         <button
                             type="button"

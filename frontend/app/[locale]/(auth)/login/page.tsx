@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,32 +18,30 @@ const LoginPage = () => {
     };
 
     return (
-        <Card className="border-border/80 bg-[var(--surface-raised)]">
-            {/* Logo */}
-            <div className="px-6 pt-6 lg:hidden">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">
+                    <h1 className="text-2xl font-extrabold text-perfo-primary">
                         PERFO
                     </h1>
                 </Link>
             </div>
 
-            <CardHeader className="px-6 pb-0">
-                <Badge variant="info" className="w-fit">PERFO Access</Badge>
-                <CardTitle className="text-2xl">{t("login.welcome")}</CardTitle>
-                <CardDescription>{t("login.subtitle")}</CardDescription>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">{t("login.welcome")}</CardTitle>
+                <CardDescription className="text-sm">{t("login.subtitle")}</CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6 px-6">
+            <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="email">{t("common.email")}</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-perfo-primary">{t("common.email")}</Label>
                     <Input
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder={t("common.emailPlaceholder")}
-                        className="h-12"
+                        className="h-12 border-[#9bafd9] bg-white px-4 text-sm placeholder:text-[#b5c5e7]"
                     />
                 </div>
 
@@ -54,18 +51,18 @@ const LoginPage = () => {
                     </Link>
                 </Button>
 
-                <div className="flex items-center">
+                <div className="flex items-center py-3">
                     <div className="h-px flex-1 bg-border" />
-                    <span className="px-4 text-sm font-medium text-[var(--text-subtle)]">{t("common.or")}</span>
+                    <span className="px-4 text-xs font-bold uppercase text-[#9bafd9]">{t("common.or")}</span>
                     <div className="h-px flex-1 bg-border" />
                 </div>
 
-                <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-2 gap-3">
                     <Button
                         type="button"
                         onClick={() => handleSocialLogin("google")}
                         variant="outline"
-                        className="h-12 w-full justify-center gap-3"
+                        className="h-11 w-full justify-center gap-2 text-xs"
                     >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -80,7 +77,7 @@ const LoginPage = () => {
                         type="button"
                         onClick={() => handleSocialLogin("naver")}
                         variant="outline"
-                        className="h-12 w-full justify-center gap-3"
+                        className="h-11 w-full justify-center gap-2 text-xs"
                     >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#03C75A">
                         <path d="M16.27 10.58 7.33 1H1v22h6.73V13.42L16.67 23H23V1h-6.73z" />
@@ -92,7 +89,7 @@ const LoginPage = () => {
                         type="button"
                         onClick={() => handleSocialLogin("line")}
                         variant="outline"
-                        className="h-12 w-full justify-center gap-3"
+                        className="h-11 w-full justify-center gap-2 text-xs"
                     >
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#06C755">
                         <path d="M24 10.304c0-5.369-5.383-9.738-12-9.738S0 4.935 0 10.304c0 4.813 4.269 8.846 10.036 9.608.39.084.923.258 1.058.592.121.303.079.778.039 1.085l-.171 1.027c-.053.303-.242 1.186 1.039.647 1.281-.54 6.911-4.069 9.428-6.967C23.267 14.254 24 12.39 24 10.304zM7.84 13.06H5.56a.718.718 0 01-.72-.716V7.974a.72.72 0 011.44 0v3.652h1.56a.72.72 0 010 1.434zm2.32-.716a.72.72 0 01-1.44 0V7.974a.72.72 0 011.44 0v4.37zm5.2 0a.718.718 0 01-.42.654.716.716 0 01-.764-.108l-2.16-2.94v2.394a.72.72 0 01-1.44 0V7.974a.718.718 0 01.42-.654.716.716 0 01.764.108l2.16 2.94V7.974a.72.72 0 011.44 0v4.37zm4.24-2.93a.72.72 0 010 1.434h-1.56v.78h1.56a.72.72 0 010 1.434H16.04a.718.718 0 01-.72-.716V7.974c0-.396.324-.716.72-.716h2.28a.72.72 0 010 1.434h-1.56v.722h1.56z" />

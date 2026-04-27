@@ -32,7 +32,7 @@ const TicketCard = ({
                 </>
             }
             media={
-                <div className="relative aspect-video w-full overflow-hidden">
+                <div className="relative h-[158px] w-full overflow-hidden">
                     {imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -47,7 +47,7 @@ const TicketCard = ({
             }
             footer={
                 isNowServing ? (
-                    <Button className="h-11 w-full">
+                    <Button className="h-11 w-full rounded-md">
                         <QrCode className="h-4 w-4" />
                         QR 스캔
                     </Button>

@@ -24,11 +24,21 @@ const IssuedTicketCard = ({
             title={ticket.name}
             venue={ticket.venue}
             validDate={ticket.validDate}
+            media={
+                <div className="relative h-[158px] w-full overflow-hidden">
+                    {ticket.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={ticket.imageUrl} alt={ticket.name} className="h-full w-full object-cover" />
+                    ) : (
+                        <div className="h-full w-full bg-perfo-secondary/20" />
+                    )}
+                </div>
+            }
             topActions={
                 <>
                     <button
                         onClick={onEdit}
-                        className="flex items-center gap-1 rounded-xl border border-perfo-secondary/30 px-2.5 py-1.5 text-xs font-medium text-perfo-secondary transition-colors hover:border-perfo-primary hover:text-perfo-primary"
+                        className="flex items-center gap-1 rounded-md border border-perfo-secondary/30 px-2 py-1 text-xs font-medium text-perfo-secondary transition-colors hover:border-perfo-primary hover:text-perfo-primary"
                         aria-label={editLabel}
                     >
                         <Pencil className="h-3.5 w-3.5" />
@@ -37,7 +47,7 @@ const IssuedTicketCard = ({
 
                     {canScan && (
                         <button
-                            className="flex items-center gap-1.5 rounded-xl bg-perfo-primary px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-perfo-primary-hover"
+                            className="flex items-center gap-1.5 rounded-md bg-perfo-primary px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-perfo-primary-hover"
                             aria-label={scanLabel}
                         >
                             <ScanLine className="h-4 w-4" />
