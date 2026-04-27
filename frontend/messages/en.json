@@ -72,7 +72,21 @@
         "match": "Passwords match"
     },
     "authLayout": {
-        "slogan": "Stop making your customers wait in line"
+        "eyebrow": "PERFO Access",
+        "slogan": "Stop making your customers wait in line",
+        "description": "The auth surface keeps the same operational clarity and product trust as the rest of the ticketing system.",
+        "statTrustLabel": "Trust",
+        "statTrustValue": "Operational auth",
+        "statTrustMeta": "Brand and security steps share the same interface language.",
+        "statSpeedLabel": "Speed",
+        "statSpeedValue": "Fast entry",
+        "statSpeedMeta": "Email, social, and recovery flows follow one pattern.",
+        "statCoverageLabel": "Continuity",
+        "statCoverageValue": "Product aligned",
+        "statCoverageMeta": "The sign-in flow reads like part of the product, not a detached screen.",
+        "panelLabel": "Flow Note",
+        "panelTitle": "One screen, one step, one decision",
+        "panelDescription": "Each auth screen emphasizes a single action while secondary information stays quieter, so the next step is always obvious."
     },
     "nav": {
         "reserved": "Reserved",
@@ -82,6 +96,8 @@
     "reserved": {
         "title": "Reserved Tickets",
         "showUsedOnly": "Show used tickets only",
+        "tabAll": "All",
+        "tabUsed": "Used",
         "statusBeforeUse": "Not used",
         "statusWaiting": "Waiting",
         "statusMyTurn": "Your turn!",

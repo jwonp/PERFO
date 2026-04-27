@@ -3,8 +3,7 @@ import NaverProvider from "next-auth/providers/naver"
 import LineProvider from "next-auth/providers/line"
 import { NextAuthOptions } from "next-auth"
 import axios from "axios"
-
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:18080"
+import { BACKEND_URL } from "@/lib/auth/auth.constants"
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -23,7 +22,7 @@ export const authOptions: NextAuthOptions = {
     ],
     session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
     callbacks: {
-        async signIn({ user, account, profile }) {
+        signIn: async ({ user, account, profile }) => {
             console.log("signIn", user, account, profile);
 
             if (!account) return false
@@ -55,7 +54,7 @@ export const authOptions: NextAuthOptions = {
             }
         },
 
-        async jwt({ token, user, account }) {
+        jwt: async ({ token, user, account }) => {
             // 최초 로그인 시 user 정보를 token에 저장
             if (user && account) {
                 token.provider = account.provider
@@ -65,7 +64,7 @@ export const authOptions: NextAuthOptions = {
             return token
         },
 
-        async session({ session, token }) {
+        session: async ({ session, token }) => {
             if (session.user) {
                 session.user.id = token.backendId as string
                 session.user.provider = token.provider as string

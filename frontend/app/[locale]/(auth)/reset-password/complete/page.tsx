@@ -1,33 +1,37 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function ResetPasswordCompletePage() {
+const ResetPasswordCompletePage = () => {
     const t = useTranslations();
 
     return (
-        <div className="flex flex-col items-center text-center">
-            {/* Success Icon */}
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-perfo-primary/10">
-                <CheckCircle className="w-14 h-14 text-perfo-primary" strokeWidth={1.5} />
-            </div>
+        <Card className="border-border/80 bg-[var(--surface-raised)] text-center">
+            <CardHeader className="items-center px-6 pb-0">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-perfo-primary/10">
+                    <CheckCircle className="h-14 w-14 text-perfo-primary" strokeWidth={1.5} />
+                </div>
+                <Badge variant="success">Complete</Badge>
+                <CardTitle className="text-2xl">
+                    {t("resetComplete.title", { email: "user@example.com" })}
+                </CardTitle>
+                <CardDescription className="max-w-xs leading-relaxed">
+                    {t("resetComplete.description")}
+                </CardDescription>
+            </CardHeader>
 
-            {/* Heading */}
-            <h2 className="text-2xl font-bold text-perfo-text mb-2">
-                {t("resetComplete.title", { email: "user@example.com" })}
-            </h2>
-
-            <p className="text-sm text-perfo-text/60 mb-10 max-w-xs leading-relaxed">
-                {t("resetComplete.description")}
-            </p>
-
-            {/* CTA Button */}
-            <Link
-                href="/login"
-                className="w-full h-12 flex items-center justify-center bg-perfo-primary hover:bg-perfo-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg shadow-perfo-primary/25"
-            >
-                {t("common.goToLogin")}
-            </Link>
-        </div>
+            <CardContent className="px-6">
+                <Button asChild className="h-12 w-full">
+                    <Link href="/login">
+                        {t("common.goToLogin")}
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
     );
-}
+};
+
+export default ResetPasswordCompletePage;
