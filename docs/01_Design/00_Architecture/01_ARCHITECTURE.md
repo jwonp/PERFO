@@ -1,7 +1,7 @@
 # PERFO 인프라 아키텍처 가이드
 
 > 이 문서는 인프라, 배포, 확장, 고가용성 전략만 다룬다.  
-> 티켓팅 요청 처리 방식과 상태 전파 규칙은 [REQUEST_PROCESSING_STRATEGY.md](./REQUEST_PROCESSING_STRATEGY.md)에서 분리해서 관리한다.
+> 티켓팅 요청 처리 방식과 상태 전파 규칙은 [04_REQUEST_PROCESSING_STRATEGY.md](./04_REQUEST_PROCESSING_STRATEGY.md)에서 분리해서 관리한다.
 
 ## 목차
 
@@ -504,6 +504,6 @@ flowchart LR
 
 ## 15. 관련 문서
 
-- [요청 처리 전략](./REQUEST_PROCESSING_STRATEGY.md)
-- [PWA 푸시 알림 가이드](../PWA_PUSH_GUIDE.md)
-- [윈도우 서버 배포 가이드](../WINDOWS_SERVER_GUIDE.md)
+- [요청 처리 전략](./04_REQUEST_PROCESSING_STRATEGY.md)
+- [PWA 푸시 알림 가이드](../06_PWA_PUSH_GUIDE.md)
+- [윈도우 서버 배포 가이드](../07_WINDOWS_SERVER_GUIDE.md)

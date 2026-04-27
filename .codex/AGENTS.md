@@ -4,20 +4,22 @@ This supplements the root `AGENTS.md` with Codex-specific guidance.
 
 ## Model Recommendations
 
-| Task Type | Recommended Model |
-|-----------|------------------|
-| Routine coding, tests, formatting | GPT 5.4 |
-| Complex features, architecture | GPT 5.4 |
-| Debugging, refactoring | GPT 5.4 |
-| Security review | GPT 5.4 |
+| Task Type                         | Recommended Model |
+| --------------------------------- | ----------------- |
+| Routine coding, tests, formatting | GPT 5.5           |
+| Complex features, architecture    | GPT 5.5           |
+| Debugging, refactoring            | GPT 5.5           |
+| Security review                   | GPT 5.5           |
 
 ## Skills Discovery
 
 Skills are auto-loaded from `.agents/skills/`. Each skill contains:
+
 - `SKILL.md` — Detailed instructions and workflow
 - `agents/openai.yaml` — Codex interface metadata
 
 Available skills:
+
 - tdd-workflow — Test-driven development with 80%+ coverage
 - security-review — Comprehensive security checklist
 - coding-standards — Universal coding standards
@@ -70,27 +72,42 @@ Codex now supports multi-agent workflows behind the experimental `features.multi
 - Use `/agent` inside Codex CLI to inspect and steer child agents
 
 Sample role configs in this repo:
+
 - `.codex/agents/explorer.toml` — read-only evidence gathering
 - `.codex/agents/reviewer.toml` — correctness/security review
 - `.codex/agents/docs-researcher.toml` — API and release-note verification
 
 ## Key Differences from Claude Code
 
-| Feature | Claude Code | Codex CLI |
-|---------|------------|-----------|
-| Hooks | 8+ event types | Not yet supported |
-| Context file | CLAUDE.md + AGENTS.md | AGENTS.md only |
-| Skills | Skills loaded via plugin | `.agents/skills/` directory |
-| Commands | `/slash` commands | Instruction-based |
-| Agents | Subagent Task tool | Multi-agent via `/agent` and `[agents.<name>]` roles |
-| Security | Hook-based enforcement | Instruction + sandbox |
-| MCP | Full support | Supported via `config.toml` and `codex mcp add` |
+| Feature      | Claude Code              | Codex CLI                                            |
+| ------------ | ------------------------ | ---------------------------------------------------- |
+| Hooks        | 8+ event types           | Not yet supported                                    |
+| Context file | CLAUDE.md + AGENTS.md    | AGENTS.md only                                       |
+| Skills       | Skills loaded via plugin | `.agents/skills/` directory                          |
+| Commands     | `/slash` commands        | Instruction-based                                    |
+| Agents       | Subagent Task tool       | Multi-agent via `/agent` and `[agents.<name>]` roles |
+| Security     | Hook-based enforcement   | Instruction + sandbox                                |
+| MCP          | Full support             | Supported via `config.toml` and `codex mcp add`      |
 
 ## Security Without Hooks
 
 Since Codex lacks hooks, security enforcement is instruction-based:
+
 1. Always validate inputs at system boundaries
 2. Never hardcode secrets — use environment variables
 3. Run `npm audit` / `pip audit` before committing
 4. Review `git diff` before every push
 5. Use `sandbox_mode = "workspace-write"` in config
+
+## Frontend Code Rules
+
+Apply these rules to all new or modified frontend code under `frontend/`:
+
+1. React components and Next pages/layouts must be declared as arrow functions assigned to `const`, then exported with `export default ComponentName`.
+2. Shared UI components may keep named exports for barrel-style imports, but their implementations must still be arrow functions.
+3. Next route handlers and framework-required exports (`GET`, `POST`, `DELETE`, `metadata`, `config`) may remain named exports, but handler implementations must be arrow functions.
+4. Component props and domain types must live in adjacent `*.types.ts` files unless they are single-use inline event types.
+5. Static mock data, maps, option lists, and UI metadata must live in adjacent `*.constants.ts` files.
+6. Avoid declaring reusable types, static constants, or helper maps inside `.tsx` component files.
+
+See `docs/03_design/04_frontend-code-rules.md` for the project-facing version of these rules.
