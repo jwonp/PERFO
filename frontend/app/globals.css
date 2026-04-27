@@ -55,26 +55,26 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   /* PERFO Design System */
-  --background: #F3FBFF;
-  --foreground: #342A2D;
-  --card: #ffffff;
-  --card-foreground: #342A2D;
-  --popover: #ffffff;
-  --popover-foreground: #342A2D;
-  --primary: #103783;
-  --primary-foreground: #F3FBFF;
-  --secondary: #9BAFD9;
-  --secondary-foreground: #ffffff;
-  --muted: #e8f0fe;
-  --muted-foreground: #6b7c9a;
-  --accent: #e8f0fe;
-  --accent-foreground: #103783;
-  --destructive: #dc2626;
-  --border: #d1ddf0;
-  --input: #d1ddf0;
-  --ring: #9BAFD9;
+  --background: #f4f7fb;
+  --foreground: #142033;
+  --card: #fcfdff;
+  --card-foreground: #142033;
+  --popover: #fcfdff;
+  --popover-foreground: #142033;
+  --primary: #1745a3;
+  --primary-foreground: #f7fbff;
+  --secondary: #d6e1f5;
+  --secondary-foreground: #17305f;
+  --muted: #eaf0f8;
+  --muted-foreground: #62718b;
+  --accent: #ffe2bf;
+  --accent-foreground: #884800;
+  --destructive: #c63b3b;
+  --border: #d4ddec;
+  --input: #ccd6e7;
+  --ring: #7d96c9;
   --chart-1: #103783;
   --chart-2: #9BAFD9;
   --chart-3: #F3FBFF;
@@ -88,6 +88,29 @@
   --sidebar-accent-foreground: #103783;
   --sidebar-border: #d1ddf0;
   --sidebar-ring: #9BAFD9;
+
+  /* Semantic tokens */
+  --surface: #fcfdff;
+  --surface-raised: #ffffff;
+  --surface-muted: #edf3fb;
+  --text: #142033;
+  --text-muted: #62718b;
+  --text-subtle: #8a96ab;
+  --success: #1f8f5f;
+  --warning: #c97b17;
+  --danger: #c63b3b;
+  --info: #1745a3;
+  --accent-strong: #ffb66d;
+  --shadow-soft: 0 10px 30px rgba(20, 32, 51, 0.08);
+  --shadow-panel: 0 8px 20px rgba(23, 48, 95, 0.08);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
 }
 
 .dark {
@@ -122,6 +145,20 @@
   --sidebar-accent-foreground: #e8f0fe;
   --sidebar-border: rgba(155, 175, 217, 0.2);
   --sidebar-ring: #103783;
+
+  --surface: #15233a;
+  --surface-raised: #1a2b44;
+  --surface-muted: #223250;
+  --text: #edf3fb;
+  --text-muted: #a9b5ca;
+  --text-subtle: #8793a8;
+  --success: #35b27c;
+  --warning: #e8a242;
+  --danger: #e26565;
+  --info: #8da8de;
+  --accent-strong: #ffb66d;
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.3);
+  --shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.32);
 }
 
 @layer base {
@@ -130,5 +167,37 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .ds-shell {
+    background:
+      radial-gradient(circle at top left, rgba(255, 182, 109, 0.18), transparent 28%),
+      linear-gradient(180deg, rgba(214, 225, 245, 0.55) 0%, rgba(244, 247, 251, 0) 22%),
+      var(--background);
+  }
+
+  .ds-panel {
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .ds-toolbar {
+    background: color-mix(in srgb, var(--surface-raised) 82%, white 18%);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(12px);
+  }
+
+  .ds-eyebrow {
+    color: var(--text-subtle);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .ds-kpi {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 243, 251, 0.96));
   }
 }

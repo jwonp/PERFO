@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import LocaleSwitcher from "@/components/locale-switcher";
 
-export default function LandingPage() {
+const LandingPage = () => {
     const t = useTranslations("landing");
 
     return (
@@ -60,4 +60,6 @@ export default function LandingPage() {
             </footer>
         </div>
     );
-}
+};
+
+export default LandingPage;

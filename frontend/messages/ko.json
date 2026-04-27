@@ -4,6 +4,7 @@
         "back": "뒤로",
         "next": "다음",
         "or": "또는",
+        "logout": "로그아웃",
         "email": "이메일 주소",
         "emailPlaceholder": "name@example.com",
         "password": "비밀번호",
@@ -30,7 +31,6 @@
         "welcome": "환영합니다, 로그인 해주세요",
         "subtitle": "이메일을 입력하여 계속하세요",
         "google": "Google",
-        "kakao": "Kakao",
         "naver": "Naver",
         "line": "LINE"
     },
@@ -72,6 +72,70 @@
         "match": "비밀번호 일치"
     },
     "authLayout": {
-        "slogan": "고객을 더 이상 줄 세우지 마세요"
+        "eyebrow": "PERFO Access",
+        "slogan": "고객을 더 이상 줄 세우지 마세요",
+        "description": "인증 단계에서도 운영 제품의 밀도와 신뢰감을 유지하도록 설계된 티켓팅 인터페이스입니다.",
+        "statTrustLabel": "신뢰",
+        "statTrustValue": "운영형 인증",
+        "statTrustMeta": "브랜드와 보안 단계를 같은 언어로 전달합니다.",
+        "statSpeedLabel": "속도",
+        "statSpeedValue": "빠른 진입",
+        "statSpeedMeta": "이메일, 소셜, 복구 흐름을 같은 패턴으로 정리합니다.",
+        "statCoverageLabel": "연결",
+        "statCoverageValue": "제품 연속성",
+        "statCoverageMeta": "로그인 화면이 제품과 분리돼 보이지 않게 유지합니다.",
+        "panelLabel": "Flow Note",
+        "panelTitle": "한 화면, 한 단계, 한 결정",
+        "panelDescription": "각 인증 화면은 하나의 행동만 강조하고, 보조 정보는 낮은 대비로 유지해 다음 단계가 분명하게 보이도록 구성합니다."
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "예약한 티켓",
+        "showUsedOnly": "사용한 티켓만 표시",
+        "tabAll": "전체",
+        "tabUsed": "사용 완료",
+        "statusBeforeUse": "사용 전",
+        "statusWaiting": "순서 대기중",
+        "statusMyTurn": "현재 순서임",
+        "statusUsed": "사용 완료",
+        "empty": "예약한 티켓이 없습니다"
+    },
+    "myTickets": {
+        "title": "내가 발급한 티켓",
+        "scan": "검표",
+        "edit": "수정",
+        "issuedCount": "발급 현황",
+        "statusIssuing": "발급중",
+        "statusInactive": "비활성화",
+        "statusExpired": "기간만료",
+        "statusVerifying": "검표중",
+        "empty": "발급한 티켓이 없습니다",
+        "createTitle": "티켓 발급",
+        "editTitle": "티켓 수정",
+        "fieldName": "티켓 이름",
+        "fieldNamePlaceholder": "예) PERFO Summer Festival",
+        "fieldVenue": "사용 장소",
+        "fieldVenuePlaceholder": "예) 올림픽공원 체조경기장",
+        "fieldDate": "유효 날짜",
+        "fieldTotal": "총 티켓 수",
+        "fieldAllowDuplicate": "중복 구매 허용",
+        "fieldMaxPerUser": "1인당 최대 수량",
+        "cancel": "취소",
+        "save": "저장",
+        "create": "발급하기"
+    },
+    "profile": {
+        "title": "Profile",
+        "appSettings": "App Settings",
+        "darkMode": "다크 모드",
+        "pushNotification": "푸시 알림 설정",
+        "support": "Support",
+        "customerSupport": "고객 문의",
+        "privacyPolicy": "Privacy Policy",
+        "logout": "로그아웃"
     }
 }

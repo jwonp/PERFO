@@ -3,24 +3,15 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { PasswordRule } from "@/components/auth/password-rules";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-function PasswordRule({ label, valid }: { label: string; valid: boolean }) {
-    return (
-        <div className="flex items-center gap-2">
-            {valid ? (
-                <Check className="w-4 h-4 text-perfo-success shrink-0" />
-            ) : (
-                <X className="w-4 h-4 text-perfo-secondary/50 shrink-0" />
-            )}
-            <span className={`text-sm ${valid ? "text-perfo-success" : "text-perfo-text/40"}`}>
-                {label}
-            </span>
-        </div>
-    );
-}
-
-export default function SignUpPage() {
+const SignUpPage = () => {
     const t = useTranslations();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,85 +29,74 @@ export default function SignUpPage() {
     const passwordsMatch = password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
 
     return (
-        <div className="flex flex-col items-center">
-            {/* Logo */}
-            <div className="mb-8 lg:hidden">
+        <Card className="border-border/80 bg-[var(--surface-raised)]">
+            <div className="px-6 pt-6 lg:hidden">
                 <Link href="/">
                     <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">PERFO</h1>
                 </Link>
             </div>
 
-            {/* Heading */}
-            <h2 className="text-xl font-semibold text-perfo-text mb-1 text-center">
-                {t("signup.title")}
-            </h2>
-            <p className="text-sm text-perfo-text/60 mb-8 text-center">
-                {t("signup.subtitle")}
-            </p>
+            <CardHeader className="px-6 pb-0">
+                <Badge variant="success" className="w-fit">New Account</Badge>
+                <CardTitle className="text-2xl text-center">{t("signup.title")}</CardTitle>
+                <CardDescription className="text-center">{t("signup.subtitle")}</CardDescription>
+            </CardHeader>
 
-            {/* Password Input */}
-            <div className="w-full mb-4">
-                <label htmlFor="password" className="block text-sm font-medium text-perfo-text/70 mb-1.5">
-                    {t("common.password")}
-                </label>
-                <div className="relative">
-                    <input
+            <CardContent className="space-y-4 px-6">
+                <div className="space-y-2">
+                    <Label htmlFor="password">{t("common.password")}</Label>
+                    <div className="relative">
+                        <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.createPasswordPlaceholder")}
-                        className="w-full h-12 px-4 pr-12 rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text placeholder:text-perfo-secondary/60 focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-perfo-secondary hover:text-perfo-primary transition-colors">
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                        className="h-12 pr-12"
+                        />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Confirm Password Input */}
-            <div className="w-full mb-4">
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-perfo-text/70 mb-1.5">
-                    {t("common.confirmPassword")}
-                </label>
-                <div className="relative">
-                    <input
+                <div className="space-y-2">
+                    <Label htmlFor="confirm-password">{t("common.confirmPassword")}</Label>
+                    <div className="relative">
+                        <Input
                         id="confirm-password"
                         type={showConfirm ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmPasswordPlaceholder")}
-                        className="w-full h-12 px-4 pr-12 rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text placeholder:text-perfo-secondary/60 focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
-                    />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-perfo-secondary hover:text-perfo-primary transition-colors">
-                        {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                        className="h-12 pr-12"
+                        />
+                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
+                            {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Password Rules */}
-            <div className="w-full bg-perfo-bg border border-perfo-secondary/20 rounded-xl p-4 mb-4 space-y-2.5">
-                {rules.map((rule) => (
-                    <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
-                ))}
-                <PasswordRule label={t("passwordRules.match")} valid={passwordsMatch} />
-            </div>
+                <div className="rounded-lg border border-border bg-[var(--surface-muted)] p-4 space-y-2.5">
+                    {rules.map((rule) => (
+                        <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
+                    ))}
+                    <PasswordRule label={t("passwordRules.match")} valid={passwordsMatch} />
+                </div>
 
-            {/* Sign Up Button */}
-            <button
-                type="button"
-                className="w-full h-12 flex items-center justify-center bg-perfo-primary hover:bg-perfo-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg shadow-perfo-primary/25"
-            >
-                {t("signup.signUp")}
-            </button>
+                <Button type="button" className="h-12 w-full">
+                    {t("signup.signUp")}
+                </Button>
 
-            {/* Terms */}
-            <p className="mt-4 text-xs text-perfo-text/40 text-center">
-                {t("common.termsPrefix")}{" "}
-                <Link href="#" className="text-perfo-secondary hover:text-perfo-primary underline">
-                    {t("common.termsLink")}
-                </Link>
-            </p>
-        </div>
+                <p className="text-center text-xs text-[var(--text-subtle)]">
+                    {t("common.termsPrefix")}{" "}
+                    <Link href="#" className="text-perfo-secondary underline transition-colors hover:text-perfo-primary">
+                        {t("common.termsLink")}
+                    </Link>
+                </p>
+            </CardContent>
+        </Card>
     );
-}
+};
+
+export default SignUpPage;

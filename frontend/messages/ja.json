@@ -4,6 +4,7 @@
         "back": "戻る",
         "next": "次へ",
         "or": "または",
+        "logout": "ログアウト",
         "email": "メールアドレス",
         "emailPlaceholder": "name@example.com",
         "password": "パスワード",
@@ -30,7 +31,6 @@
         "welcome": "ようこそ、ログインしてください",
         "subtitle": "メールアドレスを入力してください",
         "google": "Google",
-        "kakao": "Kakao",
         "naver": "Naver",
         "line": "LINE"
     },
@@ -72,6 +72,70 @@
         "match": "パスワードが一致"
     },
     "authLayout": {
-        "slogan": "お客様を待たせないでください"
+        "eyebrow": "PERFO Access",
+        "slogan": "お客様を待たせないでください",
+        "description": "認証画面でも、チケッティング製品全体と同じ運用感と信頼感を維持するよう設計されています。",
+        "statTrustLabel": "信頼",
+        "statTrustValue": "運用型認証",
+        "statTrustMeta": "ブランドとセキュリティの手順を同じUI言語で伝えます。",
+        "statSpeedLabel": "速度",
+        "statSpeedValue": "素早い導線",
+        "statSpeedMeta": "メール、ソーシャル、復旧フローを一つのパターンでまとめます。",
+        "statCoverageLabel": "連続性",
+        "statCoverageValue": "製品と一体化",
+        "statCoverageMeta": "ログイン画面が製品から分離して見えないようにします。",
+        "panelLabel": "Flow Note",
+        "panelTitle": "1画面、1ステップ、1つの判断",
+        "panelDescription": "各認証画面は一つの行動だけを強調し、補助情報は控えめに保つことで、次に何をすべきかが明確に見えるようにします。"
+    },
+    "nav": {
+        "reserved": "Reserved",
+        "myTickets": "My Tickets",
+        "profile": "Profile"
+    },
+    "reserved": {
+        "title": "予約チケット",
+        "showUsedOnly": "使用済みのみ表示",
+        "tabAll": "すべて",
+        "tabUsed": "使用済み",
+        "statusBeforeUse": "未使用",
+        "statusWaiting": "順番待ち",
+        "statusMyTurn": "あなたの番です",
+        "statusUsed": "使用済み",
+        "empty": "予約チケットはありません"
+    },
+    "myTickets": {
+        "title": "発行したチケット",
+        "scan": "検票",
+        "edit": "編集",
+        "issuedCount": "発行状況",
+        "statusIssuing": "発行中",
+        "statusInactive": "無効",
+        "statusExpired": "期限切れ",
+        "statusVerifying": "検票中",
+        "empty": "発行したチケットはありません",
+        "createTitle": "チケット発行",
+        "editTitle": "チケット編集",
+        "fieldName": "チケット名",
+        "fieldNamePlaceholder": "例）PERFO Summer Festival",
+        "fieldVenue": "会場",
+        "fieldVenuePlaceholder": "例）オリンピック公園体操競技場",
+        "fieldDate": "有効日",
+        "fieldTotal": "総チケット数",
+        "fieldAllowDuplicate": "重複購入を許可",
+        "fieldMaxPerUser": "1人あたりの最大数",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "create": "発行する"
+    },
+    "profile": {
+        "title": "プロフィール",
+        "appSettings": "アプリ設定",
+        "darkMode": "ダークモード",
+        "pushNotification": "プッシュ通知設定",
+        "support": "サポート",
+        "customerSupport": "お問い合わせ",
+        "privacyPolicy": "プライバシーポリシー",
+        "logout": "ログアウト"
     }
 }

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import type { RootLayoutProps } from "./layout.types";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -30,11 +31,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<RootLayoutProps>) => {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -44,4 +43,6 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

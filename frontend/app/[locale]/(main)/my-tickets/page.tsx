@@ -1,0 +1,298 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { Bell, Plus, Search } from "lucide-react";
+import { IssuedTicketCard } from "@/components/tickets/IssuedTicketCard";
+import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
+import { Button } from "@/components/ui/button";
+import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
+import { FormField, FormFieldLabel } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import { ToggleRow } from "@/components/ui/toggle-row";
+import { EMPTY_FORM, INITIAL_MOCK, STATUS_BADGE_STYLE } from "./my-tickets.constants";
+import type { IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
+
+const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>): string => {
+    const map: Record<IssueStatus, string> = {
+        ISSUING: t("myTickets.statusIssuing"),
+        INACTIVE: t("myTickets.statusInactive"),
+        EXPIRED: t("myTickets.statusExpired"),
+        VERIFYING: t("myTickets.statusVerifying"),
+    };
+    return map[status];
+};
+
+const statusBadgeStyle = (status: IssueStatus) => STATUS_BADGE_STYLE[status];
+
+const TicketFormSheet = ({
+    open,
+    editTarget,
+    onClose,
+    onSubmit,
+    t,
+}: TicketFormSheetProps) => {
+    const isEdit = editTarget !== null;
+    const [form, setForm] = useState<TicketForm>(() =>
+        editTarget
+            ? {
+                  name: editTarget.name,
+                  venue: editTarget.venue,
+                  validDate: editTarget.validDate,
+                  totalCount: String(editTarget.totalCount),
+                  allowDuplicate: editTarget.allowDuplicate,
+                  maxPerUser: String(editTarget.maxPerUser),
+              }
+            : EMPTY_FORM
+    );
+
+    // editTarget 변경 시 폼 초기화
+    const [prevTarget, setPrevTarget] = useState(editTarget);
+    if (prevTarget !== editTarget) {
+        setPrevTarget(editTarget);
+        setForm(
+            editTarget
+                ? {
+                      name: editTarget.name,
+                      venue: editTarget.venue,
+                      validDate: editTarget.validDate,
+                      totalCount: String(editTarget.totalCount),
+                      allowDuplicate: editTarget.allowDuplicate,
+                      maxPerUser: String(editTarget.maxPerUser),
+                  }
+                : EMPTY_FORM
+        );
+    }
+
+    const set = (key: keyof TicketForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm((f) => ({ ...f, [key]: e.target.value }));
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(form);
+    };
+
+    if (!open) return null;
+
+    return (
+        <BottomSheet open={open} onClose={onClose}>
+            <BottomSheetContent>
+                <BottomSheetTitle>
+                    {isEdit ? t("myTickets.editTitle") : t("myTickets.createTitle")}
+                </BottomSheetTitle>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                        <FormField>
+                            <FormFieldLabel>{t("myTickets.fieldName")}</FormFieldLabel>
+                            <Input
+                                required
+                                value={form.name}
+                                onChange={set("name")}
+                                placeholder={t("myTickets.fieldNamePlaceholder")}
+                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                            />
+                        </FormField>
+
+                        <FormField>
+                            <FormFieldLabel>{t("myTickets.fieldVenue")}</FormFieldLabel>
+                            <Input
+                                required
+                                value={form.venue}
+                                onChange={set("venue")}
+                                placeholder={t("myTickets.fieldVenuePlaceholder")}
+                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                            />
+                        </FormField>
+
+                        <FormField>
+                            <FormFieldLabel>{t("myTickets.fieldDate")}</FormFieldLabel>
+                            <Input
+                                required
+                                type="date"
+                                value={form.validDate}
+                                onChange={set("validDate")}
+                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                            />
+                        </FormField>
+
+                        <FormField>
+                            <FormFieldLabel>{t("myTickets.fieldTotal")}</FormFieldLabel>
+                            <Input
+                                required
+                                type="number"
+                                min="1"
+                                value={form.totalCount}
+                                onChange={set("totalCount")}
+                                placeholder="100"
+                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                            />
+                        </FormField>
+
+                        <div className="rounded-xl bg-perfo-bg px-4">
+                            <ToggleRow
+                                checked={form.allowDuplicate}
+                                label={t("myTickets.fieldAllowDuplicate")}
+                                onToggle={() => setForm((f) => ({ ...f, allowDuplicate: !f.allowDuplicate }))}
+                                labelClassName="cursor-pointer"
+                            />
+                        </div>
+
+                        {form.allowDuplicate && (
+                            <FormField>
+                                <FormFieldLabel>{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={form.maxPerUser}
+                                    onChange={set("maxPerUser")}
+                                    placeholder="2"
+                                    className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                />
+                            </FormField>
+                        )}
+
+                        <div className="flex gap-3 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1 h-12 rounded-xl border-perfo-secondary/40 text-perfo-text"
+                                onClick={onClose}
+                            >
+                                {t("myTickets.cancel")}
+                            </Button>
+                            <Button
+                                type="submit"
+                                className="flex-1 h-12 rounded-xl bg-perfo-primary hover:bg-perfo-primary-hover"
+                            >
+                                {isEdit ? t("myTickets.save") : t("myTickets.create")}
+                            </Button>
+                        </div>
+                </form>
+            </BottomSheetContent>
+        </BottomSheet>
+    );
+};
+
+const MyTicketsPage = () => {
+    const t = useTranslations();
+    const [tickets, setTickets] = useState<IssuedTicket[]>(INITIAL_MOCK);
+    const [sheetOpen, setSheetOpen] = useState(false);
+    const [editTarget, setEditTarget] = useState<IssuedTicket | null>(null);
+
+    const openCreate = () => {
+        setEditTarget(null);
+        setSheetOpen(true);
+    };
+
+    const openEdit = (ticket: IssuedTicket) => {
+        setEditTarget(ticket);
+        setSheetOpen(true);
+    };
+
+    const handleClose = () => setSheetOpen(false);
+
+    const handleSubmit = (form: TicketForm) => {
+        if (editTarget) {
+            setTickets((prev) =>
+                prev.map((tk) =>
+                    tk.id === editTarget.id
+                        ? {
+                              ...tk,
+                              name: form.name,
+                              venue: form.venue,
+                              validDate: form.validDate,
+                              totalCount: Number(form.totalCount),
+                              allowDuplicate: form.allowDuplicate,
+                              maxPerUser: Number(form.maxPerUser),
+                          }
+                        : tk
+                )
+            );
+        } else {
+            const newTicket: IssuedTicket = {
+                id: String(Date.now()),
+                name: form.name,
+                venue: form.venue,
+                validDate: form.validDate,
+                status: "INACTIVE",
+                issuedCount: 0,
+                totalCount: Number(form.totalCount),
+                allowDuplicate: form.allowDuplicate,
+                maxPerUser: Number(form.maxPerUser),
+            };
+            setTickets((prev) => [newTicket, ...prev]);
+        }
+        setSheetOpen(false);
+    };
+
+    return (
+        <div className="min-h-full ds-shell">
+            {/* Header */}
+            <div className="ds-toolbar sticky top-0 z-10 flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                    <p className="ds-eyebrow">Operations</p>
+                    <h1 className="text-lg font-bold text-perfo-primary">{t("myTickets.title")}</h1>
+                </div>
+                <div className="flex items-center gap-3 text-perfo-secondary">
+                    <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
+                        <Search className="size-5" />
+                    </Button>
+                    <Button aria-label="알림" size="icon-sm" variant="ghost" className="text-perfo-secondary hover:text-perfo-primary">
+                        <Bell className="size-5" />
+                    </Button>
+                </div>
+            </div>
+
+            <div className="space-y-3 px-5 pt-4 pb-28 lg:pb-4">
+                {tickets.length === 0 ? (
+                    <EmptyState>
+                        <EmptyStateIcon>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-14 w-14">
+                            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
+                            <polyline points="9 12 11 14 15 10" />
+                        </svg>
+                        </EmptyStateIcon>
+                        <EmptyStateTitle>{t("myTickets.empty")}</EmptyStateTitle>
+                    </EmptyState>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {tickets.map((ticket) => (
+                            <IssuedTicketCard
+                                key={ticket.id}
+                                ticket={ticket}
+                                statusLabel={statusLabel(ticket.status, t)}
+                                badgeVariant={statusBadgeStyle(ticket.status)}
+                                issuedCountLabel={t("myTickets.issuedCount")}
+                                editLabel={t("myTickets.edit")}
+                                scanLabel={t("myTickets.scan")}
+                                canScan={ticket.status === "ISSUING" || ticket.status === "VERIFYING"}
+                                onEdit={() => openEdit(ticket)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* FAB */}
+            <Button
+                onClick={openCreate}
+                size="icon-lg"
+                className="fixed right-5 bottom-24 z-30 size-14 rounded-full shadow-lg shadow-perfo-primary/30"
+                aria-label="티켓 발급"
+            >
+                <Plus className="size-6" />
+            </Button>
+
+            {/* Create / Edit Sheet */}
+            <TicketFormSheet
+                open={sheetOpen}
+                editTarget={editTarget}
+                onClose={handleClose}
+                onSubmit={handleSubmit}
+                t={t}
+            />
+        </div>
+    );
+};
+
+export default MyTicketsPage;

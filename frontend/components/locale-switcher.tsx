@@ -5,14 +5,9 @@ import { useRouter, usePathname } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { LOCALE_LABELS } from "@/components/locale-switcher.constants";
 
-const localeLabels: Record<string, string> = {
-    en: "English",
-    ja: "日本語",
-    ko: "한국어",
-};
-
-export default function LocaleSwitcher() {
+const LocaleSwitcher = () => {
     const locale = useLocale();
     const router = useRouter();
     const pathname = usePathname();
@@ -20,19 +15,19 @@ export default function LocaleSwitcher() {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        function handleClickOutside(e: MouseEvent) {
+        const handleClickOutside = (e: MouseEvent) => {
             if (ref.current && !ref.current.contains(e.target as Node)) {
                 setOpen(false);
             }
-        }
+        };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    function handleLocaleChange(newLocale: string) {
+    const handleLocaleChange = (newLocale: string) => {
         setOpen(false);
         router.replace(pathname, { locale: newLocale });
-    }
+    };
 
     return (
         <div ref={ref} className="relative">
@@ -42,7 +37,7 @@ export default function LocaleSwitcher() {
                 className="inline-flex items-center gap-1.5 rounded-lg border border-perfo-secondary/30 bg-white px-3 py-1.5 text-sm font-medium text-perfo-text hover:bg-perfo-bg transition-colors"
             >
                 <Globe className="w-4 h-4 text-perfo-secondary" />
-                {localeLabels[locale]}
+                {LOCALE_LABELS[locale]}
             </button>
 
             {open && (
@@ -57,11 +52,13 @@ export default function LocaleSwitcher() {
                                     : "text-perfo-text"
                                 }`}
                         >
-                            {localeLabels[l]}
+                            {LOCALE_LABELS[l]}
                         </button>
                     ))}
                 </div>
             )}
         </div>
     );
-}
+};
+
+export default LocaleSwitcher;
