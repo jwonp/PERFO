@@ -44,10 +44,12 @@ yarn-error.log*
 
 # Testing
 coverage/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
 
 # Misc
 *.pem
 .claude/settings.local.json
 backend/.kotlin
 docs/00_Study
-
