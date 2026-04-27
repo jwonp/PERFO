@@ -19,7 +19,7 @@
 ## 선행 고정 사항
 
 - 최종 진실 원본은 `PostgreSQL`이다.
-- 인증은 `JWT` 중심으로 설계한다.
+- 인증은 `JWT` 중심으로 설계하고, 계정/로그인 수단 정책은 [02_AUTH_ACCOUNT_STRATEGY.md](../../01_Design/00_Architecture/02_AUTH_ACCOUNT_STRATEGY.md)를 따른다.
 - 티켓팅 상태 전달은 `SSE`를 기본으로 하고 `Polling fallback`을 둔다.
 - 중복 요청은 `idempotency key` 기준으로 같은 결과를 재사용한다.
 - 관리자 기능은 분리 가능한 경계로 설계한다.
@@ -36,6 +36,7 @@
 ## 공통 계약 우선순위
 
 - 인증/인가 규칙
+- 계정 생성, 소셜 로그인, 계정 연동/해제 규칙
 - 티켓팅 상태 값 계약
 - 요청/응답 DTO
 - 도메인 이벤트 이름과 payload 초안

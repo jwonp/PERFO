@@ -1,4 +1,4 @@
-# Frontend 테스트 가이드 (Vitest + React Testing Library)
+# Frontend 테스트 가이드 (Vitest + React Testing Library + Playwright)
 
 ## 설치된 도구
 
@@ -9,10 +9,20 @@
 | `@testing-library/user-event` | 사용자 이벤트 시뮬레이션 |
 | `@testing-library/jest-dom` | DOM 커스텀 매처 (`toBeInTheDocument` 등) |
 | `jsdom` | 브라우저 환경 시뮬레이션 |
+| `@playwright/test` | 실제 브라우저 기반 E2E 테스트 |
 
 ---
 
 ## 핵심 개념
+
+Frontend 테스트는 두 계층으로 분리합니다.
+
+| 계층 | 도구 | 파일 위치 | 기준 |
+|------|------|-----------|------|
+| Unit | Vitest + Testing Library | `**/__tests__/**/*.test.tsx`, `**/*.test.tsx` | 컴포넌트/함수의 작은 규칙 |
+| E2E | Playwright | `e2e/**/*.spec.ts` | 실제 사용자 흐름과 라우팅/API 연동 |
+
+상세 기준은 [03_e2e-first.md](./03_e2e-first.md)를 따릅니다. 로그인/회원가입 TDD 케이스와 컨벤션은 [04_auth_tdd_cases.md](./04_auth_tdd_cases.md)를 따릅니다.
 
 ### 쿼리 우선순위
 

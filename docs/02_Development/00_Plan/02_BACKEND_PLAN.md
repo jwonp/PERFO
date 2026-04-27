@@ -1,7 +1,8 @@
 # PERFO 백엔드 개발 계획
 
 > 기준 문서:
-> `docs/01_Design/00_architecture/REQUEST_PROCESSING_STRATEGY.md`
+> `docs/01_Design/00_Architecture/04_REQUEST_PROCESSING_STRATEGY.md`
+> `docs/01_Design/00_Architecture/02_AUTH_ACCOUNT_STRATEGY.md`
 
 ## 1. 목표
 
@@ -36,6 +37,11 @@
 ### 4.1 인증과 권한
 
 - JWT 발급/검증
+- `User`와 `AuthIdentity` 분리
+- 일반 회원가입과 소셜 최초 가입 분리
+- 소셜 최초 가입 후 10분 임시 가입 상태 구현
+- 이메일 인증 코드 발급/검증
+- 계정 연동/해제와 감사 로그 구현
 - 사용자와 관리자 권한 분리
 - 운영 관리자 / 시스템 관리자 권한 모델 반영
 - 제한적 토큰 폐기 전략 구현
@@ -79,7 +85,7 @@
 
 ### 5.1 PostgreSQL
 
-- 사용자, 이벤트, 티켓, 구매 이력, 검증 이력 테이블 설계
+- 사용자, 로그인 수단, 이메일 인증, 계정 감사 로그, 이벤트, 티켓, 구매 이력, 검증 이력 테이블 설계
 - 제약조건과 인덱스 설계
 - 읽기/쓰기 분리 가능성 고려
 
