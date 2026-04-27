@@ -16,7 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
 import org.mockito.Mockito.never
+import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.ArgumentCaptor
 
 /**
  * AuthService 단위 테스트 (Unit Test)
@@ -62,7 +65,7 @@ class AuthServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입 성공 - 새 이메일로 가입하면 사용자가 생성된다")
+    @DisplayName("회원가입 성공 - 새 이메일로 가입하면 비밀번호를 암호화해 credentials 사용자로 저장한다")
     fun signUp_success() {
         // given
         given(userRepository.existsByEmail("test@example.com")).willReturn(false)
@@ -76,7 +79,14 @@ class AuthServiceTest {
         assertThat(response.email).isEqualTo("test@example.com")
         assertThat(response.name).isEqualTo("테스터")
         assertThat(response.provider).isEqualTo("credentials")
-        then(userRepository).should().save(any(User::class.java))
+
+        val userCaptor = ArgumentCaptor.forClass(User::class.java)
+        then(userRepository).should().save(userCaptor.capture())
+        assertThat(userCaptor.value.email).isEqualTo("test@example.com")
+        assertThat(userCaptor.value.password).isEqualTo("encoded_password")
+        assertThat(userCaptor.value.password).isNotEqualTo("password123!")
+        assertThat(userCaptor.value.name).isEqualTo("테스터")
+        assertThat(userCaptor.value.provider).isEqualTo("credentials")
     }
 
     @Test
@@ -91,6 +101,32 @@ class AuthServiceTest {
             .hasMessage("Email already exists")
 
         then(userRepository).should(never()).save(any(User::class.java))
+    }
+
+    @Test
+    @DisplayName("회원가입 - 이메일 앞뒤 공백과 대소문자를 정규화해 중복 확인과 저장에 사용한다")
+    fun signUp_normalizesEmail() {
+        // given
+        val request = AuthDto.SignUpRequest(
+            " Test@Example.COM ",
+            "password123!",
+            "테스터"
+        )
+
+        given(userRepository.existsByEmail("test@example.com")).willReturn(false)
+        given(passwordEncoder.encode("password123!")).willReturn("encoded_password")
+        given(userRepository.save(any(User::class.java))).willReturn(savedUser)
+
+        // when
+        val response = authService.signUp(request)
+
+        // then
+        assertThat(response.email).isEqualTo("test@example.com")
+        then(userRepository).should().existsByEmail("test@example.com")
+
+        val userCaptor = ArgumentCaptor.forClass(User::class.java)
+        then(userRepository).should().save(userCaptor.capture())
+        assertThat(userCaptor.value.email).isEqualTo("test@example.com")
     }
 
     @Test
@@ -110,6 +146,28 @@ class AuthServiceTest {
 
         // then
         assertThat(response.email).isEqualTo("test@example.com")
+        assertThat(response.name).isEqualTo("테스터")
+        assertThat(response.provider).isEqualTo("credentials")
+    }
+
+    @Test
+    @DisplayName("로그인 - 이메일 앞뒤 공백과 대소문자를 정규화해 사용자를 찾는다")
+    fun login_normalizesEmail() {
+        // given
+        val loginRequest = AuthDto.LoginRequest(
+            " Test@Example.COM ",
+            "password123!"
+        )
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(savedUser)
+        given(passwordEncoder.matches("password123!", "encoded_password")).willReturn(true)
+
+        // when
+        val response = authService.login(loginRequest)
+
+        // then
+        assertThat(response.email).isEqualTo("test@example.com")
+        then(userRepository).should().findByEmail("test@example.com")
     }
 
     @Test
@@ -127,6 +185,65 @@ class AuthServiceTest {
         assertThatThrownBy { authService.login(loginRequest) }
             .isInstanceOf(RuntimeException::class.java)
             .hasMessage("User not found")
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호가 일치하지 않으면 예외를 던진다")
+    fun login_invalidPassword_throwsException() {
+        // given
+        val loginRequest = AuthDto.LoginRequest(
+            "test@example.com",
+            "wrong-password"
+        )
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(savedUser)
+        given(passwordEncoder.matches("wrong-password", "encoded_password")).willReturn(false)
+
+        // when & then
+        assertThatThrownBy { authService.login(loginRequest) }
+            .isInstanceOf(RuntimeException::class.java)
+            .hasMessage("Invalid password")
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 소셜 로그인 계정이면 credentials 로그인을 차단한다")
+    fun login_socialAccount_throwsException() {
+        // given
+        val loginRequest = AuthDto.LoginRequest(
+            "test@example.com",
+            "password123!"
+        )
+        val socialUser = User(
+            2L,
+            "test@example.com",
+            null,
+            "테스터",
+            "google",
+            "google-id",
+            null,
+            null,
+            null
+        )
+
+        given(userRepository.findByEmail("test@example.com")).willReturn(socialUser)
+
+        // when & then
+        assertThatThrownBy { authService.login(loginRequest) }
+            .isInstanceOf(RuntimeException::class.java)
+            .hasMessage("This email uses google login")
+
+        then(passwordEncoder).should(never()).matches(anyString(), anyString())
+    }
+
+    @Test
+    @DisplayName("로그아웃 - stateless 인증에서는 서버 저장소 변경 없이 성공 응답을 반환한다")
+    fun logout_returnsSuccessWithoutStateMutation() {
+        // when
+        val response = authService.logout()
+
+        // then
+        assertThat(response.success).isTrue()
+        verifyNoInteractions(userRepository, passwordEncoder)
     }
 
     @Test

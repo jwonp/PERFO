@@ -6,6 +6,7 @@ import com.perfo.backend.service.AuthService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
+import org.mockito.BDDMockito.then
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -86,6 +87,73 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - 로그인 성공 시 200 응답과 사용자 정보를 반환한다")
+    @WithMockUser
+    fun login_returns200() {
+        // given
+        val request = AuthDto.LoginRequest(
+            "test@example.com",
+            "password123!"
+        )
+        val response = AuthDto.AuthResponse(
+            1L, "test@example.com", "테스터", "credentials", null
+        )
+
+        given(authService.login(request)).willReturn(response)
+
+        // when & then
+        mockMvc.perform(
+            post("/api/auth/login")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.email").value("test@example.com"))
+            .andExpect(jsonPath("$.name").value("테스터"))
+            .andExpect(jsonPath("$.provider").value("credentials"))
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/login - 이메일 형식이 잘못되면 400을 반환한다")
+    @WithMockUser
+    fun login_invalidEmail_returns400() {
+        // given
+        val request = AuthDto.LoginRequest(
+            "not-an-email",
+            "password123!"
+        )
+
+        // when & then
+        mockMvc.perform(
+            post("/api/auth/login")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    @DisplayName("POST /api/auth/logout - 로그아웃 성공 시 200 응답을 반환한다")
+    @WithMockUser
+    fun logout_returns200() {
+        // given
+        val response = AuthDto.LogoutResponse(true)
+        given(authService.logout()).willReturn(response)
+
+        // when & then
+        mockMvc.perform(
+            post("/api/auth/logout")
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+
+        then(authService).should().logout()
     }
 
     @Test

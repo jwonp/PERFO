@@ -27,6 +27,11 @@ class AuthController(
         return ResponseEntity.ok(authService.login(request))
     }
 
+    @PostMapping("/logout")
+    fun logout(): ResponseEntity<AuthDto.LogoutResponse> {
+        return ResponseEntity.ok(authService.logout())
+    }
+
     @PostMapping("/oauth")
     fun oauthLogin(@Valid @RequestBody request: AuthDto.OAuthRequest): ResponseEntity<AuthDto.AuthResponse> {
         println("/api/auth/oauth")

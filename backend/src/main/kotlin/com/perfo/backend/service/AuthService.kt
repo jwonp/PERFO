@@ -15,12 +15,14 @@ class AuthService(
 
     @Transactional
     fun signUp(request: AuthDto.SignUpRequest): AuthDto.AuthResponse {
-        if (userRepository.existsByEmail(request.email)) {
+        val email = normalizeEmail(request.email)
+
+        if (userRepository.existsByEmail(email)) {
             throw RuntimeException("Email already exists")
         }
 
         val user = User(
-            email = request.email,
+            email = email,
             password = passwordEncoder.encode(request.password),
             name = request.name,
             provider = "credentials"
@@ -38,7 +40,7 @@ class AuthService(
     }
 
     fun login(request: AuthDto.LoginRequest): AuthDto.AuthResponse {
-        val user = userRepository.findByEmail(request.email)
+        val user = userRepository.findByEmail(normalizeEmail(request.email))
             ?: throw RuntimeException("User not found")
 
         if (user.provider != "credentials") {
@@ -58,16 +60,21 @@ class AuthService(
         )
     }
 
+    fun logout(): AuthDto.LogoutResponse {
+        return AuthDto.LogoutResponse(success = true)
+    }
+
     @Transactional
     fun oauthLogin(request: AuthDto.OAuthRequest): AuthDto.AuthResponse {
+        val email = normalizeEmail(request.email)
         val user = userRepository.findByProviderAndProviderId(
             request.provider,
             request.providerId
-        ) ?: userRepository.findByEmail(request.email)
+        ) ?: userRepository.findByEmail(email)
 
         val ensured = user ?: run {
             val created = User(
-                email = request.email,
+                email = email,
                 name = request.name,
                 provider = request.provider,
                 providerId = request.providerId,
@@ -86,11 +93,13 @@ class AuthService(
     }
 
     fun checkEmail(email: String): AuthDto.CheckEmailResponse {
-        val user = userRepository.findByEmail(email)
+        val user = userRepository.findByEmail(normalizeEmail(email))
         return if (user != null) {
             AuthDto.CheckEmailResponse(true, user.provider)
         } else {
             AuthDto.CheckEmailResponse(false, null)
         }
     }
+
+    private fun normalizeEmail(email: String): String = email.trim().lowercase()
 }
