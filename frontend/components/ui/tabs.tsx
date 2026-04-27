@@ -9,7 +9,7 @@ const Tabs = ({
   return (
     <div
       data-slot="tabs"
-      className={cn("inline-flex items-center gap-1 rounded-lg border border-border bg-[var(--surface-muted)] p-1", className)}
+      className={cn("inline-flex items-center gap-1 rounded-full border border-border bg-[var(--surface-muted)] p-1", className)}
       {...props}
     />
   )
@@ -25,9 +25,9 @@ const TabsButton = ({
       data-slot="tabs-button"
       data-active={active}
       className={cn(
-        "inline-flex h-9 items-center justify-center rounded-md px-3 text-sm font-medium transition-colors",
+        "inline-flex h-9 items-center justify-center rounded-full px-3 text-xs font-bold transition-colors",
         active
-          ? "bg-[var(--surface-raised)] text-[var(--text)] shadow-[var(--shadow-soft)]"
+          ? "bg-perfo-primary text-white shadow-none"
           : "text-[var(--text-muted)] hover:text-[var(--text)]",
         className
       )}
