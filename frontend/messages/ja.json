@@ -12,15 +12,12 @@
         "passwordPlaceholder": "パスワードを入力",
         "createPasswordPlaceholder": "パスワードを作成",
         "confirmPasswordPlaceholder": "パスワードを再入力",
-        "displayName": "名前",
-        "displayNamePlaceholder": "名前を入力",
         "newPassword": "新しいパスワード",
         "newPasswordPlaceholder": "新しいパスワードを入力",
         "confirmNewPasswordPlaceholder": "新しいパスワードを再入力",
         "goToLogin": "ログインページへ",
         "termsPrefix": "サインアップすると、",
-        "termsLink": "利用規約",
-        "privacyLink": "プライバシーポリシー"
+        "termsLink": "利用規約"
     },
     "landing": {
         "title": "お客様を待たせないでください",
@@ -49,12 +46,9 @@
         "resend": "コード再送信"
     },
     "signup": {
-        "title": "{email}でサインアップ",
+        "title": "以下の要件を満たすパスワードを入力してください。",
         "subtitle": "アカウントの安全なパスワードを作成",
-        "signUp": "サインアップ",
-        "termsAgreement": "利用規約に同意します",
-        "privacyAgreement": "プライバシーポリシーに同意します",
-        "marketingAgreement": "マーケティング通知の受信に同意します"
+        "signUp": "サインアップ"
     },
     "signupComplete": {
         "title": "{email}のアカウントが作成されました",
@@ -126,10 +120,8 @@
         "fieldNamePlaceholder": "例）PERFO Summer Festival",
         "fieldVenue": "会場",
         "fieldVenuePlaceholder": "例）オリンピック公園体操競技場",
-        "fieldVenueMap": "Google Mapsで場所を選択",
-        "fieldVenueMapHelper": "入力した会場をGoogle Mapsで確認します。",
-        "fieldDetailAddress": "詳細住所",
-        "fieldDetailAddressPlaceholder": "例）2階 Aゲート前",
+        "placeAutocompleteUnavailable": "自動補完を利用できません。会場名を直接入力してください",
+        "placeAutocompleteSelected": "会場が自動補完から選択されました",
         "fieldDate": "有効日",
         "fieldTotal": "総チケット数",
         "fieldAllowDuplicate": "重複購入を許可",

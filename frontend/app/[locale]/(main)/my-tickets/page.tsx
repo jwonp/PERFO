@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { ExternalLink, MapPin, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { IssuedTicketCard } from "@/components/tickets/IssuedTicketCard";
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/emp
 import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { ToggleRow } from "@/components/ui/toggle-row";
+import { PlaceAutocompleteInput } from "./PlaceAutocompleteInput";
 import { EMPTY_FORM, INITIAL_MOCK, STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type { IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
@@ -25,14 +26,6 @@ const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>)
 
 const statusBadgeStyle = (status: IssueStatus) => STATUS_BADGE_STYLE[status];
 
-const googleMapsSearchUrl = (venue: string): string => {
-    const normalizedVenue = venue.trim();
-
-    return normalizedVenue
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(normalizedVenue)}`
-        : "";
-};
-
 const TicketFormSheet = ({
     open,
     editTarget,
@@ -46,7 +39,7 @@ const TicketFormSheet = ({
             ? {
                   name: editTarget.name,
                   venue: editTarget.venue,
-                  detailAddress: editTarget.detailAddress,
+                  googlePlaceId: "",
                   validDate: editTarget.validDate,
                   totalCount: String(editTarget.totalCount),
                   allowDuplicate: editTarget.allowDuplicate,
@@ -64,7 +57,7 @@ const TicketFormSheet = ({
                 ? {
                       name: editTarget.name,
                       venue: editTarget.venue,
-                      detailAddress: editTarget.detailAddress,
+                      googlePlaceId: "",
                       validDate: editTarget.validDate,
                       totalCount: String(editTarget.totalCount),
                       allowDuplicate: editTarget.allowDuplicate,
@@ -75,8 +68,11 @@ const TicketFormSheet = ({
     }
 
     const set = (key: keyof TicketForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm((f) => ({ ...f, [key]: e.target.value }));
-    const mapsUrl = googleMapsSearchUrl(form.venue);
+        setForm((f) => ({
+            ...f,
+            [key]: e.target.value,
+            ...(key === "venue" ? { googlePlaceId: "" } : {}),
+        }));
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,9 +90,8 @@ const TicketFormSheet = ({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                         <FormField>
-                            <FormFieldLabel htmlFor="ticket-name">{t("myTickets.fieldName")}</FormFieldLabel>
+                            <FormFieldLabel>{t("myTickets.fieldName")}</FormFieldLabel>
                             <Input
-                                id="ticket-name"
                                 required
                                 value={form.name}
                                 onChange={set("name")}
@@ -106,48 +101,31 @@ const TicketFormSheet = ({
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel htmlFor="ticket-venue">{t("myTickets.fieldVenue")}</FormFieldLabel>
-                            <Input
+                            <FormFieldLabel>{t("myTickets.fieldVenue")}</FormFieldLabel>
+                            <PlaceAutocompleteInput
                                 id="ticket-venue"
                                 required
                                 value={form.venue}
-                                onChange={set("venue")}
+                                placeId={form.googlePlaceId}
+                                onChange={(value) =>
+                                    setForm((f) => ({ ...f, venue: value, googlePlaceId: "" }))
+                                }
+                                onPlaceSelect={(place) =>
+                                    setForm((f) => ({
+                                        ...f,
+                                        venue: place.name,
+                                        googlePlaceId: place.placeId ?? "",
+                                    }))
+                                }
                                 placeholder={t("myTickets.fieldVenuePlaceholder")}
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
-                            />
-                            <div className="rounded-xl border border-perfo-secondary/30 bg-perfo-bg p-3">
-                                <div className="flex items-center gap-2 text-xs text-perfo-text/60">
-                                    <MapPin className="size-4 text-perfo-primary" />
-                                    <span>{t("myTickets.fieldVenueMapHelper")}</span>
-                                </div>
-                                <a
-                                    aria-disabled={!mapsUrl}
-                                    className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-perfo-primary/40 bg-white px-3 text-xs font-bold text-perfo-primary transition-colors hover:bg-perfo-primary/5 aria-disabled:pointer-events-none aria-disabled:opacity-50"
-                                    href={mapsUrl || "#"}
-                                    rel="noreferrer"
-                                    target="_blank"
-                                >
-                                    <ExternalLink className="size-4" />
-                                    {t("myTickets.fieldVenueMap")}
-                                </a>
-                            </div>
-                        </FormField>
-
-                        <FormField>
-                            <FormFieldLabel htmlFor="ticket-detail-address">{t("myTickets.fieldDetailAddress")}</FormFieldLabel>
-                            <Input
-                                id="ticket-detail-address"
-                                value={form.detailAddress}
-                                onChange={set("detailAddress")}
-                                placeholder={t("myTickets.fieldDetailAddressPlaceholder")}
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                unavailableLabel={t("myTickets.placeAutocompleteUnavailable")}
+                                selectedLabel={t("myTickets.placeAutocompleteSelected")}
                             />
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel htmlFor="ticket-valid-date">{t("myTickets.fieldDate")}</FormFieldLabel>
+                            <FormFieldLabel>{t("myTickets.fieldDate")}</FormFieldLabel>
                             <Input
-                                id="ticket-valid-date"
                                 required
                                 type="date"
                                 value={form.validDate}
@@ -157,9 +135,8 @@ const TicketFormSheet = ({
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel htmlFor="ticket-total-count">{t("myTickets.fieldTotal")}</FormFieldLabel>
+                            <FormFieldLabel>{t("myTickets.fieldTotal")}</FormFieldLabel>
                             <Input
-                                id="ticket-total-count"
                                 required
                                 type="number"
                                 min="1"
@@ -181,9 +158,8 @@ const TicketFormSheet = ({
 
                         {form.allowDuplicate && (
                             <FormField>
-                                <FormFieldLabel htmlFor="ticket-max-per-user">{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
+                                <FormFieldLabel>{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
                                 <Input
-                                    id="ticket-max-per-user"
                                     type="number"
                                     min="1"
                                     value={form.maxPerUser}
@@ -243,8 +219,6 @@ const MyTicketsPage = () => {
                               ...tk,
                               name: form.name,
                               venue: form.venue,
-                              detailAddress: form.detailAddress,
-                              googleMapsUrl: googleMapsSearchUrl(form.venue),
                               validDate: form.validDate,
                               totalCount: Number(form.totalCount),
                               allowDuplicate: form.allowDuplicate,
@@ -258,8 +232,6 @@ const MyTicketsPage = () => {
                 id: String(Date.now()),
                 name: form.name,
                 venue: form.venue,
-                detailAddress: form.detailAddress,
-                googleMapsUrl: googleMapsSearchUrl(form.venue),
                 validDate: form.validDate,
                 status: "INACTIVE",
                 issuedCount: 0,
