@@ -54,7 +54,6 @@ export const INITIAL_MOCK: IssuedTicket[] = [
 export const EMPTY_FORM: TicketForm = {
     name: "",
     venue: "",
-    googlePlaceId: "",
     validDate: "",
     totalCount: "",
     allowDuplicate: false,

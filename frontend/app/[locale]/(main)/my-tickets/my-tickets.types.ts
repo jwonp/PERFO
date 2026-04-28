@@ -19,7 +19,6 @@ export interface IssuedTicket {
 export interface TicketForm {
     name: string;
     venue: string;
-    googlePlaceId: string;
     validDate: string;
     totalCount: string;
     allowDuplicate: boolean;
