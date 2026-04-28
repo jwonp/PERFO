@@ -27,7 +27,7 @@ const TicketShell = ({
     children,
 }: TicketShellProps) => {
     return (
-        <div className={cn("overflow-hidden rounded-lg border border-border bg-white shadow-[var(--shadow-soft)]", className)}>
+        <article className={cn("overflow-hidden rounded-lg border border-border bg-white shadow-[var(--shadow-soft)]", className)}>
             {media}
 
             <div className="space-y-3 px-4 pt-4 pb-4">
@@ -56,7 +56,7 @@ const TicketShell = ({
             </div>
 
             {footer ? <div className="px-4 pb-4">{footer}</div> : null}
-        </div>
+        </article>
     );
 };
 

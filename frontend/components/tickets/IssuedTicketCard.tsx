@@ -22,7 +22,25 @@ const IssuedTicketCard = ({
             badgeLabel={statusLabel}
             badgeVariant={badgeVariant}
             title={ticket.name}
-            venue={ticket.venue}
+            venue={
+                <span className="flex min-w-0 flex-col gap-0.5">
+                    {ticket.googleMapsUrl ? (
+                        <a
+                            className="truncate font-semibold text-perfo-primary underline-offset-2 hover:underline"
+                            href={ticket.googleMapsUrl}
+                            rel="noreferrer"
+                            target="_blank"
+                        >
+                            {ticket.venue}
+                        </a>
+                    ) : (
+                        <span className="truncate font-semibold">{ticket.venue}</span>
+                    )}
+                    {ticket.detailAddress ? (
+                        <span className="truncate text-[11px] text-perfo-text/55">{ticket.detailAddress}</span>
+                    ) : null}
+                </span>
+            }
             validDate={ticket.validDate}
             media={
                 <div className="relative h-[158px] w-full overflow-hidden">

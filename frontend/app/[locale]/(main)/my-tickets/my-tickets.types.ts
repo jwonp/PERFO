@@ -7,6 +7,8 @@ export interface IssuedTicket {
     id: string;
     name: string;
     venue: string;
+    detailAddress: string;
+    googleMapsUrl: string;
     validDate: string;
     imageUrl?: string;
     status: IssueStatus;
@@ -19,6 +21,7 @@ export interface IssuedTicket {
 export interface TicketForm {
     name: string;
     venue: string;
+    detailAddress: string;
     validDate: string;
     totalCount: string;
     allowDuplicate: boolean;

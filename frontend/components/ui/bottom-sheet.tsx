@@ -17,8 +17,8 @@ const BottomSheet = ({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} />
-      <div className={cn("fixed right-0 bottom-0 left-0 z-50 max-h-[90vh] overflow-y-auto rounded-t-[28px] border border-border/60 bg-[var(--surface-raised)] shadow-2xl", className)}>
+      <div className="fixed inset-0 z-[60] bg-black/40" onClick={onClose} />
+      <div className={cn("fixed right-0 bottom-0 left-0 z-[70] max-h-[90vh] overflow-y-auto rounded-t-[28px] border border-border/60 bg-[var(--surface-raised)] shadow-2xl", className)}>
         <div className="flex justify-center pt-3 pb-1">
           <div className="h-1 w-10 rounded-full bg-[var(--text-subtle)]/35" />
         </div>

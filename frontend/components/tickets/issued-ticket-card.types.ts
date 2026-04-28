@@ -3,6 +3,8 @@ import type { TicketBadgeVariant } from "@/components/tickets/ticket-shell.types
 export interface IssuedTicketCardData {
     name: string;
     venue: string;
+    detailAddress?: string;
+    googleMapsUrl?: string;
     validDate: string;
     imageUrl?: string;
     status: string;
