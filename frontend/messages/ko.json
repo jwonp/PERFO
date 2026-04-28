@@ -120,8 +120,6 @@
         "fieldNamePlaceholder": "예) PERFO Summer Festival",
         "fieldVenue": "사용 장소",
         "fieldVenuePlaceholder": "예) 올림픽공원 체조경기장",
-        "placeAutocompleteUnavailable": "자동완성 사용 불가: 장소명을 직접 입력하세요",
-        "placeAutocompleteSelected": "장소가 자동완성으로 선택되었습니다",
         "fieldDate": "유효 날짜",
         "fieldTotal": "총 티켓 수",
         "fieldAllowDuplicate": "중복 구매 허용",
