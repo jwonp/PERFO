@@ -120,6 +120,8 @@
         "fieldNamePlaceholder": "例）PERFO Summer Festival",
         "fieldVenue": "会場",
         "fieldVenuePlaceholder": "例）オリンピック公園体操競技場",
+        "placeAutocompleteUnavailable": "自動補完を利用できません。会場名を直接入力してください",
+        "placeAutocompleteSelected": "会場が自動補完から選択されました",
         "fieldDate": "有効日",
         "fieldTotal": "総チケット数",
         "fieldAllowDuplicate": "重複購入を許可",
