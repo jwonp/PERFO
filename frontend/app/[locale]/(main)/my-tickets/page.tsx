@@ -10,6 +10,7 @@ import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/emp
 import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { ToggleRow } from "@/components/ui/toggle-row";
+import { PlaceAutocompleteInput } from "./PlaceAutocompleteInput";
 import { EMPTY_FORM, INITIAL_MOCK, STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type { IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
@@ -38,6 +39,7 @@ const TicketFormSheet = ({
             ? {
                   name: editTarget.name,
                   venue: editTarget.venue,
+                  googlePlaceId: "",
                   validDate: editTarget.validDate,
                   totalCount: String(editTarget.totalCount),
                   allowDuplicate: editTarget.allowDuplicate,
@@ -55,6 +57,7 @@ const TicketFormSheet = ({
                 ? {
                       name: editTarget.name,
                       venue: editTarget.venue,
+                      googlePlaceId: "",
                       validDate: editTarget.validDate,
                       totalCount: String(editTarget.totalCount),
                       allowDuplicate: editTarget.allowDuplicate,
@@ -65,7 +68,11 @@ const TicketFormSheet = ({
     }
 
     const set = (key: keyof TicketForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm((f) => ({ ...f, [key]: e.target.value }));
+        setForm((f) => ({
+            ...f,
+            [key]: e.target.value,
+            ...(key === "venue" ? { googlePlaceId: "" } : {}),
+        }));
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -95,12 +102,24 @@ const TicketFormSheet = ({
 
                         <FormField>
                             <FormFieldLabel>{t("myTickets.fieldVenue")}</FormFieldLabel>
-                            <Input
+                            <PlaceAutocompleteInput
+                                id="ticket-venue"
                                 required
                                 value={form.venue}
-                                onChange={set("venue")}
+                                placeId={form.googlePlaceId}
+                                onChange={(value) =>
+                                    setForm((f) => ({ ...f, venue: value, googlePlaceId: "" }))
+                                }
+                                onPlaceSelect={(place) =>
+                                    setForm((f) => ({
+                                        ...f,
+                                        venue: place.name,
+                                        googlePlaceId: place.placeId ?? "",
+                                    }))
+                                }
                                 placeholder={t("myTickets.fieldVenuePlaceholder")}
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                unavailableLabel={t("myTickets.placeAutocompleteUnavailable")}
+                                selectedLabel={t("myTickets.placeAutocompleteSelected")}
                             />
                         </FormField>
 
