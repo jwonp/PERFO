@@ -97,7 +97,7 @@ const ProfilePage = () => {
                 </section>
 
                 <Button
-                    onClick={() => signOut({ callbackUrl: "/" })}
+                    onClick={() => signOut({ callbackUrl: "/login" })}
                     variant="ghost"
                     className="mt-10 h-12 w-full text-3xl font-medium text-[var(--text)] hover:text-[var(--danger)]"
                 >
