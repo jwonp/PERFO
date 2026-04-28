@@ -120,6 +120,8 @@
         "fieldNamePlaceholder": "e.g. PERFO Summer Festival",
         "fieldVenue": "Venue",
         "fieldVenuePlaceholder": "e.g. Olympic Park Gymnastics Arena",
+        "placeAutocompleteUnavailable": "Autocomplete unavailable: enter venue name manually",
+        "placeAutocompleteSelected": "Venue selected from autocomplete",
         "fieldDate": "Valid Date",
         "fieldTotal": "Total Tickets",
         "fieldAllowDuplicate": "Allow duplicate purchase",
