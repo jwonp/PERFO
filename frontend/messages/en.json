@@ -12,12 +12,15 @@
         "passwordPlaceholder": "Enter your password",
         "createPasswordPlaceholder": "Create a password",
         "confirmPasswordPlaceholder": "Confirm your password",
+        "displayName": "Name",
+        "displayNamePlaceholder": "Enter your name",
         "newPassword": "New Password",
         "newPasswordPlaceholder": "Enter new password",
         "confirmNewPasswordPlaceholder": "Confirm new password",
         "goToLogin": "Go to Login Page",
         "termsPrefix": "By signing up, you agree to our",
-        "termsLink": "Terms of Service"
+        "termsLink": "Terms of Service",
+        "privacyLink": "Privacy Policy"
     },
     "landing": {
         "title": "Stop making your customers wait in line",
@@ -46,9 +49,12 @@
         "resend": "Resend Code"
     },
     "signup": {
-        "title": "Enter a password that meets the requirements below.",
+        "title": "Sign up with {email}",
         "subtitle": "Create a secure password for your account",
-        "signUp": "Sign Up"
+        "signUp": "Sign Up",
+        "termsAgreement": "I agree to the Terms of Service",
+        "privacyAgreement": "I agree to the Privacy Policy",
+        "marketingAgreement": "I agree to receive marketing messages"
     },
     "signupComplete": {
         "title": "Account created for {email}",
@@ -120,6 +126,10 @@
         "fieldNamePlaceholder": "e.g. PERFO Summer Festival",
         "fieldVenue": "Venue",
         "fieldVenuePlaceholder": "e.g. Olympic Park Gymnastics Arena",
+        "fieldVenueMap": "Select on Google Maps",
+        "fieldVenueMapHelper": "Review the venue in Google Maps before issuing.",
+        "fieldDetailAddress": "Detailed address",
+        "fieldDetailAddressPlaceholder": "e.g. Floor 2, Gate A",
         "fieldDate": "Valid Date",
         "fieldTotal": "Total Tickets",
         "fieldAllowDuplicate": "Allow duplicate purchase",

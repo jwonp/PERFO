@@ -1,7 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,19 @@ import { Label } from "@/components/ui/label";
 
 const LoginPage = () => {
     const t = useTranslations();
+    const locale = useLocale();
+    const router = useRouter();
     const [email, setEmail] = useState("");
+    const normalizedEmail = email.trim();
 
     const handleSocialLogin = (provider: string) => {
         signIn(provider, { callbackUrl: "/" });
+    };
+
+    const handleEmailContinue = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const query = normalizedEmail ? `?email=${encodeURIComponent(normalizedEmail)}` : "";
+        router.push(`/login/password${query}`);
     };
 
     return (
@@ -32,12 +41,14 @@ const LoginPage = () => {
                 <CardDescription className="text-sm">{t("login.subtitle")}</CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 px-0">
+            <CardContent className="px-0">
+                <form action={`/${locale}/login/password`} className="space-y-4" method="get" onSubmit={handleEmailContinue}>
                 <div className="space-y-2">
                     <Label htmlFor="email" className="text-xs font-bold text-perfo-primary">{t("common.email")}</Label>
                     <Input
                         id="email"
                         type="email"
+                        name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder={t("common.emailPlaceholder")}
@@ -45,11 +56,10 @@ const LoginPage = () => {
                     />
                 </div>
 
-                <Button asChild className="h-12 w-full">
-                    <Link href="/login/password">
-                        {t("common.next")}
-                    </Link>
+                <Button type="submit" className="h-12 w-full">
+                    {t("common.next")}
                 </Button>
+                </form>
 
                 <div className="flex items-center py-3">
                     <div className="h-px flex-1 bg-border" />

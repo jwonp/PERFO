@@ -12,12 +12,15 @@
         "passwordPlaceholder": "비밀번호를 입력하세요",
         "createPasswordPlaceholder": "비밀번호를 생성하세요",
         "confirmPasswordPlaceholder": "비밀번호를 다시 입력하세요",
+        "displayName": "이름",
+        "displayNamePlaceholder": "이름을 입력하세요",
         "newPassword": "새 비밀번호",
         "newPasswordPlaceholder": "새 비밀번호를 입력하세요",
         "confirmNewPasswordPlaceholder": "새 비밀번호를 다시 입력하세요",
         "goToLogin": "로그인 페이지로 이동",
         "termsPrefix": "가입 시",
-        "termsLink": "이용약관"
+        "termsLink": "이용약관",
+        "privacyLink": "개인정보 처리방침"
     },
     "landing": {
         "title": "고객을 더 이상 줄 세우지 마세요",
@@ -46,9 +49,12 @@
         "resend": "코드 재전송"
     },
     "signup": {
-        "title": "아래 요구사항을 충족하는 비밀번호를 입력하세요.",
+        "title": "{email}로 회원가입",
         "subtitle": "계정의 안전한 비밀번호를 생성하세요",
-        "signUp": "가입하기"
+        "signUp": "가입하기",
+        "termsAgreement": "이용약관에 동의합니다",
+        "privacyAgreement": "개인정보 처리방침에 동의합니다",
+        "marketingAgreement": "마케팅 수신에 동의합니다"
     },
     "signupComplete": {
         "title": "{email} 계정이 생성되었습니다",
@@ -120,6 +126,10 @@
         "fieldNamePlaceholder": "예) PERFO Summer Festival",
         "fieldVenue": "사용 장소",
         "fieldVenuePlaceholder": "예) 올림픽공원 체조경기장",
+        "fieldVenueMap": "Google Maps로 장소 선택",
+        "fieldVenueMapHelper": "입력한 사용 장소를 Google Maps에서 확인합니다.",
+        "fieldDetailAddress": "세부 주소",
+        "fieldDetailAddressPlaceholder": "예) 2층 A게이트 앞",
         "fieldDate": "유효 날짜",
         "fieldTotal": "총 티켓 수",
         "fieldAllowDuplicate": "중복 구매 허용",

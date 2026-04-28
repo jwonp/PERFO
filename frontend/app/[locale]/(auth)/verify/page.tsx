@@ -2,12 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const VerifyPage = () => {
     const t = useTranslations();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email")?.trim() || "user@example.com";
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -39,7 +42,7 @@ const VerifyPage = () => {
 
             <CardHeader className="px-0 pb-0">
                 <CardTitle className="text-base text-[var(--text-muted)]">
-                    {t("verify.title", { email: "user@example.com" })}
+                    {t("verify.title", { email })}
                 </CardTitle>
                 <CardDescription className="text-center">{t("verify.subtitle")}</CardDescription>
             </CardHeader>

@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ import { Label } from "@/components/ui/label";
 
 const PasswordLoginPage = () => {
     const t = useTranslations();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "user@example.com";
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
@@ -36,7 +39,7 @@ const PasswordLoginPage = () => {
 
             <CardHeader className="px-0 pb-0">
                 <CardTitle className="text-base text-[var(--text-muted)]">
-                    {t("passwordLogin.welcome", { email: "user@example.com" })}
+                    {t("passwordLogin.welcome", { email })}
                 </CardTitle>
                 <CardDescription>{t("passwordLogin.subtitle")}</CardDescription>
             </CardHeader>
@@ -56,6 +59,7 @@ const PasswordLoginPage = () => {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                             className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary"
                         >
                             {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
