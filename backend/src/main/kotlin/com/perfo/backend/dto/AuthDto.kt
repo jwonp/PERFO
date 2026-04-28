@@ -47,4 +47,8 @@ class AuthDto {
         val exists: Boolean,
         val provider: String?
     )
+
+    data class LogoutResponse(
+        val success: Boolean
+    )
 }
