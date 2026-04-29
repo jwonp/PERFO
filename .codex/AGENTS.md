@@ -100,6 +100,13 @@ Since Codex lacks hooks, security enforcement is instruction-based:
 4. Review `git diff` before every push
 5. Use `sandbox_mode = "workspace-write"` in config
 
+## Release and Versioning
+
+- Treat `docs/02_Development/01_RELEASE_VERSIONING.md` as the source of truth for release branch and version bump policy.
+- Only bump app versions on `release/<version>` branches unless the user explicitly asks for a different workflow.
+- Keep `frontend/package.json` and `backend/build.gradle` on the same version string.
+- Use SemVer and prefer `-rc.N` prerelease tags while stabilizing a release branch.
+
 ## Frontend Code Rules
 
 Apply these rules to all new or modified frontend code under `frontend/`:
