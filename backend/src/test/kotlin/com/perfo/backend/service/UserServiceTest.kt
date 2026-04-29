@@ -3,21 +3,21 @@ package com.perfo.backend.service
 import com.perfo.backend.dto.UserProfileDto
 import com.perfo.backend.entity.User
 import com.perfo.backend.repository.UserRepository
-import org.junit.jupiter.api.BeforeEach
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.any
 import org.mockito.Mockito.never
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.springframework.mock.web.MockMultipartFile
 import java.time.LocalDateTime
 
@@ -32,11 +32,6 @@ class UserServiceTest {
 
     @InjectMocks
     private lateinit var userService: UserService
-
-    @BeforeEach
-    fun setUp() {
-        given(profileImageStorageService.buildMyProfileImageUrl(anyString())).willAnswer { "/api/users/me/profile-image?v=test" }
-    }
 
     @Test
     @DisplayName("내 프로필 조회 - preset 프로필 정보를 반환한다")
@@ -66,7 +61,7 @@ class UserServiceTest {
             profileImage = "https://example.com/original.png",
         )
         given(userRepository.findByEmail("hong@example.com")).willReturn(user)
-        given(userRepository.save(any(User::class.java))).willAnswer { it.arguments[0] as User }
+        given(userRepository.save(org.mockito.Mockito.any(User::class.java))).willAnswer { it.arguments[0] as User }
 
         val response = userService.updateMyProfile(
             "hong@example.com",
@@ -105,9 +100,9 @@ class UserServiceTest {
             ),
         )
         given(userRepository.findByEmail("hong@example.com")).willReturn(user)
-        given(profileImageStorageService.uploadProfileImage(anyString(), any(ByteArray::class.java), anyString()))
-            .willReturn("1/generated.png")
-        given(userRepository.save(any(User::class.java))).willAnswer { it.arguments[0] as User }
+        whenever(profileImageStorageService.uploadProfileImage(any(), eq(file.bytes), any()))
+            .thenReturn("1/generated.png")
+        given(userRepository.save(org.mockito.Mockito.any(User::class.java))).willAnswer { it.arguments[0] as User }
         given(profileImageStorageService.buildMyProfileImageUrl("1/generated.png"))
             .willReturn("/api/users/me/profile-image?v=2026-04-29T12:00:00")
 
@@ -152,14 +147,14 @@ class UserServiceTest {
             ),
         )
         given(userRepository.findByEmail("hong@example.com")).willReturn(user)
-        given(profileImageStorageService.uploadProfileImage(anyString(), any(ByteArray::class.java), anyString()))
-            .willThrow(IllegalStateException("Profile image upload failed"))
+        whenever(profileImageStorageService.uploadProfileImage(any(), eq(file.bytes), any()))
+            .thenThrow(IllegalStateException("Profile image upload failed"))
 
         assertThatThrownBy { userService.uploadMyProfileImage("hong@example.com", file) }
             .isInstanceOf(IllegalStateException::class.java)
             .hasMessage("Profile image upload failed")
 
-        then(userRepository).should(never()).save(any(User::class.java))
+        then(userRepository).should(never()).save(org.mockito.Mockito.any(User::class.java))
     }
 
     @Test

@@ -9,6 +9,9 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
@@ -79,7 +82,7 @@ class UserControllerTest {
             profileImageUrl = null,
             updatedAt = "2026-04-29T13:00:00",
         )
-        given(userService.updateMyProfile("hong@example.com", request)).willReturn(response)
+        whenever(userService.updateMyProfile("hong@example.com", request)).thenReturn(response)
 
         mockMvc.perform(
             patch("/api/users/me/profile")
@@ -126,8 +129,7 @@ class UserControllerTest {
             profileImageUrl = "/api/users/me/profile-image?v=2026-04-29T13%3A00%3A00",
             updatedAt = "2026-04-29T13:00:00",
         )
-        given(userService.uploadMyProfileImage(org.mockito.ArgumentMatchers.eq("hong@example.com"), org.mockito.ArgumentMatchers.any()))
-            .willReturn(response)
+        whenever(userService.uploadMyProfileImage(eq("hong@example.com"), any())).thenReturn(response)
 
         mockMvc.perform(
             multipart("/api/users/me/profile-image")

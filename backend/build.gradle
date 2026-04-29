@@ -21,6 +21,14 @@ repositories {
     mavenCentral()
 }
 
+configurations.configureEach {
+    resolutionStrategy {
+        force 'com.squareup.okhttp3:okhttp-jvm:4.12.0'
+        force 'com.squareup.okhttp3:logging-interceptor-jvm:4.12.0'
+        force 'com.squareup.okio:okio-jvm:3.6.0'
+    }
+}
+
 dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -38,7 +46,7 @@ dependencies {
 
     // Swagger (springdoc-openapi)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
-    implementation 'io.minio:minio:8.6.0'
+    implementation 'io.minio:minio:8.5.17'
 
     // Kotlin
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
@@ -50,6 +58,7 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // H2 in-memory DB for integration tests
