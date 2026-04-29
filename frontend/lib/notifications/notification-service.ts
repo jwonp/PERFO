@@ -518,24 +518,28 @@ export const savePushSubscription = async ({
     userAgent,
 }: SaveSubscriptionInput) => {
     if (prisma) {
-        return prisma.pushSubscription.upsert({
-            where: { endpoint },
-            create: {
-                userId,
-                endpoint,
-                p256dh: keys.p256dh,
-                auth: keys.auth,
-                userAgent,
-                enabled: true,
-            },
-            update: {
-                userId,
-                p256dh: keys.p256dh,
-                auth: keys.auth,
-                userAgent,
-                enabled: true,
-            },
-        });
+        try {
+            return await prisma.pushSubscription.upsert({
+                where: { endpoint },
+                create: {
+                    userId,
+                    endpoint,
+                    p256dh: keys.p256dh,
+                    auth: keys.auth,
+                    userAgent,
+                    enabled: true,
+                },
+                update: {
+                    userId,
+                    p256dh: keys.p256dh,
+                    auth: keys.auth,
+                    userAgent,
+                    enabled: true,
+                },
+            });
+        } catch (error) {
+            console.warn("Push subscription upsert failed, falling back to local store:", error);
+        }
     }
 
     return updateStore(async (state) => {
@@ -572,16 +576,20 @@ export const savePushSubscription = async ({
 
 export const disablePushSubscription = async (userId: string, endpoint: string) => {
     if (prisma) {
-        const result = await prisma.pushSubscription.updateMany({
-            where: {
-                userId,
-                endpoint,
-            },
-            data: {
-                enabled: false,
-            },
-        });
-        return result.count > 0;
+        try {
+            const result = await prisma.pushSubscription.updateMany({
+                where: {
+                    userId,
+                    endpoint,
+                },
+                data: {
+                    enabled: false,
+                },
+            });
+            return result.count > 0;
+        } catch (error) {
+            console.warn("Push subscription disable failed, falling back to local store:", error);
+        }
     }
 
     return updateStore(async (state) => {
