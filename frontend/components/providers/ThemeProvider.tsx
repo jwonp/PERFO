@@ -24,12 +24,19 @@ import type { ResolvedTheme, ThemePreference } from "@/lib/theme/theme.types"
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [preference, setPreferenceState] = useState<ThemePreference>(
-    () => getStoredThemePreference() ?? "system"
-  )
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-    resolveThemePreference(preference, getInitialResolvedTheme())
-  )
+  const [preference, setPreferenceState] = useState<ThemePreference>("system")
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light")
+
+  useEffect(() => {
+    const nextPreference = getStoredThemePreference() ?? "system"
+    const nextResolvedTheme = resolveThemePreference(
+      nextPreference,
+      getInitialResolvedTheme()
+    )
+
+    setPreferenceState(nextPreference)
+    setResolvedTheme(nextResolvedTheme)
+  }, [])
 
   useEffect(() => {
     applyResolvedTheme(resolvedTheme)

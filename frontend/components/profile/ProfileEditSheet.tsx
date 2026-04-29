@@ -2,13 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { ProfileAvatarPicker } from "@/components/profile/ProfileAvatarPicker";
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { PROFILE_IMAGE_PRESET_KEYS } from "@/lib/profile/profile-presets";
-import type { ProfileImagePresetKey } from "@/lib/profile/profile-presets";
 import type { MyProfileResponse, ProfileImageType, UpdateMyProfileRequest } from "@/lib/profile/profile.types";
 
 interface ProfileEditSheetProps {
@@ -21,7 +18,6 @@ interface ProfileEditSheetProps {
     displayNameLabel: string;
     displayNamePlaceholder: string;
     displayNameCounterLabel: (current: number, max: number) => string;
-    profileImageLabel: string;
     cancelLabel: string;
     saveLabel: string;
     savingLabel: string;
@@ -72,7 +68,6 @@ export const ProfileEditSheet = ({
     displayNameLabel,
     displayNamePlaceholder,
     displayNameCounterLabel,
-    profileImageLabel,
     cancelLabel,
     saveLabel,
     savingLabel,
@@ -91,7 +86,6 @@ export const ProfileEditSheet = ({
     const [profileImageType, setProfileImageType] = useState<ProfileImageType>(initialProfileImageType);
     const [profileImageValue, setProfileImageValue] = useState<string | null>(initialProfileImageValue);
     const [profileImageUrl, setProfileImageUrl] = useState<string | null>(initialProfileImageUrl);
-    const [presetKey, setPresetKey] = useState<ProfileImagePresetKey>("avatar-blue");
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [serverMessage, setServerMessage] = useState<string | null>(null);
@@ -109,17 +103,10 @@ export const ProfileEditSheet = ({
         }
         wasOpenRef.current = true;
 
-        const nextPresetKey = initialProfileImageType === "PRESET" &&
-            initialProfileImageValue &&
-            PROFILE_IMAGE_PRESET_KEYS.includes(initialProfileImageValue as ProfileImagePresetKey)
-            ? initialProfileImageValue as ProfileImagePresetKey
-            : "avatar-blue";
-
         setDisplayName(initialDisplayName);
         setProfileImageType(initialProfileImageType);
         setProfileImageValue(initialProfileImageValue);
         setProfileImageUrl(initialProfileImageUrl);
-        setPresetKey(nextPresetKey);
         setIsSaving(false);
         setIsUploading(false);
         setServerMessage(null);
@@ -129,21 +116,13 @@ export const ProfileEditSheet = ({
     const validationMessage = getValidationMessage(displayName, minLengthMessage, maxLengthMessage, controlCharacterMessage);
     const trimmedDisplayName = displayName.trim();
     const normalizedInitialName = initialDisplayName.trim();
-    const safePresetKey: ProfileImagePresetKey = PROFILE_IMAGE_PRESET_KEYS.includes(presetKey) ? presetKey : "avatar-blue";
-    const normalizedProfileImageType: ProfileImageType = profileImageType === "PRESET" ? "PRESET" : profileImageType;
-    const normalizedProfileImageValue = normalizedProfileImageType === "PRESET" ? safePresetKey : profileImageValue;
+    const normalizedProfileImageType: ProfileImageType = profileImageType;
+    const normalizedProfileImageValue = profileImageValue;
     const hasChanges =
         trimmedDisplayName !== normalizedInitialName ||
         normalizedProfileImageType !== initialProfileImageType ||
         normalizedProfileImageValue !== initialProfileImageValue;
     const canSave = !validationMessage && hasChanges && !isSaving && !isUploading;
-
-    const handlePresetChange = (nextPresetKey: ProfileImagePresetKey) => {
-        setPresetKey(nextPresetKey);
-        setProfileImageType("PRESET");
-        setProfileImageValue(nextPresetKey);
-        setProfileImageUrl(null);
-    };
 
     const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const nextFile = event.target.files?.[0];
@@ -166,8 +145,7 @@ export const ProfileEditSheet = ({
         }
     };
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
+    const submitProfile = async () => {
         if (!canSave) {
             return;
         }
@@ -185,6 +163,11 @@ export const ProfileEditSheet = ({
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const handleSubmit = (event: React.FormEvent) => {
+        event.preventDefault();
+        void submitProfile();
     };
 
     return (
@@ -230,12 +213,6 @@ export const ProfileEditSheet = ({
                         )}
                     </FormField>
 
-                    <ProfileAvatarPicker
-                        value={safePresetKey}
-                        onChange={handlePresetChange}
-                        label={profileImageLabel}
-                    />
-
                     <FormField>
                         <FormFieldLabel htmlFor="profile-image-upload" className="text-sm font-bold text-[var(--text)]">
                             {uploadImageLabel}
@@ -263,7 +240,7 @@ export const ProfileEditSheet = ({
                         <Button type="button" variant="outline" className="h-12 flex-1 rounded-2xl" onClick={onClose}>
                             {cancelLabel}
                         </Button>
-                        <Button type="submit" className="h-12 flex-1 rounded-2xl" disabled={!canSave}>
+                        <Button type="button" className="h-12 flex-1 rounded-2xl" disabled={!canSave} onClick={() => void submitProfile()}>
                             {isSaving ? savingLabel : saveLabel}
                         </Button>
                     </div>

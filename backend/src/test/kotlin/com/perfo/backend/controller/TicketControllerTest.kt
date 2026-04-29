@@ -9,6 +9,7 @@ import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.service.TicketService
 import com.perfo.backend.service.TicketTransitionService
 import com.perfo.backend.service.TicketVerificationService
+import com.perfo.backend.service.ReservationService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.given
@@ -37,6 +38,9 @@ class TicketControllerTest {
 
     @field:MockitoBean
     private lateinit var ticketService: TicketService
+
+    @field:MockitoBean
+    private lateinit var reservationService: ReservationService
 
     @field:MockitoBean
     private lateinit var ticketVerificationService: TicketVerificationService
@@ -118,6 +122,33 @@ class TicketControllerTest {
             .andExpect(jsonPath("$[0].status").value("ISSUING"))
             .andExpect(jsonPath("$[0].issuedCount").value(12))
             .andExpect(jsonPath("$[0].ownerUserId").value("owner-1"))
+    }
+
+    @Test
+    @DisplayName("GET /api/reservations - userId의 예약 티켓 목록을 반환한다")
+    @WithMockUser
+    fun listReservations_returnsUserReservations() {
+        val response = TicketDto.ReservationResponse(
+            id = 21L,
+            name = "PERFO Reservation",
+            venue = "올림픽공원 체조경기장",
+            validDate = "2026-08-15",
+            ticketNumber = 7,
+            totalCount = 100,
+            ticketingStatus = com.perfo.backend.entity.TicketingStatus.SUCCESS,
+            usageStatus = TicketDto.ReservedUsageStatus.MY_TURN,
+        )
+
+        given(reservationService.findAllByUserId(5L)).willReturn(listOf(response))
+
+        mockMvc.perform(
+            get("/api/reservations")
+                .param("userId", "5"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].id").value(21))
+            .andExpect(jsonPath("$[0].ticketNumber").value(7))
+            .andExpect(jsonPath("$[0].usageStatus").value("MY_TURN"))
     }
 
     @Test

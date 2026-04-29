@@ -31,7 +31,6 @@ const fallbackProfile = (session: ReturnType<typeof useSession>["data"]): MyProf
 const ProfilePage = () => {
     const t = useTranslations("profile");
     const { data: session, update } = useSession();
-    const [pushEnabled, setPushEnabled] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
     const [profileOverride, setProfileOverride] = useState<MyProfileResponse | null>(null);
@@ -138,20 +137,43 @@ const ProfilePage = () => {
                                 labelClassName="text-xl font-bold"
                             />
 
-                            <ToggleRow
-                                checked={pushEnabled}
-                                label={t("pushNotification")}
-                                icon={<Bell className="h-5 w-5" />}
-                                onToggle={() => setPushEnabled((value) => !value)}
-                                className="min-h-16 px-5"
-                                labelClassName="text-xl font-bold"
-                            />
+                            <PushNotification>
+                                {({
+                                    isSupported,
+                                    isSubscribed,
+                                    isLoading,
+                                    error,
+                                    subscribe,
+                                    unsubscribe,
+                                }) => (
+                                    <>
+                                        <ToggleRow
+                                            checked={isSubscribed}
+                                            label={t("pushNotification")}
+                                            icon={<Bell className="h-5 w-5" />}
+                                            onToggle={() => {
+                                                if (!isSupported || isLoading) {
+                                                    return;
+                                                }
 
-                            {pushEnabled && (
-                                <div className="rounded-lg bg-[var(--surface-muted)] px-4 py-3">
-                                    <PushNotification />
-                                </div>
-                            )}
+                                                void (isSubscribed ? unsubscribe() : subscribe());
+                                            }}
+                                            className="min-h-16 px-5"
+                                            labelClassName="text-xl font-bold"
+                                        />
+                                        {!isSupported && (
+                                            <div className="px-5 pb-4 text-sm text-[var(--text-muted)]">
+                                                이 브라우저는 푸시 알림을 지원하지 않습니다
+                                            </div>
+                                        )}
+                                        {error && (
+                                            <div className="px-5 pb-4 text-sm text-[var(--danger)]">
+                                                {error}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </PushNotification>
                         </div>
                     </div>
                 </PageSection>
@@ -196,7 +218,6 @@ const ProfilePage = () => {
                 displayNameLabel={t("displayNameLabel")}
                 displayNamePlaceholder={t("displayNamePlaceholder")}
                 displayNameCounterLabel={(current, max) => t("displayNameCounter", { current, max })}
-                profileImageLabel={t("profileImageLabel")}
                 cancelLabel={t("cancel")}
                 saveLabel={t("save")}
                 savingLabel={t("saving")}

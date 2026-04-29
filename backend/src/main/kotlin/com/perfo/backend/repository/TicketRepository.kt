@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param
 
 interface TicketRepository : JpaRepository<Ticket, Long> {
     fun findByIdempotencyKey(idempotencyKey: String): Ticket?
+    fun findByUserIdOrderByIdDesc(userId: Long): List<Ticket>
     fun countByEventIdAndUserId(eventId: Long, userId: Long): Int
 
     @Modifying
