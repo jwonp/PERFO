@@ -170,7 +170,6 @@
         "displayNameLabel": "닉네임",
         "displayNamePlaceholder": "닉네임을 입력하세요",
         "displayNameCounter": "{current}/{max}",
-        "profileImageLabel": "기본 아이콘",
         "cancel": "취소",
         "save": "저장",
         "saving": "저장 중...",

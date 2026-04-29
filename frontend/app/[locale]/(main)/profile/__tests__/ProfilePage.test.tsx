@@ -26,7 +26,6 @@ vi.mock('next-intl', () => ({
       displayNameLabel: '닉네임',
       displayNamePlaceholder: '닉네임을 입력하세요',
       displayNameCounter: '{current}/{max}',
-      profileImageLabel: '기본 아이콘',
       cancel: '취소',
       save: '저장',
       saving: '저장 중...',
@@ -156,7 +155,7 @@ describe('ProfilePage logout', () => {
     expect(pushState.subscribe).toHaveBeenCalledTimes(1)
   })
 
-  it('saves a new nickname and preset avatar, then updates the profile immediately', async () => {
+  it('saves a new nickname and updates the profile immediately', async () => {
     const user = userEvent.setup()
     fetchMock
       .mockResolvedValueOnce({
@@ -178,7 +177,7 @@ describe('ProfilePage logout', () => {
           email: 'hong@example.com',
           displayName: '새 닉네임',
           profileImageType: 'PRESET',
-          profileImageValue: 'avatar-green',
+          profileImageValue: 'avatar-blue',
           profileImageUrl: null,
           updatedAt: '2026-04-29T12:30:00',
         }),
@@ -189,7 +188,6 @@ describe('ProfilePage logout', () => {
     await user.click(screen.getByRole('button', { name: '프로필 편집' }))
     await user.clear(screen.getByLabelText('닉네임'))
     await user.type(screen.getByLabelText('닉네임'), '새 닉네임')
-    await user.click(screen.getByRole('radio', { name: /avatar-green/i }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/api/users/me/profile', expect.objectContaining({ method: 'PATCH' })))
@@ -198,7 +196,7 @@ describe('ProfilePage logout', () => {
       name: '새 닉네임',
       image: null,
       profileImageType: 'PRESET',
-      profileImageValue: 'avatar-green',
+      profileImageValue: 'avatar-blue',
     }))
   })
 

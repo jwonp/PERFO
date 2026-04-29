@@ -170,7 +170,6 @@
         "displayNameLabel": "Nickname",
         "displayNamePlaceholder": "Enter a nickname",
         "displayNameCounter": "{current}/{max}",
-        "profileImageLabel": "Default icon",
         "cancel": "Cancel",
         "save": "Save",
         "saving": "Saving...",
