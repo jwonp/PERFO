@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MyTicketsPage from '../page'
 
 vi.mock('next/navigation', () => ({
@@ -53,6 +53,39 @@ vi.mock('next-intl', () => ({
 }))
 
 describe('MyTicketsPage', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input)
+
+      if (url === '/api/tickets' && (init?.method ?? 'GET') === 'GET') {
+        return {
+          ok: true,
+          json: async () => [],
+        }
+      }
+
+      if (url === '/api/tickets' && init?.method === 'POST') {
+        const body = JSON.parse(String(init.body))
+        return {
+          ok: true,
+          json: async () => ({
+            id: 999,
+            ...body,
+            status: 'INACTIVE',
+            issuedCount: 0,
+            ownerUserId: 'user-1',
+          }),
+        }
+      }
+
+      throw new Error(`unexpected fetch: ${url}`)
+    }) as unknown as typeof fetch)
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('티켓 발급 폼에서 장소 입력과 세부 주소 입력을 제공한다', async () => {
     const user = userEvent.setup()
     render(<MyTicketsPage />)
@@ -79,6 +112,8 @@ describe('MyTicketsPage', () => {
     await user.type(screen.getByLabelText('유효 날짜'), '2026-08-15')
     await user.type(screen.getByLabelText('총 티켓 수'), '100')
     await user.click(screen.getByRole('button', { name: '발급하기' }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/tickets', expect.objectContaining({ method: 'POST' })))
 
     const ticket = screen.getByText('PERFO Test Ticket').closest('article')
 

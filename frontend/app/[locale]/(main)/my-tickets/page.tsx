@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import PageEmptyState from "@/components/layout/PageEmptyState";
@@ -259,24 +259,81 @@ const MyTicketsPage = () => {
                 )
             );
         } else {
-            const newTicket: IssuedTicket = {
-                id: String(Date.now()),
-                name: form.name,
-                venue: form.venue,
-                detailAddress: form.detailAddress,
-                googleMapsUrl: googleMapsSearchUrl(form.venue, form.googlePlaceId),
-                googlePlaceId: form.googlePlaceId,
-                validDate: form.validDate,
-                status: "INACTIVE",
-                issuedCount: 0,
-                totalCount: Number(form.totalCount),
-                allowDuplicate: form.allowDuplicate,
-                maxPerUser: Number(form.maxPerUser),
-            };
-            setTickets((prev) => [newTicket, ...prev]);
+            void fetch("/api/tickets", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: form.name,
+                    venue: form.venue,
+                    googlePlaceId: form.googlePlaceId,
+                    detailAddress: form.detailAddress,
+                    validDate: form.validDate,
+                    totalCount: Number(form.totalCount),
+                    allowDuplicate: form.allowDuplicate,
+                    maxPerUser: Number(form.maxPerUser),
+                }),
+            })
+                .then((response) => response.json())
+                .then((created) => {
+                    const newTicket: IssuedTicket = {
+                        id: String(created.id),
+                        name: created.name,
+                        venue: created.venue,
+                        detailAddress: created.detailAddress ?? "",
+                        googleMapsUrl: googleMapsSearchUrl(created.venue, created.googlePlaceId),
+                        googlePlaceId: created.googlePlaceId,
+                        validDate: created.validDate,
+                        status: created.status,
+                        issuedCount: created.issuedCount ?? 0,
+                        totalCount: created.totalCount,
+                        allowDuplicate: created.allowDuplicate,
+                        maxPerUser: created.maxPerUser,
+                    };
+                    setTickets((prev) => [newTicket, ...prev.filter((ticket) => ticket.id !== newTicket.id)]);
+                })
+                .catch(() => undefined);
         }
         setSheetOpen(false);
     };
+
+    useEffect(() => {
+        let active = true;
+
+        void fetch("/api/tickets", { cache: "no-store" })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("failed");
+                }
+                return response.json();
+            })
+            .then((items: Array<Record<string, unknown>>) => {
+                if (!active || items.length === 0) {
+                    return;
+                }
+
+                setTickets(items.map((item) => ({
+                    id: String(item.id),
+                    name: String(item.name),
+                    venue: String(item.venue),
+                    detailAddress: String(item.detailAddress ?? ""),
+                    googleMapsUrl: googleMapsSearchUrl(String(item.venue), String(item.googlePlaceId)),
+                    googlePlaceId: String(item.googlePlaceId),
+                    validDate: String(item.validDate),
+                    status: item.status as IssueStatus,
+                    issuedCount: Number(item.issuedCount ?? 0),
+                    totalCount: Number(item.totalCount),
+                    allowDuplicate: Boolean(item.allowDuplicate),
+                    maxPerUser: Number(item.maxPerUser),
+                })));
+            })
+            .catch(() => undefined);
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     useNotificationSnapshotBootstrap(
         tickets.map((ticket) => ({
