@@ -275,8 +275,17 @@ const MyTicketsPage = () => {
                     maxPerUser: Number(form.maxPerUser),
                 }),
             })
-                .then((response) => response.json())
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("failed");
+                    }
+                    return response.json();
+                })
                 .then((created) => {
+                    if (!created?.id) {
+                        throw new Error("failed");
+                    }
+
                     const newTicket: IssuedTicket = {
                         id: String(created.id),
                         name: created.name,
@@ -309,7 +318,7 @@ const MyTicketsPage = () => {
                 return response.json();
             })
             .then((items: Array<Record<string, unknown>>) => {
-                if (!active || items.length === 0) {
+                if (!active) {
                     return;
                 }
 

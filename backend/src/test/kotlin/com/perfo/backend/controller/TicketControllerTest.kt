@@ -20,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -85,6 +86,38 @@ class TicketControllerTest {
             .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.name").value("PERFO Test Ticket"))
             .andExpect(jsonPath("$.googlePlaceId").value("ChIJPLACE"))
+    }
+
+    @Test
+    @DisplayName("GET /api/tickets - ownerUserId의 발행 티켓 목록을 반환한다")
+    @WithMockUser
+    fun listIssuedTickets_returnsOwnerTickets() {
+        val response = TicketDto.TicketResponse(
+            id = 10L,
+            name = "PERFO Test Ticket",
+            venue = "올림픽공원 체조경기장",
+            googlePlaceId = "ChIJPLACE",
+            detailAddress = "2층 A게이트 앞",
+            validDate = "2026-08-15",
+            totalCount = 100,
+            allowDuplicate = false,
+            maxPerUser = 1,
+            status = IssuedTicketStatus.ISSUING,
+            issuedCount = 12,
+            ownerUserId = "owner-1",
+        )
+
+        given(ticketService.findAllByOwnerUserId("owner-1")).willReturn(listOf(response))
+
+        mockMvc.perform(
+            get("/api/tickets")
+                .param("ownerUserId", "owner-1"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].id").value(10))
+            .andExpect(jsonPath("$[0].status").value("ISSUING"))
+            .andExpect(jsonPath("$[0].issuedCount").value(12))
+            .andExpect(jsonPath("$[0].ownerUserId").value("owner-1"))
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.perfo.backend.controller
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.config.HeaderAuthenticationFilter
 import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.service.TicketTransitionService
@@ -84,5 +85,38 @@ class TicketTransitionControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.usageStatus").value("EXPIRED"))
+    }
+
+    @Test
+    @DisplayName("PATCH /api/internal/issued-tickets/{ticketId}/status - 발행 티켓 상태를 전환한다")
+    @WithMockUser
+    fun transitionIssuedTicketStatus_returns200() {
+        val request = TicketDto.IssuedTicketStatusTransitionRequest(nextStatus = IssuedTicketStatus.VERIFYING)
+        val response = TicketDto.TicketResponse(
+            id = 20L,
+            name = "PERFO Test Ticket",
+            venue = "올림픽공원 체조경기장",
+            googlePlaceId = "ChIJPLACE",
+            detailAddress = "2층 A게이트 앞",
+            validDate = "2026-08-15",
+            totalCount = 100,
+            allowDuplicate = false,
+            maxPerUser = 1,
+            status = IssuedTicketStatus.VERIFYING,
+            issuedCount = 15,
+            ownerUserId = "owner-1",
+        )
+
+        given(ticketService.updateIssuedStatus(20L, IssuedTicketStatus.VERIFYING)).willReturn(response)
+
+        mockMvc.perform(
+            patch("/api/internal/issued-tickets/20/status")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("VERIFYING"))
+            .andExpect(jsonPath("$.issuedCount").value(15))
     }
 }
