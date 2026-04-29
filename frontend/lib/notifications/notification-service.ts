@@ -265,25 +265,29 @@ const upsertSnapshot = async ({
     const id = snapshotId(userId, scope, ticketId, statusKey);
 
     if (prisma) {
-        await prisma.ticketStatusSnapshot.upsert({
-            where: { id },
-            create: {
-                id,
-                userId,
-                scope,
-                ticketId,
-                statusKey,
-                statusValue: nextStatus,
-                ticketName,
-                targetUrl,
-            },
-            update: {
-                statusValue: nextStatus,
-                ticketName,
-                targetUrl,
-            },
-        });
-        return;
+        try {
+            await prisma.ticketStatusSnapshot.upsert({
+                where: { id },
+                create: {
+                    id,
+                    userId,
+                    scope,
+                    ticketId,
+                    statusKey,
+                    statusValue: nextStatus,
+                    ticketName,
+                    targetUrl,
+                },
+                update: {
+                    statusValue: nextStatus,
+                    ticketName,
+                    targetUrl,
+                },
+            });
+            return;
+        } catch (error) {
+            console.warn("Ticket status snapshot upsert failed, falling back to local store:", error);
+        }
     }
 
     await updateStore(async (state) => {
@@ -316,8 +320,12 @@ const getSnapshotStatus = async (userId: string, scope: string, ticketId: string
     const id = snapshotId(userId, scope, ticketId, statusKey);
 
     if (prisma) {
-        const snapshot = await prisma.ticketStatusSnapshot.findUnique({ where: { id } });
-        return snapshot?.statusValue ?? null;
+        try {
+            const snapshot = await prisma.ticketStatusSnapshot.findUnique({ where: { id } });
+            return snapshot?.statusValue ?? null;
+        } catch (error) {
+            console.warn("Ticket status snapshot lookup failed, falling back to local store:", error);
+        }
     }
 
     const state = await readStore();
@@ -368,35 +376,39 @@ const deliverNotification = async (userId: string, notification: NotificationRec
 
 export const listNotifications = async (userId: string): Promise<NotificationListItem[]> => {
     if (prisma) {
-        const [notifications, snapshots] = await Promise.all([
-            prisma.notification.findMany({
-                where: { userId },
-                orderBy: { createdAt: "desc" },
-            }),
-            prisma.ticketStatusSnapshot.findMany({
-                where: { userId },
-            }),
-        ]);
+        try {
+            const [notifications, snapshots] = await Promise.all([
+                prisma.notification.findMany({
+                    where: { userId },
+                    orderBy: { createdAt: "desc" },
+                }),
+                prisma.ticketStatusSnapshot.findMany({
+                    where: { userId },
+                }),
+            ]);
 
-        return notifications.map((notification) => {
-            const snapshot = snapshots.find((candidate) => {
-                return candidate.scope === notification.sourceType && candidate.ticketId === notification.sourceId;
+            return notifications.map((notification) => {
+                const snapshot = snapshots.find((candidate) => {
+                    return candidate.scope === notification.sourceType && candidate.ticketId === notification.sourceId;
+                });
+
+                return {
+                    id: notification.id,
+                    type: notification.type as NotificationListItem["type"],
+                    title: notification.title,
+                    body: notification.body,
+                    targetUrl: notification.targetUrl,
+                    sourceType: notification.sourceType as NotificationListItem["sourceType"],
+                    sourceId: notification.sourceId,
+                    dedupeKey: notification.dedupeKey,
+                    readAt: notification.readAt?.toISOString() ?? null,
+                    createdAt: notification.createdAt.toISOString(),
+                    ticketName: snapshot?.ticketName ?? notification.title,
+                };
             });
-
-            return {
-                id: notification.id,
-                type: notification.type as NotificationListItem["type"],
-                title: notification.title,
-                body: notification.body,
-                targetUrl: notification.targetUrl,
-                sourceType: notification.sourceType as NotificationListItem["sourceType"],
-                sourceId: notification.sourceId,
-                dedupeKey: notification.dedupeKey,
-                readAt: notification.readAt?.toISOString() ?? null,
-                createdAt: notification.createdAt.toISOString(),
-                ticketName: snapshot?.ticketName ?? notification.title,
-            };
-        });
+        } catch (error) {
+            console.warn("Notification list query failed, falling back to local store:", error);
+        }
     }
 
     const state = await readStore();
@@ -419,12 +431,16 @@ export const listNotifications = async (userId: string): Promise<NotificationLis
 
 export const getUnreadNotificationCount = async (userId: string) => {
     if (prisma) {
-        return prisma.notification.count({
-            where: {
-                userId,
-                readAt: null,
-            },
-        });
+        try {
+            return await prisma.notification.count({
+                where: {
+                    userId,
+                    readAt: null,
+                },
+            });
+        } catch (error) {
+            console.warn("Notification count query failed, falling back to local store:", error);
+        }
     }
 
     const state = await readStore();
@@ -433,36 +449,40 @@ export const getUnreadNotificationCount = async (userId: string) => {
 
 export const markNotificationRead = async (userId: string, notificationId: string) => {
     if (prisma) {
-        const notification = await prisma.notification.findFirst({
-            where: {
-                id: notificationId,
-                userId,
-            },
-        });
-
-        if (!notification) {
-            return null;
-        }
-
-        const updated = notification.readAt
-            ? notification
-            : await prisma.notification.update({
-                where: { id: notification.id },
-                data: { readAt: new Date() },
+        try {
+            const notification = await prisma.notification.findFirst({
+                where: {
+                    id: notificationId,
+                    userId,
+                },
             });
 
-        return {
-            id: updated.id,
-            type: updated.type as NotificationItem["type"],
-            title: updated.title,
-            body: updated.body,
-            targetUrl: updated.targetUrl,
-            sourceType: updated.sourceType as NotificationItem["sourceType"],
-            sourceId: updated.sourceId,
-            dedupeKey: updated.dedupeKey,
-            readAt: updated.readAt?.toISOString() ?? null,
-            createdAt: updated.createdAt.toISOString(),
-        } satisfies NotificationItem;
+            if (!notification) {
+                return null;
+            }
+
+            const updated = notification.readAt
+                ? notification
+                : await prisma.notification.update({
+                    where: { id: notification.id },
+                    data: { readAt: new Date() },
+                });
+
+            return {
+                id: updated.id,
+                type: updated.type as NotificationItem["type"],
+                title: updated.title,
+                body: updated.body,
+                targetUrl: updated.targetUrl,
+                sourceType: updated.sourceType as NotificationItem["sourceType"],
+                sourceId: updated.sourceId,
+                dedupeKey: updated.dedupeKey,
+                readAt: updated.readAt?.toISOString() ?? null,
+                createdAt: updated.createdAt.toISOString(),
+            } satisfies NotificationItem;
+        } catch (error) {
+            console.warn("Notification read update failed, falling back to local store:", error);
+        }
     }
 
     return updateStore(async (state) => {
@@ -484,16 +504,20 @@ export const markNotificationRead = async (userId: string, notificationId: strin
 
 export const markAllNotificationsRead = async (userId: string) => {
     if (prisma) {
-        const result = await prisma.notification.updateMany({
-            where: {
-                userId,
-                readAt: null,
-            },
-            data: {
-                readAt: new Date(),
-            },
-        });
-        return result.count;
+        try {
+            const result = await prisma.notification.updateMany({
+                where: {
+                    userId,
+                    readAt: null,
+                },
+                data: {
+                    readAt: new Date(),
+                },
+            });
+            return result.count;
+        } catch (error) {
+            console.warn("Notification bulk read update failed, falling back to local store:", error);
+        }
     }
 
     return updateStore(async (state) => {

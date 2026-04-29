@@ -34,16 +34,21 @@ const isValidSyncPayload = (value: unknown): value is { tickets: NotificationSyn
 };
 
 export const POST = async (request: NextRequest) => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    try {
+        const user = await getRequiredSessionUser();
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
 
-    const payload = await request.json();
-    if (!isValidSyncPayload(payload)) {
-        return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
-    }
+        const payload = await request.json();
+        if (!isValidSyncPayload(payload)) {
+            return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+        }
 
-    const createdNotificationIds = await syncTicketNotifications(user.id, payload.tickets);
-    return NextResponse.json({ createdNotificationIds });
+        const createdNotificationIds = await syncTicketNotifications(user.id, payload.tickets);
+        return NextResponse.json({ createdNotificationIds });
+    } catch (error) {
+        console.error("Notification sync failed:", error);
+        return NextResponse.json({ message: "Notification sync failed" }, { status: 500 });
+    }
 };
