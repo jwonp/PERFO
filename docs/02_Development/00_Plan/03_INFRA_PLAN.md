@@ -4,6 +4,7 @@
 > `docs/01_Design/00_Architecture/01_ARCHITECTURE.md`
 > `docs/01_Design/00_Architecture/02_AUTH_ACCOUNT_STRATEGY.md`
 > `docs/01_Design/07_WINDOWS_SERVER_GUIDE.md`
+> `docs/02_Development/00_Plan/08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md`
 
 ## 1. 목표
 

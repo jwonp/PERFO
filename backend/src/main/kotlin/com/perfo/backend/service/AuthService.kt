@@ -10,7 +10,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class AuthService(
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val profileImageStorageService: ProfileImageStorageService,
 ) {
 
     @Transactional
@@ -35,7 +36,10 @@ class AuthService(
             saved.email,
             saved.name,
             saved.provider,
-            saved.profileImage
+            saved.profileImage,
+            saved.profileImageType,
+            saved.profileImageValue,
+            saved.resolveProfileImageUrl(profileImageStorageService)
         )
     }
 
@@ -56,7 +60,10 @@ class AuthService(
             user.email,
             user.name,
             user.provider,
-            user.profileImage
+            user.profileImage,
+            user.profileImageType,
+            user.profileImageValue,
+            user.resolveProfileImageUrl(profileImageStorageService)
         )
     }
 
@@ -78,7 +85,9 @@ class AuthService(
                 name = request.name,
                 provider = request.provider,
                 providerId = request.providerId,
-                profileImage = request.profileImage
+                profileImage = request.profileImage,
+                profileImageType = if (request.profileImage.isNullOrBlank()) null else "PROVIDER",
+                profileImageValue = request.profileImage
             )
             userRepository.save(created)
         }
@@ -88,7 +97,10 @@ class AuthService(
             ensured.email,
             ensured.name,
             ensured.provider,
-            ensured.profileImage
+            ensured.profileImage,
+            ensured.profileImageType,
+            ensured.profileImageValue,
+            ensured.resolveProfileImageUrl(profileImageStorageService)
         )
     }
 
@@ -102,4 +114,19 @@ class AuthService(
     }
 
     private fun normalizeEmail(email: String): String = email.trim().lowercase()
+
+    private fun User.resolveProfileImageUrl(storageService: ProfileImageStorageService): String? {
+        val resolvedType = when {
+            !profileImageType.isNullOrBlank() -> profileImageType
+            !profileImage.isNullOrBlank() -> UserProfilePreset.PROVIDER
+            else -> UserProfilePreset.NONE
+        }
+        val resolvedValue = profileImageValue ?: profileImage
+
+        return when (resolvedType) {
+            UserProfilePreset.UPLOADED -> resolvedValue?.let(storageService::buildMyProfileImageUrl)
+            UserProfilePreset.PROVIDER -> resolvedValue
+            else -> null
+        }
+    }
 }

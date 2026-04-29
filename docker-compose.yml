@@ -37,6 +37,45 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-02-28T09-55-16Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
+      MINIO_SERVER_URL: ${MINIO_SERVER_URL}
+    ports:
+      - "${MINIO_API_PORT:-19000}:9000"
+      - "${MINIO_CONSOLE_PORT:-19001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-02-21T16-00-46Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
+      mc mb --ignore-existing local/$$MINIO_BUCKET_PROFILE_IMAGES &&
+      (mc admin user info local $$MINIO_ACCESS_KEY >/dev/null 2>&1 || mc admin user add local $$MINIO_ACCESS_KEY $$MINIO_SECRET_KEY) &&
+      mc admin policy attach local readwrite --user $$MINIO_ACCESS_KEY
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
+
   # --- Backend (Prod) ---
   backend:
     build:
@@ -47,6 +86,8 @@ services:
     depends_on:
       - postgres
       - redis
+      - minio
+      - minio-init
     environment:
       SERVER_PORT: ${BACKEND_PORT}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
@@ -55,6 +96,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_SECURITY_JWT_SECRET: ${JWT_SECRET}
       APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_REGION: ${MINIO_REGION}
+      MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
+      MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
     profiles:
       - full
 
@@ -69,6 +116,8 @@ services:
     depends_on:
       - postgres
       - redis
+      - minio
+      - minio-init
     volumes:
       - ./backend:/app
       - ~/.gradle:/root/.gradle
@@ -80,6 +129,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       SPRING_SECURITY_JWT_SECRET: ${JWT_SECRET}
       APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_REGION: ${MINIO_REGION}
+      MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
+      MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
     profiles:
       - dev
 
@@ -95,6 +150,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
+    command: >
+      sh -c "pnpm install --no-frozen-lockfile &&
+      pnpm dev --hostname 0.0.0.0 --port ${FRONTEND_PORT}"
     environment:
       - PORT=${FRONTEND_PORT}
       - WATCHPACK_POLLING=true
@@ -108,6 +166,7 @@ services:
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
       - LINE_CLIENT_ID=${LINE_CLIENT_ID}
       - LINE_CLIENT_SECRET=${LINE_CLIENT_SECRET}
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
       - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - KAFKA_BROKERS=${KAFKA_BROKERS}
@@ -138,6 +197,7 @@ services:
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
       - LINE_CLIENT_ID=${LINE_CLIENT_ID}
       - LINE_CLIENT_SECRET=${LINE_CLIENT_SECRET}
+      - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
       - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - KAFKA_BROKERS=${KAFKA_BROKERS}
@@ -148,3 +208,4 @@ services:
 volumes:
   redis_data:
   postgres_data:
+  minio_data:

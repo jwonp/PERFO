@@ -42,12 +42,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     ];
 
     return (
-        <div className="min-h-dvh bg-perfo-bg">
+        <div className="min-h-dvh bg-background text-foreground">
             <main className="app-screen min-h-dvh pb-20">
                 {children}
             </main>
 
-            <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-perfo-secondary/20 bg-white">
+            <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-border bg-[var(--surface-raised)]">
                 <div className="app-screen flex h-20 items-center justify-around px-4">
                     {tabs.map(({ href, label, Icon, key }) => {
                         const isActive = pathname.includes(`/${key}`);
@@ -56,12 +56,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                                 key={key}
                                 href={href}
                                 className={`flex min-w-20 flex-col items-center gap-1 px-2 py-2 transition-colors ${
-                                    isActive ? "text-perfo-primary" : "text-perfo-secondary"
+                                    isActive ? "text-primary" : "text-[var(--text-muted)]"
                                 }`}
                             >
                                 <Icon className="h-6 w-6" />
                                 <span className={`text-[10px] font-semibold tracking-wide uppercase ${
-                                    isActive ? "text-perfo-primary" : "text-perfo-secondary"
+                                    isActive ? "text-primary" : "text-[var(--text-muted)]"
                                 }`}>
                                     {label}
                                 </span>

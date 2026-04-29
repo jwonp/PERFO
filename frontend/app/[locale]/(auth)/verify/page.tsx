@@ -34,7 +34,7 @@ const VerifyPage = () => {
         <Card className="app-card gap-5 px-6 py-8">
             <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-2xl font-extrabold text-perfo-primary">
+                    <h1 className="text-2xl font-extrabold text-primary">
                         PERFO
                     </h1>
                 </Link>
@@ -59,7 +59,7 @@ const VerifyPage = () => {
                         value={digit}
                         onChange={(e) => handleChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className="h-12 w-10 rounded-lg border border-[#9bafd9] bg-white text-center text-xl font-bold text-[var(--text)] outline-none transition-all focus:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-14 sm:w-12"
+                        className="h-12 w-10 rounded-lg border border-border bg-[var(--surface-raised)] text-center text-xl font-bold text-[var(--text)] outline-none transition-all focus:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-14 sm:w-12"
                     />
                     ))}
                 </div>

@@ -37,6 +37,9 @@ class AuthServiceTest {
     @Mock
     private lateinit var passwordEncoder: PasswordEncoder
 
+    @Mock
+    private lateinit var profileImageStorageService: ProfileImageStorageService
+
     @InjectMocks
     private lateinit var authService: AuthService
 
@@ -60,6 +63,7 @@ class AuthServiceTest {
             null,
             null,
             null,
+            null,
             null
         )
     }
@@ -79,6 +83,7 @@ class AuthServiceTest {
         assertThat(response.email).isEqualTo("test@example.com")
         assertThat(response.name).isEqualTo("테스터")
         assertThat(response.provider).isEqualTo("credentials")
+        assertThat(response.profileImageUrl).isNull()
 
         val userCaptor = ArgumentCaptor.forClass(User::class.java)
         then(userRepository).should().save(userCaptor.capture())
@@ -222,6 +227,7 @@ class AuthServiceTest {
             "google-id",
             null,
             null,
+            null,
             null
         )
 
@@ -258,6 +264,42 @@ class AuthServiceTest {
         // then
         assertThat(response.exists).isTrue()
         assertThat(response.provider).isEqualTo("credentials")
+    }
+
+    @Test
+    @DisplayName("OAuth 로그인 - 기존 사용자가 직접 수정한 닉네임과 아이콘은 provider 값으로 덮어쓰지 않는다")
+    fun oauthLogin_preservesCustomizedProfile() {
+        val existingUser = User(
+            3L,
+            "test@example.com",
+            null,
+            "직접수정닉네임",
+            "google",
+            "google-id",
+            "avatar-green",
+            "PRESET",
+            "avatar-green",
+            null,
+            null
+        )
+        val request = AuthDto.OAuthRequest(
+            provider = "google",
+            providerId = "google-id",
+            email = "test@example.com",
+            name = "Provider Name",
+            profileImage = "https://provider.example.com/avatar.png"
+        )
+
+        given(userRepository.findByProviderAndProviderId("google", "google-id")).willReturn(existingUser)
+
+        val response = authService.oauthLogin(request)
+
+        assertThat(response.name).isEqualTo("직접수정닉네임")
+        assertThat(response.profileImage).isEqualTo("avatar-green")
+        assertThat(response.profileImageType).isEqualTo("PRESET")
+        assertThat(response.profileImageValue).isEqualTo("avatar-green")
+        assertThat(response.profileImageUrl).isNull()
+        then(userRepository).should(never()).save(any(User::class.java))
     }
 
     @Test

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import ThemeScript from "@/components/providers/ThemeScript";
 import type { RootLayoutProps } from "./layout.types";
 import "./globals.css";
 
@@ -25,7 +26,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#103783",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#103783" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1729" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -36,6 +40,9 @@ const RootLayout = ({
 }: Readonly<RootLayoutProps>) => {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

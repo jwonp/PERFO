@@ -64,8 +64,10 @@
   --popover: #fcfdff;
   --popover-foreground: #142033;
   --primary: #103783;
+  --primary-hover: #0d2d6b;
   --primary-foreground: #f7fbff;
   --secondary: #d6e1f5;
+  --secondary-hover: #c3d3ee;
   --secondary-foreground: #17305f;
   --muted: #eaf0f8;
   --muted-foreground: #62718b;
@@ -99,6 +101,7 @@
   --success: #1f8f5f;
   --warning: #c97b17;
   --danger: #c63b3b;
+  --danger-hover: #ad3232;
   --info: #1745a3;
   --accent-strong: #ffb66d;
   --shadow-soft: 0 10px 24px rgba(16, 55, 131, 0.08);
@@ -121,8 +124,10 @@
   --popover: #1a2744;
   --popover-foreground: #e8f0fe;
   --primary: #9BAFD9;
+  --primary-hover: #b7c6e5;
   --primary-foreground: #0f1729;
   --secondary: #1e3a6e;
+  --secondary-hover: #29477f;
   --secondary-foreground: #e8f0fe;
   --muted: #1e3a6e;
   --muted-foreground: #9BAFD9;
@@ -155,6 +160,7 @@
   --success: #35b27c;
   --warning: #e8a242;
   --danger: #e26565;
+  --danger-hover: #f07c7c;
   --info: #8da8de;
   --accent-strong: #ffb66d;
   --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.3);
@@ -167,6 +173,10 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  html {
+    background: var(--background);
   }
 }
 

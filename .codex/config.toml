@@ -101,6 +101,48 @@ approval_policy = "never"
 sandbox_mode = "workspace-write"
 web_search = "live"
 
+[profiles.daily]
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "live"
+
+[profiles.cheap]
+model = "gpt-5.4-mini"
+model_reasoning_effort = "low"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+
+[profiles.plan]
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+web_search = "live"
+
+[profiles.review]
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+web_search = "cached"
+
+[profiles.deep-review]
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+web_search = "cached"
+
+[profiles.research]
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+web_search = "live"
+
 [agents]
 # Multi-agent role limits and local role definitions.
 # These map to `.codex/agents/*.toml` and mirror the repo's explorer/reviewer/docs workflow.
@@ -118,3 +160,27 @@ config_file = "agents/reviewer.toml"
 [agents.docs_researcher]
 description = "Documentation specialist that verifies APIs, framework behavior, and release notes."
 config_file = "agents/docs-researcher.toml"
+
+[agents.daily]
+description = "Default daily coding agent for routine implementation, tests, and verification."
+config_file = "agents/daily.toml"
+
+[agents.cheap]
+description = "Cost-conscious agent for simple edits, quick checks, and low-risk exploration."
+config_file = "agents/cheap.toml"
+
+[agents.plan]
+description = "Planning agent for implementation strategy, task decomposition, and risk discovery."
+config_file = "agents/plan.toml"
+
+[agents.review]
+description = "Profile-aligned review agent focused on correctness, security, and missing tests."
+config_file = "agents/review.toml"
+
+[agents.deep_review]
+description = "Profile-aligned deep review agent for high-risk or architecture-wide changes."
+config_file = "agents/deep-review.toml"
+
+[agents.research]
+description = "Research agent for source-grounded technical and product investigation."
+config_file = "agents/research.toml"

@@ -136,7 +136,7 @@ export const PlaceAutocompleteInput = ({
         />
       ) : null}
       <div className="relative">
-        <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-perfo-primary" />
+        <MapPin className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-primary" />
         <Input
           ref={inputRef}
           id={id}
@@ -146,10 +146,10 @@ export const PlaceAutocompleteInput = ({
           placeholder={placeholder}
           aria-describedby={statusId}
           autoComplete="off"
-          className="h-11 rounded-xl border-perfo-secondary/40 pl-9 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+          className="h-11 rounded-xl border-border pl-9 focus-visible:border-ring focus-visible:ring-ring/20"
         />
       </div>
-      <p id={statusId} className="text-xs text-perfo-text/55">
+      <p id={statusId} className="text-xs text-[var(--text-muted)]">
         {placeId ? selectedLabel : unavailableLabel}
       </p>
     </div>

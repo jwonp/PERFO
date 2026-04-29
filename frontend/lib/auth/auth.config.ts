@@ -45,7 +45,9 @@ export const authOptions: NextAuthOptions = {
                 // 백엔드에서 반환한 사용자 정보를 user 객체에 저장
                 user.id = String(backendUser.id)
                 user.name = backendUser.name
-                user.image = backendUser.profileImage
+                user.image = backendUser.profileImageUrl ?? (backendUser.profileImageType === "PRESET" ? null : backendUser.profileImage)
+                user.profileImageType = backendUser.profileImageType ?? (backendUser.profileImage ? "PROVIDER" : "NONE")
+                user.profileImageValue = backendUser.profileImageValue ?? backendUser.profileImage ?? null
 
                 return true
             } catch (error) {
@@ -54,12 +56,25 @@ export const authOptions: NextAuthOptions = {
             }
         },
 
-        jwt: async ({ token, user, account }) => {
+        jwt: async ({ token, user, account, trigger, session }) => {
             // 최초 로그인 시 user 정보를 token에 저장
             if (user && account) {
                 token.provider = account.provider
                 token.backendId = user.id
+                token.name = user.name
+                token.email = user.email
+                token.picture = user.image ?? undefined
                 token.profileImage = user.image ?? undefined
+                token.profileImageType = user.profileImageType ?? (user.image ? "PROVIDER" : "NONE")
+                token.profileImageValue = user.profileImageValue ?? user.image ?? null
+            }
+
+            if (trigger === "update" && session) {
+                token.name = session.name ?? token.name
+                token.picture = session.image ?? undefined
+                token.profileImage = session.image ?? undefined
+                token.profileImageType = session.profileImageType ?? token.profileImageType
+                token.profileImageValue = session.profileImageValue ?? token.profileImageValue ?? null
             }
             return token
         },
@@ -68,7 +83,11 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.backendId as string
                 session.user.provider = token.provider as string
-                session.user.image = token.profileImage as string
+                session.user.name = token.name
+                session.user.email = token.email
+                session.user.image = (token.profileImage as string | undefined) ?? null
+                session.user.profileImageType = token.profileImageType as string | undefined
+                session.user.profileImageValue = (token.profileImageValue as string | null | undefined) ?? null
             }
             return session
         },

@@ -8,4 +8,6 @@ export interface TicketCardProps {
     usageStatus: TicketUsageStatus;
     ticketNumber: number;
     totalCount: number;
+    qrActionLabel?: string;
+    qrActionHref?: string;
 }

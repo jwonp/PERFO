@@ -37,7 +37,7 @@ const TokenSwatch = ({
 }: TokenSwatchProps) => {
   return (
     <div className="ds-panel flex min-h-32 flex-col gap-3 rounded-lg border border-border p-4">
-      <div className="h-12 rounded-md border border-black/5" style={{ backgroundColor: `var(${variable})` }} />
+      <div className="h-12 rounded-md border border-border" style={{ backgroundColor: `var(${variable})` }} />
       <div className="space-y-1">
         <div className="font-medium text-[var(--text)]">{name}</div>
         <div className="font-mono text-xs text-[var(--text-subtle)]">{variable}</div>

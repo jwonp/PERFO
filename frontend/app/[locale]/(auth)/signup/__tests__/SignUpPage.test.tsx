@@ -73,11 +73,11 @@ describe('SignUpPage', () => {
     await user.type(screen.getByLabelText('이름'), '홍길동')
     await user.type(screen.getByLabelText('비밀번호'), 'Valid123!')
     await user.type(screen.getByLabelText('비밀번호 확인'), 'Valid123!')
-    await user.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
+    await user.click(screen.getByRole('checkbox', { name: /이용약관/ }))
 
     expect(signUpButton).toBeDisabled()
 
-    await user.click(screen.getByRole('checkbox', { name: '개인정보 처리방침에 동의합니다' }))
+    await user.click(screen.getByRole('checkbox', { name: /개인정보/ }))
 
     expect(signUpButton).toBeEnabled()
   })
@@ -89,10 +89,10 @@ describe('SignUpPage', () => {
     await user.type(screen.getByLabelText('이름'), '홍길동')
     await user.type(screen.getByLabelText('비밀번호'), 'Valid123!')
     await user.type(screen.getByLabelText('비밀번호 확인'), 'Valid123!')
-    await user.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
-    await user.click(screen.getByRole('checkbox', { name: '개인정보 처리방침에 동의합니다' }))
+    await user.click(screen.getByRole('checkbox', { name: /이용약관/ }))
+    await user.click(screen.getByRole('checkbox', { name: /개인정보/ }))
 
-    expect(screen.getByRole('checkbox', { name: '마케팅 수신에 동의합니다' })).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: /마케팅/ })).not.toBeChecked()
     expect(screen.getByRole('button', { name: '가입하기' })).toBeEnabled()
   })
 
@@ -103,8 +103,8 @@ describe('SignUpPage', () => {
     await user.type(screen.getByLabelText('이름'), '홍길동')
     await user.type(screen.getByLabelText('비밀번호'), 'Valid123!')
     await user.type(screen.getByLabelText('비밀번호 확인'), 'Valid123!')
-    await user.click(screen.getByRole('checkbox', { name: '이용약관에 동의합니다' }))
-    await user.click(screen.getByRole('checkbox', { name: '개인정보 처리방침에 동의합니다' }))
+    await user.click(screen.getByRole('checkbox', { name: /이용약관/ }))
+    await user.click(screen.getByRole('checkbox', { name: /개인정보/ }))
     await user.click(screen.getByRole('button', { name: '가입하기' }))
 
     expect(push).toHaveBeenCalledWith('/verify?email=new%40example.com')

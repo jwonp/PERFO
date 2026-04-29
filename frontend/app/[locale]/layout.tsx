@@ -2,6 +2,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import SessionProvider from "@/components/providers/SessionProvider";
+import ThemeProvider from "@/components/providers/ThemeProvider";
 import type { LocaleLayoutProps } from "./layout.types";
 
 const LocaleLayout = async ({
@@ -18,9 +19,11 @@ const LocaleLayout = async ({
 
     return (
         <NextIntlClientProvider locale={locale} messages={messages}>
-            <SessionProvider>
-                {children}
-            </SessionProvider>
+            <ThemeProvider>
+                <SessionProvider>
+                    {children}
+                </SessionProvider>
+            </ThemeProvider>
         </NextIntlClientProvider>
     );
 };

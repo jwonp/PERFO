@@ -22,7 +22,7 @@ const PasswordLoginPage = () => {
             <div className="px-6 pt-6">
                 <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-perfo-primary"
+                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-primary"
                 >
                     <ArrowLeft className="size-5" />
                     <span className="sr-only">{t("common.back")}</span>
@@ -31,7 +31,7 @@ const PasswordLoginPage = () => {
 
             <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-2xl font-extrabold text-perfo-primary">
+                    <h1 className="text-2xl font-extrabold text-primary">
                         PERFO
                     </h1>
                 </Link>
@@ -46,7 +46,7 @@ const PasswordLoginPage = () => {
 
             <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="password" className="text-xs font-bold text-perfo-primary">{t("common.password")}</Label>
+                    <Label htmlFor="password" className="text-xs font-bold text-primary">{t("common.password")}</Label>
                     <div className="relative">
                         <Input
                         id="password"
@@ -54,13 +54,13 @@ const PasswordLoginPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.passwordPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 pr-12 text-sm"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
                             aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
-                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary"
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
                         >
                             {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                         </button>
@@ -70,7 +70,7 @@ const PasswordLoginPage = () => {
                 <div className="text-right">
                     <Link
                         href="/reset-password"
-                        className="text-sm font-medium text-perfo-secondary transition-colors hover:text-perfo-primary"
+                        className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-primary"
                     >
                         {t("passwordLogin.forgotPassword")}
                     </Link>

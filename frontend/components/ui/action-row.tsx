@@ -10,7 +10,7 @@ const ActionRow = ({
   return (
     <button
       type="button"
-      className={cn("flex w-full items-center justify-between py-4 text-left transition-colors hover:text-perfo-primary", className)}
+      className={cn("flex w-full items-center justify-between py-4 text-left text-[var(--text)] transition-colors hover:text-primary", className)}
       {...props}
     />
   )
@@ -20,14 +20,14 @@ const ActionRowLeading = ({
   className,
   ...props
 }: React.ComponentProps<"div">) => {
-  return <div className={cn("flex items-center gap-3 text-perfo-text/70", className)} {...props} />
+  return <div className={cn("flex items-center gap-3 text-[var(--text-muted)]", className)} {...props} />
 }
 
 const ActionRowText = ({
   className,
   ...props
 }: React.ComponentProps<"span">) => {
-  return <span className={cn("text-sm font-medium text-perfo-text", className)} {...props} />
+  return <span className={cn("text-sm font-medium text-[var(--text)]", className)} {...props} />
 }
 
 const ActionRowChevron = ({

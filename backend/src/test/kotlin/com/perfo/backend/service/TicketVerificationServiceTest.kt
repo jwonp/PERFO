@@ -1,6 +1,7 @@
 package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.dto.TicketDto.TicketValidationResult
 import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
@@ -8,19 +9,19 @@ import com.perfo.backend.entity.VerificationRecord
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito.given
 import org.mockito.BDDMockito.then
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.junit.jupiter.MockitoExtension
+import java.time.Instant
+import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
 class TicketVerificationServiceTest {
@@ -33,6 +34,9 @@ class TicketVerificationServiceTest {
 
     @Mock
     private lateinit var qrSignatureService: QrSignatureService
+
+    @Mock
+    private lateinit var notificationBridgeService: NotificationBridgeService
 
     @InjectMocks
     private lateinit var ticketVerificationService: TicketVerificationService
@@ -48,91 +52,116 @@ class TicketVerificationServiceTest {
             ticketNumber = 98,
             ticketingStatus = TicketingStatus.SUCCESS,
             usageStatus = TicketUsageStatus.NOW_SERVING,
-            idempotencyKey = "idem-1"
+            idempotencyKey = "idem-1",
         )
     }
 
     @Test
-    @DisplayName("QR 검증 성공 - 서명이 유효하고 사용 가능한 티켓이면 USED 처리와 검증 이력을 저장한다")
-    fun verifyQr_success() {
-        // given
-        val request = TicketDto.VerifyTicketRequest(100L, 10L, 1L, "valid-signature")
+    @DisplayName("QR 토큰을 발급할 수 있다")
+    fun issueQrToken_success() {
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(qrSignatureService.issueToken(100L, 10L, 1L, 60))
+            .willReturn(Pair("opaque-token", Instant.parse("2026-04-28T03:00:30Z")))
 
-        given(qrSignatureService.isValid(request)).willReturn(true)
-        given(ticketRepository.findById(100L)).willReturn(java.util.Optional.of(ticket))
-        given(verificationRecordRepository.save(any(VerificationRecord::class.java)))
+        val response = ticketVerificationService.issueReservationQrToken(100L)
+
+        assertThat(response.token).isEqualTo("opaque-token")
+        assertThat(response.expiresAt).isEqualTo("2026-04-28T03:00:30Z")
+    }
+
+    @Test
+    @DisplayName("QR 검표 성공 시 미사용 티켓은 사용 처리되고 검증 이력이 저장된다")
+    fun validateQr_success() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(ticketRepository.markUsedIfNotUsed(100L, TicketUsageStatus.USED)).willReturn(1)
+        given(verificationRecordRepository.save(org.mockito.ArgumentMatchers.any(VerificationRecord::class.java)))
             .willReturn(VerificationRecord(id = 1L, ticketId = 100L, eventId = 10L, userId = 1L))
 
-        // when
-        val response = ticketVerificationService.verify(request)
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
 
-        // then
-        assertThat(response.verified).isTrue()
-        assertThat(response.ticketId).isEqualTo(100L)
-        assertThat(response.usageStatus).isEqualTo(TicketUsageStatus.USED)
+        assertThat(response.result).isEqualTo(TicketValidationResult.SUCCESS)
+        assertThat(response.ticketNumber).isEqualTo(98)
 
-        val ticketCaptor = ArgumentCaptor.forClass(Ticket::class.java)
-        then(ticketRepository).should().save(ticketCaptor.capture())
-        assertThat(ticketCaptor.value.usageStatus).isEqualTo(TicketUsageStatus.USED)
-
+        then(ticketRepository).should().markUsedIfNotUsed(100L, TicketUsageStatus.USED)
         val recordCaptor = ArgumentCaptor.forClass(VerificationRecord::class.java)
         then(verificationRecordRepository).should().save(recordCaptor.capture())
         assertThat(recordCaptor.value.ticketId).isEqualTo(100L)
-        assertThat(recordCaptor.value.eventId).isEqualTo(10L)
-        assertThat(recordCaptor.value.userId).isEqualTo(1L)
     }
 
     @Test
-    @DisplayName("QR 검증 실패 - 서명이 유효하지 않으면 티켓 상태를 변경하지 않는다")
-    fun verifyQr_invalidSignature_throwsException() {
-        // given
-        val request = TicketDto.VerifyTicketRequest(100L, 10L, 1L, "invalid-signature")
+    @DisplayName("QR 검표 실패 시 다른 티켓의 QR이면 다른 티켓 결과를 반환한다")
+    fun validateQr_wrongTicket() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 11L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
 
-        given(qrSignatureService.isValid(request)).willReturn(false)
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
 
-        // when & then
-        assertThatThrownBy { ticketVerificationService.verify(request) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid QR signature")
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
 
-        then(ticketRepository).shouldHaveNoInteractions()
-        then(verificationRecordRepository).shouldHaveNoInteractions()
+        assertThat(response.result).isEqualTo(TicketValidationResult.WRONG_TICKET)
+        then(ticketRepository).should(never()).findById(100L)
     }
 
     @Test
-    @DisplayName("QR 검증 실패 - 이미 사용한 티켓은 중복 사용을 차단한다")
-    fun verifyQr_usedTicket_throwsException() {
-        // given
+    @DisplayName("QR 검표 실패 시 이미 사용된 티켓이면 이미 사용 결과를 반환한다")
+    fun validateQr_alreadyUsed() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
         val usedTicket = ticket.copyWithUsageStatus(TicketUsageStatus.USED)
-        val request = TicketDto.VerifyTicketRequest(100L, 10L, 1L, "valid-signature")
 
-        given(qrSignatureService.isValid(request)).willReturn(true)
-        given(ticketRepository.findById(100L)).willReturn(java.util.Optional.of(usedTicket))
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(usedTicket))
 
-        // when & then
-        assertThatThrownBy { ticketVerificationService.verify(request) }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessage("Ticket already used")
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
 
-        then(ticketRepository).should(never()).save(any(Ticket::class.java))
-        then(verificationRecordRepository).shouldHaveNoInteractions()
+        assertThat(response.result).isEqualTo(TicketValidationResult.ALREADY_USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
     }
 
     @Test
-    @DisplayName("QR 검증 실패 - QR의 이벤트나 사용자 정보가 티켓과 다르면 차단한다")
-    fun verifyQr_mismatchedPayload_throwsException() {
-        // given
-        val request = TicketDto.VerifyTicketRequest(100L, 999L, 1L, "valid-signature")
+    @DisplayName("QR 검표 실패 시 검표 시작 전 상태는 미오픈 결과를 반환한다")
+    fun validateQr_notOpen_beforeServing() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+        val beforeServingTicket = ticket.copyWithUsageStatus(TicketUsageStatus.BEFORE_SERVING)
 
-        given(qrSignatureService.isValid(request)).willReturn(true)
-        given(ticketRepository.findById(100L)).willReturn(java.util.Optional.of(ticket))
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(beforeServingTicket))
 
-        // when & then
-        assertThatThrownBy { ticketVerificationService.verify(request) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("QR payload does not match ticket")
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
 
-        then(ticketRepository).should(never()).save(any(Ticket::class.java))
-        then(verificationRecordRepository).shouldHaveNoInteractions()
+        assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+    }
+
+    @Test
+    @DisplayName("QR 검표 실패 시 대기 상태는 미오픈 결과를 반환한다")
+    fun validateQr_notOpen_waiting() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+        val waitingTicket = ticket.copyWithUsageStatus(TicketUsageStatus.WAITING)
+
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(waitingTicket))
+
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
+
+        assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+    }
+
+    @Test
+    @DisplayName("QR 검표 실패 시 서명 검증에 실패하면 무효 결과를 반환한다")
+    fun validateQr_invalidToken() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "bad-token")
+        given(qrSignatureService.verifyToken("bad-token")).willReturn(null)
+
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
+
+        assertThat(response.result).isEqualTo(TicketValidationResult.INVALID)
     }
 }

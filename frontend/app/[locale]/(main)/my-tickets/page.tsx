@@ -1,16 +1,25 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
+import { useRouter } from "next/navigation";
+import PageEmptyState from "@/components/layout/PageEmptyState";
+import PageFab from "@/components/layout/PageFab";
+import PageFilterBar from "@/components/layout/PageFilterBar";
+import PageHeader from "@/components/layout/PageHeader";
+import PageSection from "@/components/layout/PageSection";
+import PageShell from "@/components/layout/PageShell";
+import { NotificationButton } from "@/components/notifications/NotificationButton";
+import { useNotificationSnapshotBootstrap } from "@/components/notifications/use-notification-snapshot-bootstrap";
 import { IssuedTicketCard } from "@/components/tickets/IssuedTicketCard";
 import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
 import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { ToggleRow } from "@/components/ui/toggle-row";
-import { PlaceAutocompleteInput } from "./PlaceAutocompleteInput";
+import { PlaceAutocompleteInput, googleMapsSearchUrl } from "./PlaceAutocompleteInput";
 import { EMPTY_FORM, INITIAL_MOCK, STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type { IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
@@ -39,7 +48,8 @@ const TicketFormSheet = ({
             ? {
                   name: editTarget.name,
                   venue: editTarget.venue,
-                  googlePlaceId: "",
+                  googlePlaceId: editTarget.googlePlaceId ?? "",
+                  detailAddress: editTarget.detailAddress,
                   validDate: editTarget.validDate,
                   totalCount: String(editTarget.totalCount),
                   allowDuplicate: editTarget.allowDuplicate,
@@ -57,7 +67,8 @@ const TicketFormSheet = ({
                 ? {
                       name: editTarget.name,
                       venue: editTarget.venue,
-                      googlePlaceId: "",
+                      googlePlaceId: editTarget.googlePlaceId ?? "",
+                      detailAddress: editTarget.detailAddress,
                       validDate: editTarget.validDate,
                       totalCount: String(editTarget.totalCount),
                       allowDuplicate: editTarget.allowDuplicate,
@@ -90,18 +101,19 @@ const TicketFormSheet = ({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                         <FormField>
-                            <FormFieldLabel>{t("myTickets.fieldName")}</FormFieldLabel>
+                            <FormFieldLabel htmlFor="ticket-name">{t("myTickets.fieldName")}</FormFieldLabel>
                             <Input
+                                id="ticket-name"
                                 required
                                 value={form.name}
                                 onChange={set("name")}
                                 placeholder={t("myTickets.fieldNamePlaceholder")}
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                             />
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel>{t("myTickets.fieldVenue")}</FormFieldLabel>
+                            <FormFieldLabel htmlFor="ticket-venue">{t("myTickets.fieldVenue")}</FormFieldLabel>
                             <PlaceAutocompleteInput
                                 id="ticket-venue"
                                 required
@@ -124,30 +136,43 @@ const TicketFormSheet = ({
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel>{t("myTickets.fieldDate")}</FormFieldLabel>
+                            <FormFieldLabel htmlFor="ticket-detail-address">{t("myTickets.fieldDetailAddress")}</FormFieldLabel>
                             <Input
-                                required
-                                type="date"
-                                value={form.validDate}
-                                onChange={set("validDate")}
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                id="ticket-detail-address"
+                                value={form.detailAddress}
+                                onChange={set("detailAddress")}
+                                placeholder={t("myTickets.fieldDetailAddressPlaceholder")}
+                                className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                             />
                         </FormField>
 
                         <FormField>
-                            <FormFieldLabel>{t("myTickets.fieldTotal")}</FormFieldLabel>
+                            <FormFieldLabel htmlFor="ticket-valid-date">{t("myTickets.fieldDate")}</FormFieldLabel>
                             <Input
+                                id="ticket-valid-date"
+                                required
+                                type="date"
+                                value={form.validDate}
+                                onChange={set("validDate")}
+                                className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
+                            />
+                        </FormField>
+
+                        <FormField>
+                            <FormFieldLabel htmlFor="ticket-total-count">{t("myTickets.fieldTotal")}</FormFieldLabel>
+                            <Input
+                                id="ticket-total-count"
                                 required
                                 type="number"
                                 min="1"
                                 value={form.totalCount}
                                 onChange={set("totalCount")}
                                 placeholder="100"
-                                className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
+                                className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                             />
                         </FormField>
 
-                        <div className="rounded-xl bg-perfo-bg px-4">
+                        <div className="rounded-xl bg-[var(--surface-muted)] px-4">
                             <ToggleRow
                                 checked={form.allowDuplicate}
                                 label={t("myTickets.fieldAllowDuplicate")}
@@ -158,30 +183,31 @@ const TicketFormSheet = ({
 
                         {form.allowDuplicate && (
                             <FormField>
-                                <FormFieldLabel>{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
+                                <FormFieldLabel htmlFor="ticket-max-per-user">{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
                                 <Input
-                                    type="number"
-                                    min="1"
-                                    value={form.maxPerUser}
-                                    onChange={set("maxPerUser")}
-                                    placeholder="2"
-                                    className="h-11 rounded-xl border-perfo-secondary/40 focus-visible:border-perfo-primary focus-visible:ring-perfo-primary/20"
-                                />
-                            </FormField>
+                                    id="ticket-max-per-user"
+                                type="number"
+                                min="1"
+                                value={form.maxPerUser}
+                                onChange={set("maxPerUser")}
+                                placeholder="2"
+                                className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
+                            />
+                        </FormField>
                         )}
 
                         <div className="flex gap-3 pt-2">
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="flex-1 h-12 rounded-xl border-perfo-secondary/40 text-perfo-text"
+                                className="flex-1 h-12 rounded-xl border-border text-[var(--text)]"
                                 onClick={onClose}
                             >
                                 {t("myTickets.cancel")}
                             </Button>
                             <Button
                                 type="submit"
-                                className="flex-1 h-12 rounded-xl bg-perfo-primary hover:bg-perfo-primary-hover"
+                                className="flex-1 h-12 rounded-xl"
                             >
                                 {isEdit ? t("myTickets.save") : t("myTickets.create")}
                             </Button>
@@ -194,6 +220,8 @@ const TicketFormSheet = ({
 
 const MyTicketsPage = () => {
     const t = useTranslations();
+    const locale = useLocale();
+    const router = useRouter();
     const [tickets, setTickets] = useState<IssuedTicket[]>(INITIAL_MOCK);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<IssuedTicket | null>(null);
@@ -219,6 +247,9 @@ const MyTicketsPage = () => {
                               ...tk,
                               name: form.name,
                               venue: form.venue,
+                              detailAddress: form.detailAddress,
+                              googleMapsUrl: googleMapsSearchUrl(form.venue, form.googlePlaceId),
+                              googlePlaceId: form.googlePlaceId,
                               validDate: form.validDate,
                               totalCount: Number(form.totalCount),
                               allowDuplicate: form.allowDuplicate,
@@ -232,6 +263,9 @@ const MyTicketsPage = () => {
                 id: String(Date.now()),
                 name: form.name,
                 venue: form.venue,
+                detailAddress: form.detailAddress,
+                googleMapsUrl: googleMapsSearchUrl(form.venue, form.googlePlaceId),
+                googlePlaceId: form.googlePlaceId,
                 validDate: form.validDate,
                 status: "INACTIVE",
                 issuedCount: 0,
@@ -244,39 +278,59 @@ const MyTicketsPage = () => {
         setSheetOpen(false);
     };
 
+    useNotificationSnapshotBootstrap(
+        tickets.map((ticket) => ({
+            scope: "issued",
+            ticketId: ticket.id,
+            ticketName: ticket.name,
+            targetUrl: `/${locale}/my-tickets/${ticket.id}/scan`,
+            statuses: [
+                {
+                    statusKey: "issueStatus",
+                    statusValue: ticket.status,
+                },
+            ],
+        })),
+    );
+
     return (
-        <div className="min-h-full ds-shell">
-            <div className="space-y-5 px-5 pt-8">
-                <header className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-lg font-extrabold text-perfo-primary">{t("myTickets.title")}</h1>
-                        <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-perfo-primary hover:text-perfo-primary">
-                        <Search className="size-5" />
-                        </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
+        <PageShell className="min-h-full ds-shell">
+            <div className="px-5 pt-8">
+                <PageSection spacing="lg">
+                    <PageHeader
+                        title={t("myTickets.title")}
+                        trailing={
+                            <div className="flex items-center gap-1">
+                                <NotificationButton />
+                                <Button aria-label="검색" size="icon-sm" variant="ghost" className="text-primary hover:text-primary">
+                                    <Search className="size-5" />
+                                </Button>
+                            </div>
+                        }
+                    />
+                    <PageFilterBar>
                         <Button className="h-9 rounded-full px-4 text-xs">
                             {t("myTickets.title")}
                         </Button>
-                        <Button variant="outline" className="h-9 rounded-full border-perfo-primary px-4 text-xs text-perfo-primary shadow-none">
+                        <Button variant="outline" className="h-9 rounded-full border-primary/30 px-4 text-xs text-primary shadow-none">
                             {t("myTickets.fieldAllowDuplicate")}
                             <SlidersHorizontal className="size-3.5" />
                         </Button>
-                    </div>
-                </header>
+                    </PageFilterBar>
+                </PageSection>
             </div>
 
             <div className="space-y-3 px-5 pt-5 pb-28">
                 {tickets.length === 0 ? (
-                    <EmptyState>
-                        <EmptyStateIcon>
+                    <PageEmptyState
+                        title={t("myTickets.empty")}
+                        icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-14 w-14">
                             <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
                             <polyline points="9 12 11 14 15 10" />
                         </svg>
-                        </EmptyStateIcon>
-                        <EmptyStateTitle>{t("myTickets.empty")}</EmptyStateTitle>
-                    </EmptyState>
+                        }
+                    />
                 ) : (
                     <div className="grid grid-cols-1 gap-5">
                         {tickets.map((ticket) => (
@@ -290,21 +344,19 @@ const MyTicketsPage = () => {
                                 scanLabel={t("myTickets.scan")}
                                 canScan={ticket.status === "ISSUING" || ticket.status === "VERIFYING"}
                                 onEdit={() => openEdit(ticket)}
+                                onScan={() => router.push(`/${locale}/my-tickets/${ticket.id}/scan`)}
                             />
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* FAB */}
-            <Button
+            <PageFab
                 onClick={openCreate}
-                size="icon-lg"
-                className="fixed right-[calc(50%-195px)] bottom-24 z-30 size-14 rounded-full shadow-lg shadow-perfo-primary/30 max-[430px]:right-5"
                 aria-label="티켓 발급"
             >
                 <Plus className="size-6" />
-            </Button>
+            </PageFab>
 
             {/* Create / Edit Sheet */}
             <TicketFormSheet
@@ -314,7 +366,7 @@ const MyTicketsPage = () => {
                 onSubmit={handleSubmit}
                 t={t}
             />
-        </div>
+        </PageShell>
     );
 };
 

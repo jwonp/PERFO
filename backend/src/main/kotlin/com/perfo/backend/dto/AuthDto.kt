@@ -40,7 +40,10 @@ class AuthDto {
         val email: String,
         val name: String?,
         val provider: String,
-        val profileImage: String?
+        val profileImage: String?,
+        val profileImageType: String?,
+        val profileImageValue: String?,
+        val profileImageUrl: String?
     )
 
     data class CheckEmailResponse(

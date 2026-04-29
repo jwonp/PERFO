@@ -131,7 +131,7 @@ const PushNotification = ({
     // 푸시 미지원 환경
     if (!isSupported) {
         return (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-[var(--text-muted)]">
                 이 브라우저는 푸시 알림을 지원하지 않습니다
             </div>
         );
@@ -145,8 +145,8 @@ const PushNotification = ({
                 className={`
           px-4 py-2 rounded-lg font-medium transition-colors
           ${isSubscribed
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700'}
+                        ? 'bg-[var(--surface-muted)] text-[var(--text)] hover:bg-muted'
+                        : 'bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]'}
           disabled:opacity-50 disabled:cursor-not-allowed
         `}
             >
@@ -154,7 +154,7 @@ const PushNotification = ({
             </button>
 
             {error && (
-                <div className="text-sm text-red-500">{error}</div>
+                <div className="text-sm text-[var(--danger)]">{error}</div>
             )}
         </div>
     );

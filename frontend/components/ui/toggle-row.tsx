@@ -18,16 +18,23 @@ const ToggleRow = ({
   onToggle: () => void
   labelClassName?: string
 }) => {
+  const labelId = React.useId()
+
   return (
     <div
       className={cn("flex items-center justify-between py-4", className)}
       {...props}
     >
-      <div className="flex items-center gap-3 text-perfo-text/70">
+      <div className="flex items-center gap-3 text-[var(--text-muted)]">
         {icon}
-        <span className={cn("text-sm font-medium text-perfo-text", labelClassName)}>{label}</span>
+        <span
+          id={labelId}
+          className={cn("text-sm font-medium text-[var(--text)]", labelClassName)}
+        >
+          {label}
+        </span>
       </div>
-      <Toggle checked={checked} onClick={onToggle} />
+      <Toggle checked={checked} onClick={onToggle} aria-labelledby={labelId} />
     </div>
   )
 }

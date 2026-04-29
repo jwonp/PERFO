@@ -10,8 +10,8 @@ const SignUpCompletePage = () => {
     return (
         <Card className="border-0 bg-transparent py-0 text-center shadow-none">
             <CardHeader className="items-center px-6 pb-0">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-perfo-primary/10">
-                    <CheckCircle className="h-14 w-14 text-perfo-primary" strokeWidth={1.5} />
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+                    <CheckCircle className="h-14 w-14 text-primary" strokeWidth={1.5} />
                 </div>
                 <CardTitle className="text-2xl text-[var(--text)]">
                     {t("signupComplete.title", { email: "user@example.com" })}
