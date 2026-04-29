@@ -19,3 +19,16 @@ spring:
   security:
     jwt:
       expiration: 86400000 # 24 hours
+
+app:
+  notifications:
+    bridge-url: ${NOTIFICATION_BRIDGE_URL:}
+    secret: ${INTERNAL_NOTIFICATION_SECRET:}
+  storage:
+    minio:
+      endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+      access-key: ${MINIO_ACCESS_KEY:}
+      secret-key: ${MINIO_SECRET_KEY:}
+      region: ${MINIO_REGION:ap-northeast-2}
+      bucket-profile-images: ${MINIO_BUCKET_PROFILE_IMAGES:profile-images}
+      public-base-url: ${MINIO_PUBLIC_BASE_URL:}

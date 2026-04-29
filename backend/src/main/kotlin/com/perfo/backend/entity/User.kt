@@ -28,6 +28,10 @@ class User(
     var providerId: String? = null,
     @Column(name = "profile_image")
     var profileImage: String? = null,
+    @Column(name = "profile_image_type")
+    var profileImageType: String? = null,
+    @Column(name = "profile_image_value")
+    var profileImageValue: String? = null,
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     var createdAt: LocalDateTime? = null,

@@ -1,5 +1,7 @@
 package com.perfo.backend.dto
 
+import com.perfo.backend.entity.TicketUsageStatus
+import com.perfo.backend.entity.TicketingStatus
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -34,5 +36,47 @@ object TicketDto {
         val totalCount: Int,
         val allowDuplicate: Boolean,
         val maxPerUser: Int,
+    )
+
+    data class TicketQrTokenResponse(
+        val token: String,
+        val expiresAt: String,
+    )
+
+    data class TicketValidationRequest(
+        @field:NotBlank
+        val qrToken: String,
+    )
+
+    enum class TicketValidationResult {
+        SUCCESS,
+        ALREADY_USED,
+        INVALID,
+        EXPIRED,
+        WRONG_TICKET,
+        NOT_OPEN,
+        FORBIDDEN,
+    }
+
+    data class TicketValidationResponse(
+        val result: TicketValidationResult,
+        val ticketNumber: Int? = null,
+        val usedAt: String? = null,
+        val usageStatus: TicketUsageStatus? = null,
+        val message: String? = null,
+    )
+
+    data class TicketStatusTransitionRequest(
+        val nextStatus: TicketingStatus,
+    )
+
+    data class TicketUsageTransitionRequest(
+        val nextStatus: TicketUsageStatus,
+    )
+
+    data class TicketStateResponse(
+        val ticketId: Long,
+        val ticketingStatus: TicketingStatus,
+        val usageStatus: TicketUsageStatus,
     )
 }
