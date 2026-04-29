@@ -149,7 +149,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
     command: >
       sh -c "pnpm config set confirmModulesPurge false &&
       pnpm install --no-frozen-lockfile &&
