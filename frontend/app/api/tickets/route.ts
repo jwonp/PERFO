@@ -4,6 +4,41 @@ import { authOptions } from "@/lib/auth/auth.config";
 
 const backendUrl = process.env.BACKEND_URL;
 
+export const GET = async () => {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+        return NextResponse.json(
+            { message: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    if (!backendUrl) {
+        return NextResponse.json(
+            { message: "BACKEND_URL is not configured" },
+            { status: 500 }
+        );
+    }
+
+    const response = await fetch(`${backendUrl}/api/tickets?ownerUserId=${encodeURIComponent(session.user.id)}`, {
+        method: "GET",
+        cache: "no-store",
+    });
+
+    const text = await response.text();
+    const body = text
+        ? (() => {
+              try {
+                  return JSON.parse(text);
+              } catch {
+                  return { message: text };
+              }
+          })()
+        : [];
+
+    return NextResponse.json(body, { status: response.status });
+};
+
 export const POST = async (request: Request) => {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -26,7 +61,10 @@ export const POST = async (request: Request) => {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+            ...payload,
+            ownerUserId: session.user.id,
+        }),
     });
 
     const text = await response.text();

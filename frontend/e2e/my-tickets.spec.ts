@@ -9,6 +9,39 @@ async function enableVisualAuth(page: Page) {
 test.describe('티켓 발급 플로우', () => {
   test('발급자는 사용 장소와 세부 주소를 입력해 티켓을 발급할 수 있다', async ({ page }) => {
     await enableVisualAuth(page)
+    let createdPayload: Record<string, unknown> | null = null
+
+    await page.route('**/api/tickets**', async (route) => {
+      const request = route.request()
+
+      if (request.method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([]),
+        })
+        return
+      }
+
+      if (request.method() === 'POST') {
+        createdPayload = request.postDataJSON() as Record<string, unknown>
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 999,
+            ...createdPayload,
+            status: 'INACTIVE',
+            issuedCount: 0,
+            ownerUserId: 'user-1',
+          }),
+        })
+        return
+      }
+
+      await route.fallback()
+    })
+
     await page.goto('/ko/my-tickets', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle')
 
@@ -28,5 +61,14 @@ test.describe('티켓 발급 플로우', () => {
     const ticket = page.locator('article').filter({ hasText: 'PERFO E2E Ticket' })
     await expect(ticket).toContainText('올림픽공원 체조경기장')
     await expect(ticket).toContainText('2층 A게이트 앞')
+    expect(createdPayload).toMatchObject({
+      name: 'PERFO E2E Ticket',
+      venue: '올림픽공원 체조경기장',
+      detailAddress: '2층 A게이트 앞',
+      validDate: '2026-08-15',
+      totalCount: 100,
+      allowDuplicate: false,
+      maxPerUser: 1,
+    })
   })
 })
