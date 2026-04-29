@@ -1,4 +1,5 @@
 import { PrismaClient } from "@/app/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 declare global {
     var __perfoPrisma: PrismaClient | undefined;
@@ -14,7 +15,9 @@ const createPrismaClient = () => {
     }
 
     try {
-        return globalThis.__perfoPrisma ?? new PrismaClient();
+        return globalThis.__perfoPrisma ?? new PrismaClient({
+            adapter: new PrismaPg({ connectionString: normalizedDatabaseUrl }),
+        });
     } catch {
         return null;
     }
