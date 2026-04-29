@@ -8,6 +8,13 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
 object TicketDto {
+    enum class ReservedUsageStatus {
+        BEFORE_USE,
+        WAITING,
+        MY_TURN,
+        USED,
+    }
+
     enum class IssuedTicketStatus {
         INACTIVE,
         ISSUING,
@@ -47,6 +54,17 @@ object TicketDto {
         val status: IssuedTicketStatus,
         val issuedCount: Int,
         val ownerUserId: String,
+    )
+
+    data class ReservationResponse(
+        val id: Long,
+        val name: String,
+        val venue: String,
+        val validDate: String,
+        val ticketNumber: Int,
+        val totalCount: Int,
+        val ticketingStatus: TicketingStatus,
+        val usageStatus: ReservedUsageStatus,
     )
 
     data class TicketQrTokenResponse(

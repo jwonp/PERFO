@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import PageEmptyState from "@/components/layout/PageEmptyState";
 import PageFilterBar from "@/components/layout/PageFilterBar";
@@ -14,15 +14,17 @@ import { useNotificationSnapshotBootstrap } from "@/components/notifications/use
 import { TicketCard } from "@/components/tickets/TicketCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsButton } from "@/components/ui/tabs";
-import { MOCK_TICKETS } from "./reserved.constants";
+import type { Ticket } from "./reserved.types";
 
 const ReservedPage = () => {
     const t = useTranslations();
     const locale = useLocale();
+    const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [hasLoadedTickets, setHasLoadedTickets] = useState(false);
     const [showUsedOnly, setShowUsedOnly] = useState(false);
 
     useNotificationSnapshotBootstrap(
-        MOCK_TICKETS.map((ticket) => ({
+        tickets.map((ticket) => ({
             scope: "reserved",
             ticketId: ticket.id,
             ticketName: ticket.name,
@@ -40,9 +42,49 @@ const ReservedPage = () => {
         })),
     );
 
+    useEffect(() => {
+        let active = true;
+
+        void fetch("/api/reservations", { cache: "no-store" })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("failed");
+                }
+                return response.json();
+            })
+            .then((items: Array<Record<string, unknown>>) => {
+                if (!active) {
+                    return;
+                }
+
+                setTickets(items.map((item) => ({
+                    id: String(item.id),
+                    name: String(item.name),
+                    ticketNumber: Number(item.ticketNumber),
+                    totalCount: Number(item.totalCount),
+                    venue: String(item.venue),
+                    validDate: String(item.validDate),
+                    ticketingStatus: String(item.ticketingStatus) as Ticket["ticketingStatus"],
+                    usageStatus: String(item.usageStatus) as Ticket["usageStatus"],
+                })));
+                setHasLoadedTickets(true);
+            })
+            .catch(() => {
+                if (!active) {
+                    return;
+                }
+
+                setHasLoadedTickets(true);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
+
     const filtered = showUsedOnly
-        ? MOCK_TICKETS.filter((tk) => tk.usageStatus === "USED")
-        : MOCK_TICKETS;
+        ? tickets.filter((tk) => tk.usageStatus === "USED")
+        : tickets;
 
     return (
         <PageShell className="ds-shell">
@@ -74,7 +116,7 @@ const ReservedPage = () => {
                         </Button>
                     </PageFilterBar>
 
-                    {filtered.length === 0 ? (
+                    {hasLoadedTickets && filtered.length === 0 ? (
                         <PageEmptyState
                             title={t("reserved.empty")}
                             icon={

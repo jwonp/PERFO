@@ -4,6 +4,7 @@ import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.service.TicketService
 import com.perfo.backend.service.TicketTransitionService
 import com.perfo.backend.service.TicketVerificationService
+import com.perfo.backend.service.ReservationService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api")
 class TicketController(
     private val ticketService: TicketService,
+    private val reservationService: ReservationService,
     private val ticketVerificationService: TicketVerificationService,
     private val ticketTransitionService: TicketTransitionService,
 ) {
@@ -36,6 +38,13 @@ class TicketController(
         @RequestParam ownerUserId: String,
     ): List<TicketDto.TicketResponse> {
         return ticketService.findAllByOwnerUserId(ownerUserId)
+    }
+
+    @GetMapping("/reservations")
+    fun listReservations(
+        @RequestParam userId: Long,
+    ): List<TicketDto.ReservationResponse> {
+        return reservationService.findAllByUserId(userId)
     }
 
     @PostMapping("/reservations/{reservationId}/qr-token")
