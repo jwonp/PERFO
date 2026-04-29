@@ -170,7 +170,6 @@
         "displayNameLabel": "ニックネーム",
         "displayNamePlaceholder": "ニックネームを入力してください",
         "displayNameCounter": "{current}/{max}",
-        "profileImageLabel": "基本アイコン",
         "cancel": "キャンセル",
         "save": "保存",
         "saving": "保存中...",

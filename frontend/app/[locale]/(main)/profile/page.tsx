@@ -218,7 +218,6 @@ const ProfilePage = () => {
                 displayNameLabel={t("displayNameLabel")}
                 displayNamePlaceholder={t("displayNamePlaceholder")}
                 displayNameCounterLabel={(current, max) => t("displayNameCounter", { current, max })}
-                profileImageLabel={t("profileImageLabel")}
                 cancelLabel={t("cancel")}
                 saveLabel={t("save")}
                 savingLabel={t("saving")}
