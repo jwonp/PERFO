@@ -56,3 +56,4 @@ backend/.kotlin
 docs/00_Study
 
 /frontend/.data
+frontend/.pnpm-store
