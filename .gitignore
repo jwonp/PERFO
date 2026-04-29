@@ -53,3 +53,5 @@ frontend/test-results/
 .claude/settings.local.json
 backend/.kotlin
 docs/00_Study
+
+/frontend/.data
