@@ -2,88 +2,86 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export default function PasswordLoginPage() {
+const PasswordLoginPage = () => {
     const t = useTranslations();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email") || "user@example.com";
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className="flex flex-col items-center">
-            {/* Back button */}
-            <div className="w-full mb-6">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="px-6 pt-6">
                 <Link
                     href="/login"
-                    className="inline-flex items-center gap-2 text-perfo-text/60 hover:text-perfo-text transition-colors"
+                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-primary"
                 >
-                    <ArrowLeft className="w-5 h-5" />
-                    <span className="text-sm font-medium">{t("common.back")}</span>
+                    <ArrowLeft className="size-5" />
+                    <span className="sr-only">{t("common.back")}</span>
                 </Link>
             </div>
 
-            {/* Logo */}
-            <div className="mb-8 lg:hidden">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">
+                    <h1 className="text-2xl font-extrabold text-primary">
                         PERFO
                     </h1>
                 </Link>
             </div>
 
-            {/* Heading */}
-            <h2 className="text-xl font-semibold text-perfo-text mb-1">
-                {t("passwordLogin.welcome", { email: "user@example.com" })}
-            </h2>
-            <p className="text-sm text-perfo-text/60 mb-8">
-                {t("passwordLogin.subtitle")}
-            </p>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">
+                    {t("passwordLogin.welcome", { email })}
+                </CardTitle>
+                <CardDescription>{t("passwordLogin.subtitle")}</CardDescription>
+            </CardHeader>
 
-            {/* Password Input */}
-            <div className="w-full mb-2">
-                <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-perfo-text/70 mb-1.5"
-                >
-                    {t("common.password")}
-                </label>
-                <div className="relative">
-                    <input
+            <CardContent className="space-y-4 px-0">
+                <div className="space-y-2">
+                    <Label htmlFor="password" className="text-xs font-bold text-primary">{t("common.password")}</Label>
+                    <div className="relative">
+                        <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.passwordPlaceholder")}
-                        className="w-full h-12 px-4 pr-12 rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text placeholder:text-perfo-secondary/60 focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-perfo-secondary hover:text-perfo-primary transition-colors"
-                    >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                        className="h-12 border-border px-4 pr-12 text-sm"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
+                        >
+                            {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Forgot password */}
-            <div className="w-full text-right mb-6">
-                <Link
-                    href="/reset-password"
-                    className="text-sm text-perfo-secondary hover:text-perfo-primary transition-colors font-medium"
-                >
-                    {t("passwordLogin.forgotPassword")}
-                </Link>
-            </div>
+                <div className="text-right">
+                    <Link
+                        href="/reset-password"
+                        className="text-sm font-medium text-[var(--text-muted)] transition-colors hover:text-primary"
+                    >
+                        {t("passwordLogin.forgotPassword")}
+                    </Link>
+                </div>
 
-            {/* Next Button */}
-            <button
-                type="button"
-                className="w-full h-12 flex items-center justify-center bg-perfo-primary hover:bg-perfo-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg shadow-perfo-primary/25"
-            >
-                {t("common.next")}
-            </button>
-        </div>
+                <Button type="button" className="h-12 w-full">
+                    {t("common.next")}
+                </Button>
+            </CardContent>
+        </Card>
     );
-}
+};
+
+export default PasswordLoginPage;

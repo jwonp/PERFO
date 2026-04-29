@@ -1,31 +1,30 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Eye, EyeOff, Check, X } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { PasswordRule } from "@/components/auth/password-rules";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-function PasswordRule({ label, valid }: { label: string; valid: boolean }) {
-    return (
-        <div className="flex items-center gap-2">
-            {valid ? (
-                <Check className="w-4 h-4 text-perfo-success shrink-0" />
-            ) : (
-                <X className="w-4 h-4 text-perfo-secondary/50 shrink-0" />
-            )}
-            <span className={`text-sm ${valid ? "text-perfo-success" : "text-perfo-text/40"}`}>
-                {label}
-            </span>
-        </div>
-    );
-}
-
-export default function SignUpPage() {
+const SignUpPage = () => {
     const t = useTranslations();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email")?.trim() || "user@example.com";
+    const encodedEmail = encodeURIComponent(email);
+    const [displayName, setDisplayName] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [termsAgreed, setTermsAgreed] = useState(false);
+    const [privacyAgreed, setPrivacyAgreed] = useState(false);
+    const [marketingAgreed, setMarketingAgreed] = useState(false);
 
     const rules = [
         { label: t("passwordRules.minLength"), valid: password.length >= 8 },
@@ -36,87 +35,138 @@ export default function SignUpPage() {
     ];
 
     const passwordsMatch = password.length > 0 && confirmPassword.length > 0 && password === confirmPassword;
+    const passwordIsValid = rules.every((rule) => rule.valid) && passwordsMatch;
+    const canSubmit = displayName.trim().length > 0 && passwordIsValid && termsAgreed && privacyAgreed;
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!canSubmit) return;
+
+        router.push(`/verify?email=${encodedEmail}`);
+    };
 
     return (
-        <div className="flex flex-col items-center">
-            {/* Logo */}
-            <div className="mb-8 lg:hidden">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">PERFO</h1>
+                    <h1 className="text-2xl font-extrabold text-primary">PERFO</h1>
                 </Link>
             </div>
 
-            {/* Heading */}
-            <h2 className="text-xl font-semibold text-perfo-text mb-1 text-center">
-                {t("signup.title")}
-            </h2>
-            <p className="text-sm text-perfo-text/60 mb-8 text-center">
-                {t("signup.subtitle")}
-            </p>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">{t("signup.title", { email })}</CardTitle>
+                <CardDescription className="text-center">{t("signup.subtitle")}</CardDescription>
+            </CardHeader>
 
-            {/* Password Input */}
-            <div className="w-full mb-4">
-                <label htmlFor="password" className="block text-sm font-medium text-perfo-text/70 mb-1.5">
-                    {t("common.password")}
-                </label>
-                <div className="relative">
-                    <input
+            <CardContent className="px-0">
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                    <Label htmlFor="display-name" className="text-xs font-bold text-primary">{t("common.displayName")}</Label>
+                    <Input
+                        id="display-name"
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder={t("common.displayNamePlaceholder")}
+                        className="h-12 border-border px-4 text-sm"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="password" className="text-xs font-bold text-primary">{t("common.password")}</Label>
+                    <div className="relative">
+                        <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.createPasswordPlaceholder")}
-                        className="w-full h-12 px-4 pr-12 rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text placeholder:text-perfo-secondary/60 focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
-                    />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-perfo-secondary hover:text-perfo-primary transition-colors">
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                        className="h-12 border-border px-4 pr-12 text-sm"
+                        />
+                        <button
+                            type="button"
+                            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
+                        >
+                            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Confirm Password Input */}
-            <div className="w-full mb-4">
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-perfo-text/70 mb-1.5">
-                    {t("common.confirmPassword")}
-                </label>
-                <div className="relative">
-                    <input
+                <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-xs font-bold text-primary">{t("common.confirmPassword")}</Label>
+                    <div className="relative">
+                        <Input
                         id="confirm-password"
                         type={showConfirm ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmPasswordPlaceholder")}
-                        className="w-full h-12 px-4 pr-12 rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text placeholder:text-perfo-secondary/60 focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
-                    />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-perfo-secondary hover:text-perfo-primary transition-colors">
-                        {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                        className="h-12 border-border px-4 pr-12 text-sm"
+                        />
+                        <button
+                            type="button"
+                            aria-label={showConfirm ? "비밀번호 확인 숨기기" : "비밀번호 확인 표시"}
+                            onClick={() => setShowConfirm(!showConfirm)}
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
+                        >
+                            {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Password Rules */}
-            <div className="w-full bg-perfo-bg border border-perfo-secondary/20 rounded-xl p-4 mb-4 space-y-2.5">
-                {rules.map((rule) => (
-                    <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
-                ))}
-                <PasswordRule label={t("passwordRules.match")} valid={passwordsMatch} />
-            </div>
+                <div className="space-y-2.5">
+                    {rules.map((rule) => (
+                        <PasswordRule key={rule.label} label={rule.label} valid={rule.valid} />
+                    ))}
+                    <PasswordRule label={t("passwordRules.match")} valid={passwordsMatch} />
+                </div>
 
-            {/* Sign Up Button */}
-            <button
-                type="button"
-                className="w-full h-12 flex items-center justify-center bg-perfo-primary hover:bg-perfo-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg shadow-perfo-primary/25"
-            >
-                {t("signup.signUp")}
-            </button>
+                <div className="space-y-3 rounded-lg border border-border bg-[var(--surface-muted)] p-3">
+                    <label className="flex items-start gap-3 text-sm text-[var(--text)]">
+                        <input
+                            type="checkbox"
+                            checked={termsAgreed}
+                            onChange={(event) => setTermsAgreed(event.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
+                        />
+                        <span>{t("signup.termsAgreement")}</span>
+                    </label>
+                    <label className="flex items-start gap-3 text-sm text-[var(--text)]">
+                        <input
+                            type="checkbox"
+                            checked={privacyAgreed}
+                            onChange={(event) => setPrivacyAgreed(event.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
+                        />
+                        <span>{t("signup.privacyAgreement")}</span>
+                    </label>
+                    <label className="flex items-start gap-3 text-sm text-[var(--text-muted)]">
+                        <input
+                            type="checkbox"
+                            checked={marketingAgreed}
+                            onChange={(event) => setMarketingAgreed(event.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
+                        />
+                        <span>{t("signup.marketingAgreement")}</span>
+                    </label>
+                </div>
 
-            {/* Terms */}
-            <p className="mt-4 text-xs text-perfo-text/40 text-center">
-                {t("common.termsPrefix")}{" "}
-                <Link href="#" className="text-perfo-secondary hover:text-perfo-primary underline">
-                    {t("common.termsLink")}
-                </Link>
-            </p>
-        </div>
+                <Button type="submit" disabled={!canSubmit} className="h-12 w-full">
+                    {t("signup.signUp")}
+                </Button>
+
+                <p className="text-center text-xs text-[var(--text-subtle)]">
+                    {t("common.termsPrefix")}{" "}
+                    <Link href="#" className="text-[var(--text-muted)] underline transition-colors hover:text-primary">
+                        {t("common.termsLink")}
+                    </Link>
+                </p>
+                </form>
+            </CardContent>
+        </Card>
     );
-}
+};
+
+export default SignUpPage;

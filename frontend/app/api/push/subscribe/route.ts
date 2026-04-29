@@ -1,54 +1,82 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { savePushSubscription, disablePushSubscription } from "@/lib/notifications/notification-service";
+import { getRequiredSessionUser } from "@/lib/server/session";
+import type { PushSubscriptionData } from "@/lib/notifications/notification.types";
 
-// 임시 메모리 저장소 (프로덕션에서는 DB 사용)
-// TODO: Prisma로 교체
-const subscriptions = new Map<string, PushSubscriptionJSON>();
+const isValidSubscription = (value: unknown): value is PushSubscriptionData => {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
 
-export async function POST(request: NextRequest) {
+    const candidate = value as PushSubscriptionData;
+    return Boolean(
+        candidate.endpoint &&
+        candidate.keys?.p256dh &&
+        candidate.keys?.auth,
+    );
+};
+
+export const POST = async (request: NextRequest) => {
+    const user = await getRequiredSessionUser();
+    if (!user) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const subscription = await request.json();
+        if (!isValidSubscription(subscription)) {
+            return NextResponse.json(
+                { success: false, error: "유효한 구독 정보가 필요합니다" },
+                { status: 400 },
+            );
+        }
 
-        // 구독 저장 (endpoint를 키로 사용)
-        subscriptions.set(subscription.endpoint, subscription);
-
-        console.log('푸시 구독 저장:', subscription.endpoint);
+        await savePushSubscription({
+            userId: user.id,
+            endpoint: subscription.endpoint,
+            keys: subscription.keys,
+            userAgent: request.headers.get("user-agent"),
+        });
 
         return NextResponse.json({
             success: true,
-            message: '푸시 알림 구독 완료'
+            message: "푸시 알림 구독 완료",
         });
     } catch (error) {
-        console.error('구독 저장 실패:', error);
+        console.error("구독 저장 실패:", error);
         return NextResponse.json(
-            { success: false, error: '구독 저장 실패' },
-            { status: 500 }
+            { success: false, error: "구독 저장 실패" },
+            { status: 500 },
         );
     }
-}
+};
 
-export async function DELETE(request: NextRequest) {
+export const DELETE = async (request: NextRequest) => {
+    const user = await getRequiredSessionUser();
+    if (!user) {
+        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
-        const { endpoint } = await request.json();
+        const body = (await request.json()) as { endpoint?: string };
+        if (!body.endpoint) {
+            return NextResponse.json(
+                { success: false, error: "endpoint가 필요합니다" },
+                { status: 400 },
+            );
+        }
 
-        subscriptions.delete(endpoint);
+        await disablePushSubscription(user.id, body.endpoint);
 
         return NextResponse.json({
             success: true,
-            message: '푸시 알림 구독 해제 완료'
+            message: "푸시 알림 구독 해제 완료",
         });
     } catch (error) {
-        console.error('구독 해제 실패:', error);
+        console.error("구독 해제 실패:", error);
         return NextResponse.json(
-            { success: false, error: '구독 해제 실패' },
-            { status: 500 }
+            { success: false, error: "구독 해제 실패" },
+            { status: 500 },
         );
     }
-}
-
-// 현재 구독 목록 조회 (디버깅용)
-export async function GET() {
-    return NextResponse.json({
-        count: subscriptions.size,
-        endpoints: Array.from(subscriptions.keys()),
-    });
-}
+};

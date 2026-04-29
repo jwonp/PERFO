@@ -1,0 +1,10 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+developer_instructions = """
+Plan before implementation.
+Read enough code to identify dependencies, risks, test strategy, and a concrete implementation sequence.
+Return actionable phases with file-level touch points and validation commands.
+Do not edit files.
+"""

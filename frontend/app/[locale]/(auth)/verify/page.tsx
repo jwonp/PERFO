@@ -2,10 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function VerifyPage() {
+const VerifyPage = () => {
     const t = useTranslations();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email")?.trim() || "user@example.com";
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -26,28 +31,26 @@ export default function VerifyPage() {
     };
 
     return (
-        <div className="flex flex-col items-center">
-            {/* Logo */}
-            <div className="mb-8 lg:hidden">
+        <Card className="app-card gap-5 px-6 py-8">
+            <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-4xl font-extrabold text-perfo-primary tracking-tight">
+                    <h1 className="text-2xl font-extrabold text-primary">
                         PERFO
                     </h1>
                 </Link>
             </div>
 
-            {/* Heading */}
-            <h2 className="text-xl font-semibold text-perfo-text mb-2 text-center">
-                {t("verify.title", { email: "user@example.com" })}
-            </h2>
-            <p className="text-sm text-perfo-text/60 mb-10 text-center">
-                {t("verify.subtitle")}
-            </p>
+            <CardHeader className="px-0 pb-0">
+                <CardTitle className="text-base text-[var(--text-muted)]">
+                    {t("verify.title", { email })}
+                </CardTitle>
+                <CardDescription className="text-center">{t("verify.subtitle")}</CardDescription>
+            </CardHeader>
 
-            {/* 6-digit Code Input */}
-            <div className="flex gap-2.5 sm:gap-3 mb-8 w-full justify-center">
-                {code.map((digit, index) => (
-                    <input
+            <CardContent className="space-y-6 px-0">
+                <div className="flex w-full justify-center gap-2.5 sm:gap-3">
+                    {code.map((digit, index) => (
+                        <input
                         key={index}
                         ref={(el) => { inputRefs.current[index] = el; }}
                         type="text"
@@ -56,27 +59,23 @@ export default function VerifyPage() {
                         value={digit}
                         onChange={(e) => handleChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
-                        className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl border-2 border-perfo-secondary/40 bg-white text-perfo-text focus:border-perfo-primary focus:outline-none focus:ring-2 focus:ring-perfo-primary/20 transition-all"
+                        className="h-12 w-10 rounded-lg border border-border bg-[var(--surface-raised)] text-center text-xl font-bold text-[var(--text)] outline-none transition-all focus:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 sm:h-14 sm:w-12"
                     />
-                ))}
-            </div>
+                    ))}
+                </div>
 
-            {/* Buttons */}
-            <div className="w-full flex flex-col gap-3">
-                <button
-                    type="button"
-                    className="w-full h-12 flex items-center justify-center bg-perfo-primary hover:bg-perfo-primary-hover text-white font-semibold rounded-xl transition-colors shadow-lg shadow-perfo-primary/25"
-                >
-                    {t("verify.verify")}
-                </button>
+                <div className="flex w-full flex-col gap-3">
+                    <Button type="button" className="h-12 w-full">
+                        {t("verify.verify")}
+                    </Button>
 
-                <button
-                    type="button"
-                    className="w-full h-12 flex items-center justify-center border-2 border-perfo-secondary/40 bg-white hover:bg-perfo-bg text-perfo-text font-semibold rounded-xl transition-colors"
-                >
-                    {t("verify.resend")}
-                </button>
-            </div>
-        </div>
+                    <Button type="button" variant="outline" className="h-12 w-full">
+                        {t("verify.resend")}
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
     );
-}
+};
+
+export default VerifyPage;

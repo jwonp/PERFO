@@ -7,20 +7,4 @@ export const vapidKeys = {
     subject: 'mailto:admin@perfo.app', // 연락처 이메일
 };
 
-// 푸시 알림 페이로드 타입
-export interface PushPayload {
-    title: string;
-    body: string;
-    icon?: string;
-    tag?: string;
-    url?: string;
-}
-
-// 푸시 구독 타입 (DB 저장용)
-export interface PushSubscriptionData {
-    endpoint: string;
-    keys: {
-        p256dh: string;
-        auth: string;
-    };
-}
+export type { PushPayload, PushSubscriptionData } from './push.types';

@@ -1,26 +1,32 @@
 plugins {
-    id 'java'
     id 'org.springframework.boot' version '3.4.3'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.jetbrains.kotlin.jvm' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.spring' version '2.0.21'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '2.0.21'
 }
 
 group = 'com.perfo'
-version = '0.0.1-SNAPSHOT'
+version = '0.2.0-rc.1'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+springBoot {
+    mainClass = 'com.perfo.backend.BackendApplicationKt'
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+kotlin {
+    jvmToolchain(17)
 }
 
 repositories {
     mavenCentral()
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        force 'com.squareup.okhttp3:okhttp-jvm:4.12.0'
+        force 'com.squareup.okhttp3:logging-interceptor-jvm:4.12.0'
+        force 'com.squareup.okio:okio-jvm:3.6.0'
+    }
 }
 
 dependencies {
@@ -40,10 +46,11 @@ dependencies {
 
     // Swagger (springdoc-openapi)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
+    implementation 'io.minio:minio:8.5.17'
 
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    // Kotlin
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 
     // DevTools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -51,16 +58,15 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
     // H2 in-memory DB for integration tests
     testRuntimeOnly 'com.h2database:h2'
 
-    // Lombok for test classes
-    testCompileOnly 'org.projectlombok:lombok'
-    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    jvmArgs '-Xshare:off'
 }

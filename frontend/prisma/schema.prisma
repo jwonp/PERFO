@@ -12,3 +12,86 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model Ticket {
+  id             String   @id @default(cuid())
+  name           String
+  venue          String
+  detailAddress  String?
+  googleMapsUrl  String?
+  validDate      DateTime
+  totalCount     Int
+  allowDuplicate Boolean  @default(false)
+  maxPerUser     Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("tickets")
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  title      String
+  body       String
+  targetUrl  String
+  sourceType String
+  sourceId   String
+  dedupeKey  String   @unique
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  deliveries NotificationDelivery[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id           String   @id @default(cuid())
+  userId       String
+  endpoint     String   @unique
+  p256dh       String
+  auth         String
+  userAgent    String?
+  enabled      Boolean  @default(true)
+  lastFailedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, enabled])
+  @@map("push_subscriptions")
+}
+
+model NotificationDelivery {
+  id           String   @id @default(cuid())
+  notificationId String
+  channel      String
+  status       String
+  errorCode    String?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId, createdAt(sort: Desc)])
+  @@map("notification_deliveries")
+}
+
+model TicketStatusSnapshot {
+  id         String   @id
+  userId     String
+  scope      String
+  ticketId   String
+  statusKey  String
+  statusValue String
+  ticketName String
+  targetUrl  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, scope, ticketId])
+  @@map("ticket_status_snapshots")
+}

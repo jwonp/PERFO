@@ -20,4 +20,5 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 
 # --- Development (hot reload via bootRun) ---
 FROM base AS dev
+COPY src src
 CMD ["./gradlew", "bootRun", "--no-daemon"]

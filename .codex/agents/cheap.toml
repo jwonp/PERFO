@@ -1,0 +1,12 @@
+model = "gpt-5.4-mini"
+model_reasoning_effort = "low"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+Use this role for low-risk, bounded work:
+- small text or config edits
+- quick repository searches
+- simple test or lint failures
+
+Escalate instead of guessing when the task needs architecture judgment, security review, or broad refactoring.
+"""

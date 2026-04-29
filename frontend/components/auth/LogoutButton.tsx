@@ -2,12 +2,9 @@
 
 import { signOut } from "next-auth/react"
 import { useTranslations } from "next-intl"
+import type { LogoutButtonProps } from "@/components/auth/logout-button.types"
 
-interface LogoutButtonProps {
-    className?: string
-}
-
-export default function LogoutButton({ className }: LogoutButtonProps) {
+const LogoutButton = ({ className }: LogoutButtonProps) => {
     const t = useTranslations("common")
 
     return (
@@ -20,3 +17,5 @@ export default function LogoutButton({ className }: LogoutButtonProps) {
         </button>
     )
 }
+
+export default LogoutButton
