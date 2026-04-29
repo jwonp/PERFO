@@ -8,6 +8,13 @@
 - [01_FRONTEND_PLAN.md](./01_FRONTEND_PLAN.md): Next.js 프론트엔드 구현 계획
 - [02_BACKEND_PLAN.md](./02_BACKEND_PLAN.md): Spring 백엔드 구현 계획
 - [03_INFRA_PLAN.md](./03_INFRA_PLAN.md): 배포, 운영, 인프라 구축 계획
+- [04_TICKET_QR_VALIDATION_PLAN.md](./04_TICKET_QR_VALIDATION_PLAN.md): 티켓 QR 표시와 검표 구현 계획
+- [05_DARK_MODE_PLAN.md](./05_DARK_MODE_PLAN.md): 다크 모드 구현 계획
+- [06_TICKET_NOTIFICATION_PLAN.md](./06_TICKET_NOTIFICATION_PLAN.md): 티켓 상태 변화 푸시 알림과 알림 내역 구현 계획
+- [07_USER_PROFILE_EDIT_PLAN.md](./07_USER_PROFILE_EDIT_PLAN.md): 유저 프로필 닉네임과 아이콘 변경 구현 계획
+- [08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md](./08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md): Ubuntu Server + Cloudflare Tunnel 기반 CI/CD와 오토스케일링 운영 계획
+- [09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md](./09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md): 온프레미스 미니PC 기준 고부하 처리 구현 계획
+- [10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md](./10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md): MinIO 기반 프로필 이미지 저장소 도입 계획
 
 ## 개발 원칙
 

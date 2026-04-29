@@ -7,6 +7,8 @@ Use these rules when generating new UI in this repo.
 1. Build from semantic tokens in `frontend/app/globals.css`.
 2. Prefer `bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, and the `ds-*` utility classes before inventing ad hoc values.
 3. Keep repeated surface radius at `rounded-lg` or smaller.
+4. Start new pages from `PageShell`, `PageHeader`, `PageSection`, `PageActions`, `PageFilterBar`, `PageEmptyState`, and `PageFab` in `frontend/components/layout/` unless the existing route family already provides a stronger shell.
+5. Never introduce direct palette or brand utility classes in page code. Use semantic tokens and shared variants only.
 
 ## Layout
 

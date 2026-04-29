@@ -47,6 +47,7 @@ coverage/
 frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
+frontend/.data/
 
 # Misc
 *.pem

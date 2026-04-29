@@ -21,6 +21,7 @@
 14. [API 계약과 도메인 이벤트 모델](#14-api-계약과-도메인-이벤트-모델)
 15. [Kafka 마이그레이션 전략](#15-kafka-마이그레이션-전략)
 16. [추가 고려 사항](#16-추가-고려-사항)
+17. [부하 대응 아키텍처 기준](#17-부하-대응-아키텍처-기준)
 
 ## 1. 문서 범위
 
@@ -30,6 +31,7 @@
 - 재고와 발급 결과를 어디에 저장하는가
 - 상태를 사용자에게 어떻게 전달하는가
 - 인증과 세션 상태를 어떻게 관리하는가
+- 티켓팅, QR 발급, QR 검증처럼 백엔드 부하가 집중되는 경로를 어떻게 흡수하는가
 - A/B 테스트를 어떤 원칙으로 운영하는가
 - 언제 Kafka로 넘어갈 것인가
 
@@ -309,3 +311,152 @@ flowchart LR
 
 - 운영 Runbook은 추후 별도 문서로 정리한다.
 - 비용 계획과 장기 보관 정책은 서비스 규모가 커질 때 더 구체화한다.
+
+## 17. 부하 대응 아키텍처 기준
+
+이 섹션은 plan profile에서 티켓팅, QR 토큰 발급, QR 검증 같은 백엔드 부하 집중 기능을 설계할 때 기본 기준으로 사용한다. 목표는 앱 Pod 증설만으로 버티는 구조가 아니라, 요청 진입부터 저장소 쓰기까지 병목을 분리하고 실패 시 사용자가 해석 가능한 상태를 받게 하는 것이다.
+
+### 17.1 부하 집중 경로 분류
+
+| 경로 | 부하 특성 | 정합성 기준 | 기본 처리 방식 |
+| --- | --- | --- | --- |
+| 티켓팅 요청 접수 | 오픈 시점에 짧은 시간 동안 순간 피크 발생 | 재고 초과 발급 금지, 사용자별 구매 제한 | API는 요청을 접수하고 idempotency key 기준 상태를 만든 뒤 Redis/큐 기반 처리로 평준화 |
+| 재고 차감과 발급 확정 | 경쟁 조건과 DB 쓰기 병목 발생 | PostgreSQL 최종 상태, Redis는 보조 계층 | Redis 원자 연산 또는 Lua script로 선차감 후 DB 트랜잭션으로 확정 |
+| QR 토큰 발급 | 입장 직전 반복 요청 발생 | 짧은 TTL, 권한 검증, 토큰 재사용 제한 | 캐시 가능한 예약 상태는 Redis로 보조하되 토큰 서명과 최종 권한은 서버에서 검증 |
+| QR 검증 | 현장 입장 피크에 다수 단말이 연속 요청 | 같은 예약권은 단 한 번만 `USED` 처리 | DB 조건부 업데이트를 hot path로 두고 검증 이력은 트랜잭션 또는 outbox로 기록 |
+| 상태 전파 | 처리 결과를 다수 클라이언트에 전달 | 최종 상태는 PostgreSQL 기준 | Redis Pub/Sub + SSE, 실패 시 polling fallback |
+
+### 17.2 요청 진입 제어
+
+- 티켓팅과 검증 API는 일반 API와 별도 rate limit bucket을 사용한다.
+- rate limit key는 최소 `userId`, `eventId`, `clientIp`를 분리해서 설계한다.
+- 티켓팅 오픈 직전에는 정적 이벤트 정보, 잔여 수량 표시, 대기 상태 조회를 캐시 가능한 읽기 경로로 분리한다.
+- 쓰기 API는 idempotency key를 필수로 받고, 같은 key 재시도는 기존 상태를 반환한다.
+- 클라이언트 재시도는 exponential backoff와 jitter를 적용한다.
+- 서버가 과부하 상태이면 무제한 대기시키지 않고 `PROCESSING`, `RATE_LIMITED`, `RETRY_AFTER` 같은 해석 가능한 상태를 반환한다.
+
+### 17.3 티켓팅 처리 파이프라인
+
+```mermaid
+flowchart LR
+    Client[Client]
+    Intake[Request Intake API]
+    Dedupe[Idempotency / Dedupe]
+    Admission[Rate Limit / Admission Control]
+    Queue[Redis Stream or Kafka Topic]
+    Worker[Ticketing Worker]
+    Inventory[Redis Inventory Atomic Op]
+    DB[(PostgreSQL Transaction)]
+    Outbox[Outbox Event]
+    Status[Status Store / SSE Publish]
+
+    Client --> Intake
+    Intake --> Dedupe
+    Dedupe --> Admission
+    Admission --> Queue
+    Queue --> Worker
+    Worker --> Inventory
+    Inventory --> DB
+    DB --> Outbox
+    Outbox --> Status
+```
+
+처리 원칙:
+
+- API 서버는 피크 순간에 모든 재고 차감과 DB 쓰기를 동기 처리하지 않는다.
+- 요청 접수와 실제 발급 처리는 분리하고, 사용자는 request id로 상태를 조회한다.
+- 초기 단계에서는 Redis Stream 또는 DB outbox로 시작할 수 있고, 피크가 커지면 Kafka로 전환한다.
+- Worker concurrency는 DB connection pool, Redis 처리량, 이벤트별 재고 경쟁 수준을 기준으로 제한한다.
+- 재고 차감 성공 후 DB 확정 실패가 발생하면 보상 작업을 통해 Redis 재고를 복구하거나 해당 요청을 재처리 큐로 보낸다.
+- `SOLD_OUT`, `DUPLICATE`, `FAILED` 같은 최종 실패도 상태 저장소에 남겨 재시도 폭주를 막는다.
+
+### 17.4 QR 발급과 검증 hot path
+
+QR 토큰 발급:
+
+- 예약 상태 조회는 캐시를 사용할 수 있지만, 토큰 발급 전 권한과 예약 상태는 서버에서 다시 검증한다.
+- QR 토큰 TTL은 30초에서 60초를 기본값으로 둔다.
+- 토큰은 내부 식별자를 그대로 노출하지 않는 opaque token 또는 서명된 payload로 만든다.
+- 토큰 발급 실패가 검표 상태를 변경하면 안 된다.
+
+QR 검증:
+
+- 검증 요청은 HTTP 단발 요청으로 유지하되, 검표 단말의 연속 스캔을 고려해 낮은 지연 시간을 우선한다.
+- 성공 처리는 반드시 DB 조건부 업데이트로 보호한다.
+- 조건부 업데이트 예시는 아래 기준을 따른다.
+
+```sql
+UPDATE reservations
+SET status = 'USED',
+    used_at = now(),
+    validated_by = :validatorUserId
+WHERE id = :reservationId
+  AND ticket_id = :ticketId
+  AND status = 'AVAILABLE';
+```
+
+- 업데이트 row 수가 `1`이면 성공이고, `0`이면 최신 상태를 다시 조회해 `ALREADY_USED`, `EXPIRED`, `NOT_OPEN`, `FORBIDDEN` 중 하나로 응답한다.
+- 검증 이력 저장 실패 때문에 이미 성공한 사용 처리를 rollback할지 여부는 정책으로 고정해야 한다. 기본값은 같은 트랜잭션에 저장하되, 트래픽이 커지면 outbox로 분리한다.
+- 검표 실패 응답은 공격자가 토큰 유효성이나 티켓 존재 여부를 과도하게 추론하지 못할 정도로만 구체화한다.
+
+### 17.5 저장소와 캐시 분리 기준
+
+- PostgreSQL은 최종 진실 원본이며, 발급 확정과 검표 성공 처리는 Primary에 고정한다.
+- Redis는 재고 선차감, 임시 상태, rate limit, Pub/Sub, 짧은 TTL 캐시에 사용한다.
+- Redis 장애 시 티켓팅 신규 접수는 degrade 또는 일시 중단할 수 있지만, 이미 확정된 티켓 조회와 검표 정책은 별도로 정의한다.
+- Redis에 세션, 락, Pub/Sub, 재고를 모두 올리는 초기 구성을 허용하되, 피크 테스트에서 병목이 확인되면 역할 분리를 우선한다.
+- DB connection pool은 앱 Pod 수와 Worker 수를 곱한 총 연결 수 기준으로 산정한다.
+
+### 17.6 백프레셔와 degrade 정책
+
+| 상황 | 서버 행동 | 사용자 상태 |
+| --- | --- | --- |
+| rate limit 초과 | 요청 접수 거부 또는 짧은 retry-after 반환 | 잠시 후 재시도 |
+| 큐 backlog 임계치 초과 | 신규 접수 제한, 기존 요청 상태 조회만 허용 | 처리 지연 |
+| Redis 장애 | 티켓팅 신규 접수 중단 또는 보수적 실패 처리 | 일시 중단 |
+| DB 쓰기 지연 | Worker concurrency 축소, 큐 처리 속도 제한 | 처리 중 |
+| SSE 장애 | polling fallback 전환 | 상태 갱신 지연 |
+| 검표 API 지연 | 단말 재시도 간격 확대, 중복 스캔 억제 | 검표 대기 |
+
+degrade 원칙:
+
+- 이미 확정된 성공 상태는 취소하지 않는다.
+- 사용자가 반복 클릭하게 만드는 모호한 실패를 피한다.
+- 신규 접수 제한과 기존 요청 상태 조회는 분리한다.
+- 운영자는 backlog, 실패율, 평균 처리 시간, DB connection 사용률을 보고 접수 제한 여부를 판단한다.
+
+### 17.7 관측성과 알람 기준
+
+필수 메트릭:
+
+- 티켓팅 접수 RPS, 승인 RPS, 거부 RPS
+- idempotency hit ratio
+- 이벤트별 Redis 재고 값과 DB 확정 수량 차이
+- 큐 backlog, consumer lag, 처리 지연 p95/p99
+- DB transaction latency, lock wait, connection pool 사용률
+- QR 토큰 발급 RPS와 실패율
+- QR 검증 RPS, 성공률, `ALREADY_USED` 비율, 조건부 업데이트 실패율
+- SSE 연결 수, 재연결 수, polling fallback 전환 수
+
+알람 기준:
+
+- DB 확정 수량이 Redis 차감 수량과 지속적으로 어긋날 때
+- 큐 backlog가 목표 처리 시간보다 오래 누적될 때
+- 검표 성공 p95 지연 시간이 현장 운영 기준을 넘을 때
+- `ALREADY_USED` 또는 `INVALID` 비율이 평소 기준보다 급증할 때
+- Redis memory, evicted keys, command latency가 임계치를 넘을 때
+
+### 17.8 plan profile 입력값
+
+티켓팅 또는 검증 기능 계획을 세울 때 최소한 아래 값을 먼저 정한다.
+
+- 이벤트별 예상 동시 접속자 수
+- 티켓 오픈 후 1분, 5분, 10분 기준 예상 요청 수
+- 목표 접수 RPS와 처리 완료 RPS
+- 허용 가능한 상태 확정 지연 시간
+- 최대 동시 SSE 연결 수
+- 검표 단말 수와 단말당 초당 검증 요청 수
+- PostgreSQL connection 상한과 목표 transaction latency
+- Redis memory 한도와 persistence 필요 여부
+- 장애 시 신규 접수 중단, 대기, 실패 중 어떤 정책을 쓸지
+- Kafka 도입 전 Redis Stream/DB outbox로 버틸 수 있는 임계치
