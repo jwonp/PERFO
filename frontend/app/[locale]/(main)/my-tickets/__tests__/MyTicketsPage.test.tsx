@@ -90,8 +90,6 @@ describe('MyTicketsPage', () => {
     render(<MyTicketsPage />)
 
     await waitFor(() => expect(screen.getByText('발급한 티켓이 없습니다')).toBeInTheDocument())
-
-    expect(screen.queryByText('PERFO Summer Festival')).not.toBeInTheDocument()
   })
 
   it('백엔드에서 받은 발행 티켓 목록으로 초기 목업을 대체한다', async () => {
@@ -119,7 +117,6 @@ describe('MyTicketsPage', () => {
     const ticket = await screen.findByText('Backend Synced Ticket')
 
     expect(ticket.closest('article')).toHaveTextContent('잠실실내체육관')
-    expect(screen.queryByText('PERFO Summer Festival')).not.toBeInTheDocument()
   })
 
   it('티켓 발급 폼에서 장소 입력과 세부 주소 입력을 제공한다', async () => {

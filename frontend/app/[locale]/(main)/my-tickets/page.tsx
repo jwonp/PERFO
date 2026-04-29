@@ -20,7 +20,7 @@ import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { ToggleRow } from "@/components/ui/toggle-row";
 import { PlaceAutocompleteInput, googleMapsSearchUrl } from "./PlaceAutocompleteInput";
-import { EMPTY_FORM, INITIAL_MOCK, STATUS_BADGE_STYLE } from "./my-tickets.constants";
+import { EMPTY_FORM, STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type { IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
 const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>): string => {
@@ -222,7 +222,8 @@ const MyTicketsPage = () => {
     const t = useTranslations();
     const locale = useLocale();
     const router = useRouter();
-    const [tickets, setTickets] = useState<IssuedTicket[]>(INITIAL_MOCK);
+    const [tickets, setTickets] = useState<IssuedTicket[]>([]);
+    const [hasLoadedTickets, setHasLoadedTickets] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<IssuedTicket | null>(null);
 
@@ -336,8 +337,15 @@ const MyTicketsPage = () => {
                     allowDuplicate: Boolean(item.allowDuplicate),
                     maxPerUser: Number(item.maxPerUser),
                 })));
+                setHasLoadedTickets(true);
             })
-            .catch(() => undefined);
+            .catch(() => {
+                if (!active) {
+                    return;
+                }
+
+                setHasLoadedTickets(true);
+            });
 
         return () => {
             active = false;
@@ -387,7 +395,7 @@ const MyTicketsPage = () => {
             </div>
 
             <div className="space-y-3 px-5 pt-5 pb-28">
-                {tickets.length === 0 ? (
+                {hasLoadedTickets && tickets.length === 0 ? (
                     <PageEmptyState
                         title={t("myTickets.empty")}
                         icon={
