@@ -184,3 +184,7 @@ config_file = "agents/deep-review.toml"
 [agents.research]
 description = "Research agent for source-grounded technical and product investigation."
 config_file = "agents/research.toml"
+
+[agents.infra_deployer]
+description = "Infrastructure deployment agent for IaC, CI/CD, manifests, and release safety checks."
+config_file = "agents/infra-deployer.toml"

@@ -76,6 +76,7 @@ Sample role configs in this repo:
 - `.codex/agents/explorer.toml` — read-only evidence gathering
 - `.codex/agents/reviewer.toml` — correctness/security review
 - `.codex/agents/docs-researcher.toml` — API and release-note verification
+- `.codex/agents/infra-deployer.toml` — IaC, CI/CD, manifest, and release-safety deployment work
 
 ## Key Differences from Claude Code
 
