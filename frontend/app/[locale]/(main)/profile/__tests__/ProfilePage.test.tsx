@@ -62,7 +62,9 @@ vi.mock('next-auth/react', () => ({
 }))
 
 vi.mock('@/components/push/PushNotification', () => ({
-  PushNotification: () => <div>PushNotification</div>,
+  PushNotification: ({ children }: { children: (state: typeof pushState) => React.ReactNode }) => (
+    <>{children(pushState)}</>
+  ),
 }))
 
 vi.mock('@/components/notifications/NotificationButton', () => ({
@@ -79,6 +81,12 @@ vi.mock('@/components/providers/ThemeProvider', () => ({
 describe('ProfilePage logout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    pushState.isSupported = true
+    pushState.isSubscribed = false
+    pushState.isLoading = false
+    pushState.error = null
+    pushState.subscribe.mockClear()
+    pushState.unsubscribe.mockClear()
     fetchMock.mockReset()
     fetchMock.mockResolvedValue({
       ok: true,
@@ -136,6 +144,16 @@ describe('ProfilePage logout', () => {
 
     expect(screen.getByRole('heading', { name: '프로필 편집' })).toBeInTheDocument()
     expect(screen.getByLabelText('닉네임')).toHaveValue('홍길동')
+  })
+
+  it('connects the push notification toggle to subscribe action', async () => {
+    const user = userEvent.setup()
+    render(<ProfilePage />)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+
+    await user.click(screen.getByRole('switch', { name: /푸시 알림 설정/i }))
+
+    expect(pushState.subscribe).toHaveBeenCalledTimes(1)
   })
 
   it('saves a new nickname and preset avatar, then updates the profile immediately', async () => {
@@ -228,3 +246,11 @@ describe('ProfilePage logout', () => {
     }))
   })
 })
+const pushState = {
+  isSupported: true,
+  isSubscribed: false,
+  isLoading: false,
+  error: null as string | null,
+  subscribe: vi.fn(async () => undefined),
+  unsubscribe: vi.fn(async () => undefined),
+}

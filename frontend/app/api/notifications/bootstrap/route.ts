@@ -34,16 +34,21 @@ const isValidPayload = (value: unknown): value is { tickets: NotificationSyncTic
 };
 
 export const POST = async (request: NextRequest) => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+    try {
+        const user = await getRequiredSessionUser();
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
 
-    const payload = await request.json();
-    if (!isValidPayload(payload)) {
-        return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
-    }
+        const payload = await request.json();
+        if (!isValidPayload(payload)) {
+            return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
+        }
 
-    await bootstrapTicketSnapshots(user.id, payload.tickets);
-    return NextResponse.json({ success: true });
+        await bootstrapTicketSnapshots(user.id, payload.tickets);
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Notification bootstrap failed:", error);
+        return NextResponse.json({ message: "Notification bootstrap failed" }, { status: 500 });
+    }
 };

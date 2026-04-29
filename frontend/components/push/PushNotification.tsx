@@ -5,7 +5,8 @@ import axios from 'axios';
 import type { PushNotificationProps } from '@/components/push/push-notification.types';
 
 const PushNotification = ({
-    vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    children,
 }: PushNotificationProps) => {
     const [isSupported, setIsSupported] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -67,13 +68,16 @@ const PushNotification = ({
             return;
         }
 
+        const previousSubscribed = isSubscribed;
         setIsLoading(true);
         setError(null);
+        setIsSubscribed(true);
 
         try {
             // 알림 권한 요청
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
+                setIsSubscribed(previousSubscribed);
                 setError('알림 권한이 거부되었습니다');
                 return;
             }
@@ -81,6 +85,7 @@ const PushNotification = ({
             // Service Worker 등록
             const registration = await registerServiceWorker();
             if (!registration) {
+                setIsSubscribed(previousSubscribed);
                 setError('Service Worker 등록 실패');
                 return;
             }
@@ -93,9 +98,8 @@ const PushNotification = ({
 
             // 서버에 구독 정보 저장
             await axios.post('/api/push/subscribe', subscription.toJSON());
-
-            setIsSubscribed(true);
         } catch (err) {
+            setIsSubscribed(previousSubscribed);
             console.error('구독 실패:', err);
             setError('푸시 알림 구독에 실패했습니다');
         } finally {
@@ -105,7 +109,10 @@ const PushNotification = ({
 
     // 구독 해제
     const unsubscribe = async () => {
+        const previousSubscribed = isSubscribed;
         setIsLoading(true);
+        setError(null);
+        setIsSubscribed(false);
 
         try {
             const registration = await navigator.serviceWorker.ready;
@@ -119,8 +126,8 @@ const PushNotification = ({
                 });
             }
 
-            setIsSubscribed(false);
         } catch (err) {
+            setIsSubscribed(previousSubscribed);
             console.error('구독 해제 실패:', err);
             setError('구독 해제에 실패했습니다');
         } finally {
@@ -128,35 +135,17 @@ const PushNotification = ({
         }
     };
 
-    // 푸시 미지원 환경
-    if (!isSupported) {
-        return (
-            <div className="text-sm text-[var(--text-muted)]">
-                이 브라우저는 푸시 알림을 지원하지 않습니다
-            </div>
-        );
-    }
-
     return (
-        <div className="flex flex-col gap-2">
-            <button
-                onClick={isSubscribed ? unsubscribe : subscribe}
-                disabled={isLoading}
-                className={`
-          px-4 py-2 rounded-lg font-medium transition-colors
-          ${isSubscribed
-                        ? 'bg-[var(--surface-muted)] text-[var(--text)] hover:bg-muted'
-                        : 'bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]'}
-          disabled:opacity-50 disabled:cursor-not-allowed
-        `}
-            >
-                {isLoading ? '처리 중...' : isSubscribed ? '알림 끄기' : '알림 받기'}
-            </button>
-
-            {error && (
-                <div className="text-sm text-[var(--danger)]">{error}</div>
-            )}
-        </div>
+        <>
+            {children({
+                isSupported,
+                isSubscribed,
+                isLoading,
+                error,
+                subscribe,
+                unsubscribe,
+            })}
+        </>
     );
 };
 
