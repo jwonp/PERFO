@@ -5,6 +5,7 @@ import com.perfo.backend.config.HeaderAuthenticationFilter
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.TicketValidationResult
 import com.perfo.backend.entity.TicketUsageStatus
+import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.service.TicketService
 import com.perfo.backend.service.TicketTransitionService
 import com.perfo.backend.service.TicketVerificationService
@@ -67,6 +68,9 @@ class TicketControllerTest {
             totalCount = request.totalCount,
             allowDuplicate = request.allowDuplicate,
             maxPerUser = request.maxPerUser,
+            status = IssuedTicketStatus.INACTIVE,
+            issuedCount = 0,
+            ownerUserId = "owner-1",
         )
 
         given(ticketService.create(request)).willReturn(response)
@@ -126,7 +130,7 @@ class TicketControllerTest {
                 .with(csrf()),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.token").value("opaque-token"))
+            .andExpect(jsonPath("$.token").value("qr-token-test-42"))
     }
 
     @Test
