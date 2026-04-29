@@ -151,9 +151,12 @@ services:
       - /app/node_modules
       - /app/.next
     command: >
-      sh -c "pnpm install --no-frozen-lockfile &&
+      sh -c "pnpm config set confirmModulesPurge false &&
+      pnpm install --no-frozen-lockfile &&
       pnpm dev --hostname 0.0.0.0 --port ${FRONTEND_PORT}"
     environment:
+      - CI=true
+      - PNPM_CONFIG_CONFIRM_MODULES_PURGE=false
       - PORT=${FRONTEND_PORT}
       - WATCHPACK_POLLING=true
       - NEXTAUTH_URL=${NEXTAUTH_URL}

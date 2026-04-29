@@ -5,7 +5,6 @@ import {
   useContext,
   useEffect,
   useState,
-  type MediaQueryListEvent,
 } from "react"
 import {
   getInitialResolvedTheme,
@@ -49,18 +48,10 @@ const ThemeProvider = ({ children }: ThemeProviderProps) => {
         applyResolvedTheme(nextResolvedTheme)
       }
 
-      if ("addEventListener" in mediaQuery) {
-        mediaQuery.addEventListener("change", handleChange)
-      } else {
-        mediaQuery.addListener(handleChange)
-      }
+      mediaQuery.addEventListener("change", handleChange)
 
       return () => {
-        if ("removeEventListener" in mediaQuery) {
-          mediaQuery.removeEventListener("change", handleChange)
-        } else {
-          mediaQuery.removeListener(handleChange)
-        }
+        mediaQuery.removeEventListener("change", handleChange)
       }
     } catch {
       return

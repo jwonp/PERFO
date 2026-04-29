@@ -4,20 +4,22 @@ import { authOptions } from "@/lib/auth/auth.config";
 
 const backendUrl = process.env.BACKEND_URL;
 
-const getSession = async () => {
+const getSessionUser = async (): Promise<{ id: string; email: string } | null> => {
     const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
 
-    if (!session?.user?.id || !session.user.email) {
+    if (!userId || !userEmail) {
         return null;
     }
 
-    return session;
+    return { id: userId, email: userEmail };
 };
 
 export const GET = async () => {
-    const session = await getSession();
+    const user = await getSessionUser();
 
-    if (!session) {
+    if (!user) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,8 +30,8 @@ export const GET = async () => {
     const response = await fetch(`${backendUrl}/api/users/me/profile-image`, {
         method: "GET",
         headers: {
-            "X-Auth-User-Id": session.user.id,
-            "X-Auth-User-Email": session.user.email,
+            "X-Auth-User-Id": user.id,
+            "X-Auth-User-Email": user.email,
         },
         cache: "no-store",
     });
@@ -46,9 +48,9 @@ export const GET = async () => {
 };
 
 export const POST = async (request: Request) => {
-    const session = await getSession();
+    const user = await getSessionUser();
 
-    if (!session) {
+    if (!user) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -60,8 +62,8 @@ export const POST = async (request: Request) => {
     const response = await fetch(`${backendUrl}/api/users/me/profile-image`, {
         method: "POST",
         headers: {
-            "X-Auth-User-Id": session.user.id,
-            "X-Auth-User-Email": session.user.email,
+            "X-Auth-User-Id": user.id,
+            "X-Auth-User-Email": user.email,
         },
         body: formData,
     });

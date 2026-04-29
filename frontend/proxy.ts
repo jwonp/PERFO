@@ -16,7 +16,7 @@ const isGuestOnlyPath = (pathname: string): boolean => {
     );
 };
 
-const middleware = async (request: NextRequest) => {
+const proxy = async (request: NextRequest) => {
     const { pathname } = request.nextUrl;
 
     // API와 정적 파일은 통과
@@ -53,7 +53,7 @@ const middleware = async (request: NextRequest) => {
     return intlMiddleware(request);
 };
 
-export default middleware;
+export default proxy;
 
 export const config = {
     matcher: [
