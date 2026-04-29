@@ -126,6 +126,13 @@ Troubleshoot failures: check test isolation → verify mocks → fix implementat
 
 **Commit format:** `<type>: <description>` — Types: feat, fix, refactor, docs, test, chore, perf, ci
 
+**Branch discipline:**
+- Never commit feature work directly on `develop`.
+- Create one branch per feature, fix, or doc track before the first commit.
+- Keep commits scoped to a single branch and a single concern; do not mix unrelated changes in one branch.
+- Use `develop` only as the integration branch after feature branches are prepared.
+- If you accidentally commit on `develop`, stop and move the commits onto dedicated branches before continuing.
+
 **PR workflow:** Analyze full commit history → draft comprehensive summary → include test plan → push with `-u` flag.
 
 ## Architecture Patterns
