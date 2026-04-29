@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -21,6 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.mockito.BDDMockito.given
 
 @WebMvcTest(TicketController::class)
+@Import(HeaderAuthenticationFilter::class)
 class TicketTransitionControllerTest {
 
     @Autowired
@@ -37,9 +39,6 @@ class TicketTransitionControllerTest {
 
     @field:MockitoBean
     private lateinit var ticketTransitionService: TicketTransitionService
-
-    @field:MockitoBean
-    private lateinit var headerAuthenticationFilter: HeaderAuthenticationFilter
 
     @Test
     @DisplayName("PATCH /api/internal/tickets/{ticketId}/ticketing-status - 티켓팅 상태를 전환한다")

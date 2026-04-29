@@ -8,6 +8,13 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 
 object TicketDto {
+    enum class IssuedTicketStatus {
+        INACTIVE,
+        ISSUING,
+        VERIFYING,
+        EXPIRED,
+    }
+
     data class CreateTicketRequest(
         @field:NotBlank
         val name: String,
@@ -24,6 +31,7 @@ object TicketDto {
         @field:Min(1)
         @field:Max(100)
         val maxPerUser: Int,
+        val ownerUserId: String? = null,
     )
 
     data class TicketResponse(
@@ -36,6 +44,9 @@ object TicketDto {
         val totalCount: Int,
         val allowDuplicate: Boolean,
         val maxPerUser: Int,
+        val status: IssuedTicketStatus,
+        val issuedCount: Int,
+        val ownerUserId: String,
     )
 
     data class TicketQrTokenResponse(
@@ -72,6 +83,10 @@ object TicketDto {
 
     data class TicketUsageTransitionRequest(
         val nextStatus: TicketUsageStatus,
+    )
+
+    data class IssuedTicketStatusTransitionRequest(
+        val nextStatus: IssuedTicketStatus,
     )
 
     data class TicketStateResponse(
