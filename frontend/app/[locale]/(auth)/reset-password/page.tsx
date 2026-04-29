@@ -32,7 +32,7 @@ const ResetPasswordPage = () => {
             <div>
                 <Link
                     href="/login/password"
-                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-perfo-primary"
+                    className="inline-flex items-center gap-2 text-[var(--text)] transition-colors hover:text-primary"
                 >
                     <ArrowLeft className="h-5 w-5" />
                     <span className="sr-only">{t("common.back")}</span>
@@ -41,7 +41,7 @@ const ResetPasswordPage = () => {
 
             <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-2xl font-extrabold text-perfo-primary">PERFO</h1>
+                    <h1 className="text-2xl font-extrabold text-primary">PERFO</h1>
                 </Link>
             </div>
 
@@ -54,7 +54,7 @@ const ResetPasswordPage = () => {
 
             <CardContent className="space-y-4 px-0">
                 <div className="space-y-2">
-                    <Label htmlFor="new-password" className="text-xs font-bold text-perfo-primary">{t("common.newPassword")}</Label>
+                    <Label htmlFor="new-password" className="text-xs font-bold text-primary">{t("common.newPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="new-password"
@@ -62,16 +62,16 @@ const ResetPasswordPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.newPasswordPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 pr-12 text-sm"
                         />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary">
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="confirm-new-password" className="text-xs font-bold text-perfo-primary">{t("common.confirmPassword")}</Label>
+                    <Label htmlFor="confirm-new-password" className="text-xs font-bold text-primary">{t("common.confirmPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="confirm-new-password"
@@ -79,9 +79,9 @@ const ResetPasswordPage = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmNewPasswordPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 pr-12 text-sm"
                         />
-                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary">
+                        <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary">
                             {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
                     </div>

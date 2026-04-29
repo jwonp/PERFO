@@ -27,7 +27,7 @@ const TabsButton = ({
       className={cn(
         "inline-flex h-9 items-center justify-center rounded-full px-3 text-xs font-bold transition-colors",
         active
-          ? "bg-perfo-primary text-white shadow-none"
+          ? "bg-primary text-primary-foreground shadow-none"
           : "text-[var(--text-muted)] hover:text-[var(--text)]",
         className
       )}

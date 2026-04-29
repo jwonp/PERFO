@@ -22,8 +22,8 @@ async function enableVisualAuth(page: Page) {
   })
 }
 
-test.describe('design system visual QA', () => {
-  test('captures auth flow screens on desktop and mobile', async ({ page }, testInfo) => {
+test.describe('디자인 시스템 시각 회귀', () => {
+  test('인증 플로우 화면을 데스크톱과 모바일에서 캡처한다', async ({ page }, testInfo) => {
     for (const route of authRoutes) {
       await page.setViewportSize({ width: 1440, height: 1000 })
       await page.goto(route.path, { waitUntil: 'networkidle' })
@@ -37,7 +37,7 @@ test.describe('design system visual QA', () => {
     }
   })
 
-  test('captures protected product screens with a seeded session', async ({ page }, testInfo) => {
+  test('시드 세션으로 보호된 제품 화면을 데스크톱과 모바일에서 캡처한다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
 
     for (const route of protectedRoutes) {

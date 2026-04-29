@@ -49,7 +49,7 @@ const SignUpPage = () => {
         <Card className="app-card gap-5 px-6 py-8">
             <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-2xl font-extrabold text-perfo-primary">PERFO</h1>
+                    <h1 className="text-2xl font-extrabold text-primary">PERFO</h1>
                 </Link>
             </div>
 
@@ -61,19 +61,19 @@ const SignUpPage = () => {
             <CardContent className="px-0">
                 <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="space-y-2">
-                    <Label htmlFor="display-name" className="text-xs font-bold text-perfo-primary">{t("common.displayName")}</Label>
+                    <Label htmlFor="display-name" className="text-xs font-bold text-primary">{t("common.displayName")}</Label>
                     <Input
                         id="display-name"
                         type="text"
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder={t("common.displayNamePlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 text-sm"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="password" className="text-xs font-bold text-perfo-primary">{t("common.password")}</Label>
+                    <Label htmlFor="password" className="text-xs font-bold text-primary">{t("common.password")}</Label>
                     <div className="relative">
                         <Input
                         id="password"
@@ -81,13 +81,13 @@ const SignUpPage = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder={t("common.createPasswordPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 pr-12 text-sm"
                         />
                         <button
                             type="button"
                             aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary"
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
                         >
                             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
@@ -95,7 +95,7 @@ const SignUpPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-xs font-bold text-perfo-primary">{t("common.confirmPassword")}</Label>
+                    <Label htmlFor="confirm-password" className="text-xs font-bold text-primary">{t("common.confirmPassword")}</Label>
                     <div className="relative">
                         <Input
                         id="confirm-password"
@@ -103,13 +103,13 @@ const SignUpPage = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder={t("common.confirmPasswordPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 pr-12 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 pr-12 text-sm"
                         />
                         <button
                             type="button"
                             aria-label={showConfirm ? "비밀번호 확인 숨기기" : "비밀번호 확인 표시"}
                             onClick={() => setShowConfirm(!showConfirm)}
-                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-perfo-primary"
+                            className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-muted)] transition-colors hover:text-primary"
                         >
                             {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
@@ -123,13 +123,13 @@ const SignUpPage = () => {
                     <PasswordRule label={t("passwordRules.match")} valid={passwordsMatch} />
                 </div>
 
-                <div className="space-y-3 rounded-lg border border-[#d7e2f7] bg-[#f8fbff] p-3">
+                <div className="space-y-3 rounded-lg border border-border bg-[var(--surface-muted)] p-3">
                     <label className="flex items-start gap-3 text-sm text-[var(--text)]">
                         <input
                             type="checkbox"
                             checked={termsAgreed}
                             onChange={(event) => setTermsAgreed(event.target.checked)}
-                            className="mt-1 h-4 w-4 rounded border-[#9bafd9] accent-[#103783]"
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
                         />
                         <span>{t("signup.termsAgreement")}</span>
                     </label>
@@ -138,7 +138,7 @@ const SignUpPage = () => {
                             type="checkbox"
                             checked={privacyAgreed}
                             onChange={(event) => setPrivacyAgreed(event.target.checked)}
-                            className="mt-1 h-4 w-4 rounded border-[#9bafd9] accent-[#103783]"
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
                         />
                         <span>{t("signup.privacyAgreement")}</span>
                     </label>
@@ -147,7 +147,7 @@ const SignUpPage = () => {
                             type="checkbox"
                             checked={marketingAgreed}
                             onChange={(event) => setMarketingAgreed(event.target.checked)}
-                            className="mt-1 h-4 w-4 rounded border-[#9bafd9] accent-[#103783]"
+                            className="mt-1 h-4 w-4 rounded border-border accent-primary"
                         />
                         <span>{t("signup.marketingAgreement")}</span>
                     </label>
@@ -159,7 +159,7 @@ const SignUpPage = () => {
 
                 <p className="text-center text-xs text-[var(--text-subtle)]">
                     {t("common.termsPrefix")}{" "}
-                    <Link href="#" className="text-perfo-secondary underline transition-colors hover:text-perfo-primary">
+                    <Link href="#" className="text-[var(--text-muted)] underline transition-colors hover:text-primary">
                         {t("common.termsLink")}
                     </Link>
                 </p>

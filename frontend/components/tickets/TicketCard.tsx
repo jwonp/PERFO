@@ -1,7 +1,7 @@
 "use client";
 
 import { QrCode } from "lucide-react";
-
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { TICKET_STATUS_META } from "@/components/tickets/ticket-card.constants";
 import TicketShell from "@/components/tickets/ticket-shell";
@@ -15,6 +15,8 @@ const TicketCard = ({
     usageStatus,
     ticketNumber,
     totalCount,
+    qrActionLabel,
+    qrActionHref,
 }: TicketCardProps) => {
     const meta = TICKET_STATUS_META[usageStatus];
     const isNowServing = usageStatus === "MY_TURN";
@@ -41,24 +43,33 @@ const TicketCard = ({
                             className={`h-full w-full object-cover ${isExpired ? "grayscale opacity-60" : ""}`}
                         />
                     ) : (
-                        <div className="h-full w-full bg-perfo-secondary/20" />
+                        <div className="h-full w-full bg-[var(--surface-muted)]" />
                     )}
                 </div>
             }
             footer={
                 isNowServing ? (
-                    <Button className="h-11 w-full rounded-md">
-                        <QrCode className="h-4 w-4" />
-                        QR 스캔
-                    </Button>
+                    qrActionHref ? (
+                        <Button asChild className="h-11 w-full rounded-md">
+                            <Link href={qrActionHref}>
+                                <QrCode className="h-4 w-4" />
+                                {qrActionLabel ?? "QR 표시"}
+                            </Link>
+                        </Button>
+                    ) : (
+                        <Button className="h-11 w-full rounded-md" disabled>
+                            <QrCode className="h-4 w-4" />
+                            {qrActionLabel ?? "QR 표시"}
+                        </Button>
+                    )
                 ) : undefined
             }
         >
             <div className="pt-1">
                 <div className="flex justify-end pt-1">
-                    <span className="text-sm font-semibold text-perfo-primary">
+                    <span className="text-sm font-semibold text-primary">
                         {ticketNumber}{" "}
-                        <span className="text-perfo-text/30 font-normal">/ {totalCount}</span>
+                        <span className="font-normal text-[var(--text-subtle)]">/ {totalCount}</span>
                     </span>
                 </div>
             </div>

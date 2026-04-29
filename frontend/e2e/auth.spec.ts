@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('auth entry points', () => {
-  test('guest can open the landing and login entry routes', async ({ page }) => {
+test.describe('인증 진입 플로우', () => {
+  test('비로그인 사용자는 랜딩과 로그인 진입 화면을 열 수 있다', async ({ page }) => {
     await page.goto('/ko', { waitUntil: 'domcontentloaded' })
 
     await expect(page.getByRole('heading', { name: 'PERFO' })).toBeVisible()
@@ -13,7 +13,7 @@ test.describe('auth entry points', () => {
     await expect(page.getByRole('button', { name: '다음' })).toBeVisible()
   })
 
-  test('guest can continue from email entry to password entry', async ({ page }) => {
+  test('비로그인 사용자는 이메일 입력 단계에서 비밀번호 입력 단계로 이동할 수 있다', async ({ page }) => {
     await page.goto('/ko/login', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle')
 
@@ -28,18 +28,19 @@ test.describe('auth entry points', () => {
     await expect(page.getByLabel('비밀번호', { exact: true })).toHaveAttribute('type', 'text')
   })
 
-  test('guest can prepare a credentials signup and continue to email verification', async ({ page }) => {
+  test('비로그인 사용자는 회원가입 입력 후 이메일 인증 화면으로 이동할 수 있다', async ({ page }) => {
     await page.goto('/ko/signup?email=new%40example.com', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('new@example.com로 회원가입')).toBeVisible()
+    await expect(page).toHaveURL(/\/ko\/signup\?email=new%40example\.com/)
+    await expect(page.getByText('아래 요구사항을 충족하는 비밀번호를 입력하세요.')).toBeVisible()
     await expect(page.getByRole('button', { name: '가입하기' })).toBeDisabled()
 
     await page.getByLabel('이름').fill('홍길동')
     await page.getByLabel('비밀번호', { exact: true }).fill('Valid123!')
     await page.locator('#confirm-password').fill('Valid123!')
-    await page.getByRole('checkbox', { name: '이용약관에 동의합니다' }).check()
-    await page.getByRole('checkbox', { name: '개인정보 처리방침에 동의합니다' }).check()
+    await page.getByRole('checkbox', { name: /이용약관/ }).check()
+    await page.getByRole('checkbox', { name: /개인정보/ }).check()
 
     await expect(page.getByRole('button', { name: '가입하기' })).toBeEnabled()
 
@@ -49,7 +50,7 @@ test.describe('auth entry points', () => {
     await expect(page.getByText('new@example.com으로 6자리 인증 코드를 전송했습니다')).toBeVisible()
   })
 
-  test('guest is redirected to login before opening a protected page', async ({ page }) => {
+  test('비로그인 사용자가 보호된 페이지에 접근하면 로그인으로 리다이렉트된다', async ({ page }) => {
     await page.goto('/ko/profile', { waitUntil: 'domcontentloaded' })
 
     await expect(page).toHaveURL(/\/ko\/login/)

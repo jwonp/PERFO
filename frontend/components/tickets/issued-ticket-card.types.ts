@@ -1,10 +1,12 @@
 import type { TicketBadgeVariant } from "@/components/tickets/ticket-shell.types";
 
 export interface IssuedTicketCardData {
+    id?: string;
     name: string;
     venue: string;
     detailAddress?: string;
     googleMapsUrl?: string;
+    googlePlaceId?: string;
     validDate: string;
     imageUrl?: string;
     status: string;
@@ -21,4 +23,5 @@ export interface IssuedTicketCardProps {
     scanLabel: string;
     canScan: boolean;
     onEdit: () => void;
+    onScan?: () => void;
 }

@@ -3,7 +3,22 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import MyTicketsPage from '../page'
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}))
+
+vi.mock('@/components/notifications/NotificationButton', () => ({
+  NotificationButton: () => <div>NotificationButton</div>,
+}))
+
+vi.mock('@/components/notifications/use-notification-snapshot-bootstrap', () => ({
+  useNotificationSnapshotBootstrap: vi.fn(),
+}))
+
 vi.mock('next-intl', () => ({
+  useLocale: () => 'ko',
   useTranslations: () => (key: string) => {
     const messages: Record<string, string> = {
       'myTickets.title': '내가 발급한 티켓',
@@ -21,10 +36,10 @@ vi.mock('next-intl', () => ({
       'myTickets.fieldNamePlaceholder': '예) PERFO Summer Festival',
       'myTickets.fieldVenue': '사용 장소',
       'myTickets.fieldVenuePlaceholder': '예) 올림픽공원 체조경기장',
-      'myTickets.fieldVenueMap': 'Google Maps로 장소 선택',
-      'myTickets.fieldVenueMapHelper': '입력한 사용 장소를 Google Maps에서 확인합니다.',
       'myTickets.fieldDetailAddress': '세부 주소',
       'myTickets.fieldDetailAddressPlaceholder': '예) 2층 A게이트 앞',
+      'myTickets.placeAutocompleteUnavailable': '자동완성 사용 불가: 장소명을 직접 입력하세요',
+      'myTickets.placeAutocompleteSelected': '장소가 자동완성으로 선택되었습니다',
       'myTickets.fieldDate': '유효 날짜',
       'myTickets.fieldTotal': '총 티켓 수',
       'myTickets.fieldAllowDuplicate': '중복 구매 허용',
@@ -38,7 +53,7 @@ vi.mock('next-intl', () => ({
 }))
 
 describe('MyTicketsPage', () => {
-  it('티켓 발급 폼에서 Google Maps 장소 선택 링크와 세부 주소 입력을 제공한다', async () => {
+  it('티켓 발급 폼에서 장소 입력과 세부 주소 입력을 제공한다', async () => {
     const user = userEvent.setup()
     render(<MyTicketsPage />)
 
@@ -46,14 +61,11 @@ describe('MyTicketsPage', () => {
 
     expect(screen.getByLabelText('사용 장소')).toBeInTheDocument()
     expect(screen.getByLabelText('세부 주소')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Google Maps로 장소 선택' })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('자동완성 사용 불가: 장소명을 직접 입력하세요')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText('사용 장소'), '올림픽공원 체조경기장')
 
-    expect(screen.getByRole('link', { name: 'Google Maps로 장소 선택' })).toHaveAttribute(
-      'href',
-      'https://www.google.com/maps/search/?api=1&query=%EC%98%AC%EB%A6%BC%ED%94%BD%EA%B3%B5%EC%9B%90%20%EC%B2%B4%EC%A1%B0%EA%B2%BD%EA%B8%B0%EC%9E%A5'
-    )
+    expect(screen.getByLabelText('사용 장소')).toHaveValue('올림픽공원 체조경기장')
   })
 
   it('티켓 발급 시 사용 장소와 세부 주소를 새 티켓에 저장해 표시한다', async () => {

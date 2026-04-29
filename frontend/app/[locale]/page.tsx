@@ -6,17 +6,17 @@ const LandingPage = () => {
     const t = useTranslations("landing");
 
     return (
-        <div className="flex min-h-screen justify-center bg-perfo-bg">
+        <div className="flex min-h-screen justify-center bg-background text-foreground">
             <div className="app-screen flex min-h-screen flex-col px-5 py-8">
             <header className="flex items-center justify-between">
-                <h1 className="text-base font-extrabold text-perfo-primary">
+                <h1 className="text-base font-extrabold text-primary">
                     PERFO
                 </h1>
                 <div className="flex items-center gap-4">
                     <LocaleSwitcher />
                     <Link
                         href="/login"
-                        className="text-sm font-semibold text-perfo-primary hover:text-perfo-primary-hover transition-colors"
+                        className="text-sm font-semibold text-primary transition-colors hover:text-[var(--primary-hover)]"
                     >
                         {t("login")}
                     </Link>
@@ -37,12 +37,12 @@ const LandingPage = () => {
             </main>
             <Link
                 href="/login"
-                className="mb-8 inline-flex h-14 items-center justify-center rounded-lg bg-perfo-primary px-10 text-base font-bold text-white shadow-[var(--shadow-panel)] transition-colors hover:bg-perfo-primary-hover"
+                className="mb-8 inline-flex h-14 items-center justify-center rounded-lg bg-primary px-10 text-base font-bold text-primary-foreground shadow-[var(--shadow-panel)] transition-colors hover:bg-[var(--primary-hover)]"
             >
                 {t("cta")}
             </Link>
 
-            <footer className="py-2 text-center text-xs text-perfo-text/30">
+            <footer className="py-2 text-center text-xs text-[var(--text-subtle)]">
                 {t("copyright")}
             </footer>
             </div>

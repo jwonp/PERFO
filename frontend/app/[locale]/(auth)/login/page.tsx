@@ -30,7 +30,7 @@ const LoginPage = () => {
         <Card className="app-card gap-5 px-6 py-8">
             <div className="text-center">
                 <Link href="/">
-                    <h1 className="text-2xl font-extrabold text-perfo-primary">
+                    <h1 className="text-2xl font-extrabold text-primary">
                         PERFO
                     </h1>
                 </Link>
@@ -44,7 +44,7 @@ const LoginPage = () => {
             <CardContent className="px-0">
                 <form action={`/${locale}/login/password`} className="space-y-4" method="get" onSubmit={handleEmailContinue}>
                 <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-bold text-perfo-primary">{t("common.email")}</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-primary">{t("common.email")}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -52,7 +52,7 @@ const LoginPage = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder={t("common.emailPlaceholder")}
-                        className="h-12 border-[#9bafd9] bg-white px-4 text-sm placeholder:text-[#b5c5e7]"
+                        className="h-12 border-border px-4 text-sm"
                     />
                 </div>
 
@@ -63,7 +63,7 @@ const LoginPage = () => {
 
                 <div className="flex items-center py-3">
                     <div className="h-px flex-1 bg-border" />
-                    <span className="px-4 text-xs font-bold uppercase text-[#9bafd9]">{t("common.or")}</span>
+                    <span className="px-4 text-xs font-bold uppercase text-[var(--text-subtle)]">{t("common.or")}</span>
                     <div className="h-px flex-1 bg-border" />
                 </div>
 

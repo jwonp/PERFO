@@ -7,6 +7,9 @@ export interface IssuedTicket {
     id: string;
     name: string;
     venue: string;
+    detailAddress: string;
+    googleMapsUrl?: string;
+    googlePlaceId?: string;
     validDate: string;
     imageUrl?: string;
     status: IssueStatus;
@@ -20,6 +23,7 @@ export interface TicketForm {
     name: string;
     venue: string;
     googlePlaceId: string;
+    detailAddress: string;
     validDate: string;
     totalCount: string;
     allowDuplicate: boolean;
@@ -30,7 +34,7 @@ export interface TicketFormSheetProps {
     open: boolean;
     editTarget: IssuedTicket | null;
     onClose: () => void;
-    onSubmit: (form: TicketForm) => void;
+    onSubmit: (form: TicketForm) => Promise<void> | void;
     t: ReturnType<typeof useTranslations>;
 }
 

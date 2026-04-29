@@ -14,7 +14,7 @@ const FormFieldLabel = ({
   className,
   ...props
 }: React.ComponentProps<typeof Label>) => {
-  return <Label className={cn("text-xs text-perfo-text/70", className)} {...props} />
+  return <Label className={cn("text-xs text-[var(--text-muted)]", className)} {...props} />
 }
 
 export { FormField, FormFieldLabel }
