@@ -15,6 +15,9 @@
 - [08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md](./08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md): Ubuntu Server + Cloudflare Tunnel 기반 CI/CD와 오토스케일링 운영 계획
 - [09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md](./09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md): 온프레미스 미니PC 기준 고부하 처리 구현 계획
 - [10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md](./10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md): MinIO 기반 프로필 이미지 저장소 도입 계획
+- [11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md](./11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md): 발급 티켓 상태 수정, 오픈 시간, 이미지 추가/수정 구현 계획
+- [12_TICKET_FILTER_PLAN.md](./12_TICKET_FILTER_PLAN.md): 사용 완료 티켓 표시와 중복 구매 허용 필터 구현 계획
+- [13_PERFORMANCE_TEST_PLAN.md](./13_PERFORMANCE_TEST_PLAN.md): 성능 테스트 실행과 결과 문서화 계획
 
 ## 개발 원칙
 
