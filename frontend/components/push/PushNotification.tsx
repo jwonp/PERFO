@@ -4,14 +4,45 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import type { PushNotificationProps } from '@/components/push/push-notification.types';
 
+interface PushPublicKeyResponse {
+    publicKey?: string;
+}
+
 const PushNotification = ({
-    vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    vapidPublicKey,
     children,
 }: PushNotificationProps) => {
     const [isSupported, setIsSupported] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [resolvedVapidPublicKey, setResolvedVapidPublicKey] = useState(vapidPublicKey ?? '');
+
+    const fetchVapidPublicKey = async (): Promise<string> => {
+        if (vapidPublicKey) {
+            return vapidPublicKey;
+        }
+
+        try {
+            const response = await fetch('/api/push/public-key', {
+                method: 'GET',
+                cache: 'no-store',
+            });
+
+            if (!response.ok) {
+                throw new Error(`VAPID key request failed: ${response.status}`);
+            }
+
+            const payload = await response.json() as PushPublicKeyResponse;
+            const publicKey = typeof payload.publicKey === 'string' ? payload.publicKey : '';
+            setResolvedVapidPublicKey(publicKey);
+            return publicKey;
+        } catch (err) {
+            console.error('VAPID 공개키 조회 실패:', err);
+            setResolvedVapidPublicKey('');
+            return '';
+        }
+    };
 
     useEffect(() => {
         // 브라우저 지원 확인
@@ -25,6 +56,14 @@ const PushNotification = ({
             checkSubscription();
         }
     }, []);
+
+    useEffect(() => {
+        setResolvedVapidPublicKey(vapidPublicKey ?? '');
+
+        if (!vapidPublicKey) {
+            void fetchVapidPublicKey();
+        }
+    }, [vapidPublicKey]);
 
     // 현재 구독 상태 확인
     const checkSubscription = async () => {
@@ -63,7 +102,8 @@ const PushNotification = ({
 
     // 푸시 알림 구독
     const subscribe = async () => {
-        if (!vapidPublicKey) {
+        const publicKey = resolvedVapidPublicKey || await fetchVapidPublicKey();
+        if (!publicKey) {
             setError('VAPID 공개키가 설정되지 않았습니다');
             return;
         }
@@ -93,7 +133,7 @@ const PushNotification = ({
             // 푸시 구독
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource,
+                applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
             });
 
             // 서버에 구독 정보 저장
