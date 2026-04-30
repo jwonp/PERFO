@@ -2,6 +2,7 @@ import type { useTranslations } from "next-intl";
 import type { TicketBadgeVariant } from "@/components/tickets/ticket-shell";
 
 export type IssueStatus = "ISSUING" | "INACTIVE" | "EXPIRED" | "VERIFYING";
+export type DuplicatePurchaseFilter = "ALL" | "ALLOW_DUPLICATE" | "NO_DUPLICATE";
 
 export interface IssuedTicket {
     id: string;
@@ -11,6 +12,8 @@ export interface IssuedTicket {
     googleMapsUrl?: string;
     googlePlaceId?: string;
     validDate: string;
+    openAt: string;
+    imageKey?: string;
     imageUrl?: string;
     status: IssueStatus;
     issuedCount: number;
@@ -25,9 +28,14 @@ export interface TicketForm {
     googlePlaceId: string;
     detailAddress: string;
     validDate: string;
+    openAt: string;
     totalCount: string;
     allowDuplicate: boolean;
     maxPerUser: string;
+    status: IssueStatus;
+    imageKey?: string;
+    imageUrl?: string;
+    imageFile?: File | null;
 }
 
 export interface TicketFormSheetProps {

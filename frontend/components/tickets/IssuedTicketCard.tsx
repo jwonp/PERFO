@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Pencil, ScanLine } from "lucide-react";
 
 import TicketShell from "@/components/tickets/ticket-shell";
@@ -15,6 +16,7 @@ const IssuedTicketCard = ({
     canScan,
     onEdit,
     onScan,
+    scanHref,
 }: IssuedTicketCardProps) => {
     const progressPct = Math.round((ticket.issuedCount / ticket.totalCount) * 100);
 
@@ -64,8 +66,20 @@ const IssuedTicketCard = ({
                         {editLabel}
                     </button>
 
-                    {canScan && (
+                    {canScan && scanHref ? (
+                        <Link
+                            href={scanHref}
+                            className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
+                            aria-label={scanLabel}
+                        >
+                            <ScanLine className="h-4 w-4" />
+                            {scanLabel}
+                        </Link>
+                    ) : null}
+
+                    {canScan && !scanHref ? (
                         <button
+                            type="button"
                             onClick={onScan}
                             className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
                             aria-label={scanLabel}
@@ -73,7 +87,7 @@ const IssuedTicketCard = ({
                             <ScanLine className="h-4 w-4" />
                             {scanLabel}
                         </button>
-                    )}
+                    ) : null}
                 </>
             }
         >

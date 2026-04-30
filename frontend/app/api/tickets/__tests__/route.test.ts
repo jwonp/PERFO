@@ -42,7 +42,11 @@ describe('/api/tickets route', () => {
 
     expect(fetch).toHaveBeenCalledWith(
       'http://backend.test/api/tickets?ownerUserId=user-42',
-      { method: 'GET', cache: 'no-store' },
+      {
+        method: 'GET',
+        headers: { 'X-Auth-User-Id': 'user-42' },
+        cache: 'no-store',
+      },
     )
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual([
@@ -83,7 +87,10 @@ describe('/api/tickets route', () => {
       'http://backend.test/api/tickets',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-User-Id': 'owner-1',
+        },
         body: JSON.stringify({ ...payload, ownerUserId: 'owner-1' }),
       }),
     )

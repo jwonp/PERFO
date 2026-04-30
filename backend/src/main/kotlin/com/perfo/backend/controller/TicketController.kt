@@ -5,18 +5,28 @@ import com.perfo.backend.service.TicketService
 import com.perfo.backend.service.TicketTransitionService
 import com.perfo.backend.service.TicketVerificationService
 import com.perfo.backend.service.ReservationService
+import com.perfo.backend.service.ProfileImageContent
 import jakarta.validation.Valid
+import org.springframework.http.CacheControl
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.multipart.MultipartFile
+import java.util.concurrent.TimeUnit
 
 @RestController
 @RequestMapping("/api")
@@ -28,16 +38,60 @@ class TicketController(
 ) {
     @PostMapping("/tickets")
     fun createTicket(
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
         @Valid @RequestBody request: TicketDto.CreateTicketRequest,
     ): TicketDto.TicketResponse {
-        return ticketService.create(request)
+        return ticketService.create(request, ownerUserId)
     }
 
     @GetMapping("/tickets")
     fun listIssuedTickets(
+        @RequestHeader("X-Auth-User-Id") authenticatedOwnerUserId: String,
         @RequestParam ownerUserId: String,
     ): List<TicketDto.TicketResponse> {
-        return ticketService.findAllByOwnerUserId(ownerUserId)
+        return ticketService.findAllByOwnerUserId(ownerUserId, authenticatedOwnerUserId)
+    }
+
+    @PatchMapping("/tickets/{ticketId}")
+    fun updateTicket(
+        @PathVariable ticketId: Long,
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        @Valid @RequestBody request: TicketDto.UpdateTicketRequest,
+    ): TicketDto.TicketResponse {
+        return ticketService.updateTicket(ticketId, ownerUserId, request)
+    }
+
+    @PostMapping("/tickets/{ticketId}/image")
+    fun uploadTicketImage(
+        @PathVariable ticketId: Long,
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        @RequestParam("file") file: MultipartFile,
+    ): TicketDto.TicketImageUploadResponse {
+        return ticketService.uploadTicketImage(ticketId, ownerUserId, file)
+    }
+
+    @GetMapping("/tickets/{ticketId}/image")
+    fun getTicketImage(
+        @PathVariable ticketId: Long,
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+    ): ResponseEntity<ByteArray> {
+        val image: ProfileImageContent = ticketService.getTicketImage(ticketId, ownerUserId)
+
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate().cachePrivate())
+            .header(HttpHeaders.PRAGMA, "no-cache")
+            .contentType(MediaType.parseMediaType(image.contentType))
+            .body(image.bytes)
+    }
+
+    @DeleteMapping("/tickets/{ticketId}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun cleanupTicketImage(
+        @PathVariable ticketId: Long,
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        @RequestParam imageKey: String,
+    ) {
+        ticketService.cleanupUploadedTicketImage(ticketId, ownerUserId, imageKey)
     }
 
     @GetMapping("/reservations")
@@ -81,14 +135,27 @@ class TicketController(
     @PatchMapping("/internal/issued-tickets/{ticketId}/status")
     fun transitionIssuedTicketStatus(
         @PathVariable ticketId: Long,
+        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
         @RequestBody request: TicketDto.IssuedTicketStatusTransitionRequest,
     ): TicketDto.TicketResponse {
-        return ticketService.updateIssuedStatus(ticketId, request.nextStatus)
+        return ticketService.updateIssuedStatus(ticketId, ownerUserId, request.nextStatus)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(exception: IllegalArgumentException): Map<String, String> {
         return mapOf("message" to (exception.message ?: "Invalid request"))
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDenied(exception: AccessDeniedException): Map<String, String> {
+        return mapOf("message" to (exception.message ?: "Forbidden"))
+    }
+
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    @ExceptionHandler(IllegalStateException::class)
+    fun handleIllegalState(exception: IllegalStateException): Map<String, String> {
+        return mapOf("message" to (exception.message ?: "Storage unavailable"))
     }
 }

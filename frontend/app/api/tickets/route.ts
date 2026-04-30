@@ -22,6 +22,9 @@ export const GET = async () => {
 
     const response = await fetch(`${backendUrl}/api/tickets?ownerUserId=${encodeURIComponent(session.user.id)}`, {
         method: "GET",
+        headers: {
+            "X-Auth-User-Id": session.user.id,
+        },
         cache: "no-store",
     });
 
@@ -60,6 +63,7 @@ export const POST = async (request: Request) => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "X-Auth-User-Id": session.user.id,
         },
         body: JSON.stringify({
             ...payload,

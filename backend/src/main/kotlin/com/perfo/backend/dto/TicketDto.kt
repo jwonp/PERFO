@@ -32,13 +32,36 @@ object TicketDto {
         val detailAddress: String?,
         @field:Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$")
         val validDate: String,
+        val openAt: String? = null,
         @field:Min(1)
         val totalCount: Int,
         val allowDuplicate: Boolean,
         @field:Min(1)
         @field:Max(100)
         val maxPerUser: Int,
+        val imageKey: String? = null,
         val ownerUserId: String? = null,
+    )
+
+    data class UpdateTicketRequest(
+        @field:NotBlank
+        val name: String,
+        @field:NotBlank
+        val venue: String,
+        @field:Pattern(regexp = "^[A-Za-z0-9_-]{3,256}$")
+        val googlePlaceId: String,
+        val detailAddress: String?,
+        @field:Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$")
+        val validDate: String,
+        val openAt: String? = null,
+        @field:Min(1)
+        val totalCount: Int,
+        val allowDuplicate: Boolean,
+        @field:Min(1)
+        @field:Max(100)
+        val maxPerUser: Int,
+        val status: IssuedTicketStatus? = null,
+        val imageKey: String? = null,
     )
 
     data class TicketResponse(
@@ -48,12 +71,20 @@ object TicketDto {
         val googlePlaceId: String,
         val detailAddress: String?,
         val validDate: String,
+        val openAt: String?,
+        val imageKey: String?,
+        val imageUrl: String?,
         val totalCount: Int,
         val allowDuplicate: Boolean,
         val maxPerUser: Int,
         val status: IssuedTicketStatus,
         val issuedCount: Int,
         val ownerUserId: String,
+    )
+
+    data class TicketImageUploadResponse(
+        val imageKey: String,
+        val imageUrl: String,
     )
 
     data class ReservationResponse(
