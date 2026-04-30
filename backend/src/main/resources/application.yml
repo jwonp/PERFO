@@ -31,4 +31,5 @@ app:
       secret-key: ${MINIO_SECRET_KEY:}
       region: ${MINIO_REGION:ap-northeast-2}
       bucket-profile-images: ${MINIO_BUCKET_PROFILE_IMAGES:profile-images}
+      bucket-ticket-images: ${MINIO_BUCKET_TICKET_IMAGES:ticket-images}
       public-base-url: ${MINIO_PUBLIC_BASE_URL:}

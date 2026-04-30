@@ -6,9 +6,14 @@ export const EMPTY_FORM: TicketForm = {
     googlePlaceId: "",
     detailAddress: "",
     validDate: "",
+    openAt: "",
     totalCount: "",
     allowDuplicate: false,
     maxPerUser: "1",
+    status: "INACTIVE",
+    imageKey: undefined,
+    imageUrl: undefined,
+    imageFile: null,
 };
 
 export const STATUS_BADGE_STYLE: IssueStatusBadgeMap = {

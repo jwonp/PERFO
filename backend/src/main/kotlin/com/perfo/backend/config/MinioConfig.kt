@@ -13,6 +13,7 @@ data class MinioProperties(
     var secretKey: String = "",
     var region: String = "ap-northeast-2",
     var bucketProfileImages: String = "profile-images",
+    var bucketTicketImages: String = "ticket-images",
     var publicBaseUrl: String = "",
 )
 

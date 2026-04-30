@@ -41,6 +41,9 @@ class TicketTransitionControllerTest {
     @field:MockitoBean
     private lateinit var ticketTransitionService: TicketTransitionService
 
+    @field:MockitoBean
+    private lateinit var reservationService: com.perfo.backend.service.ReservationService
+
     @Test
     @DisplayName("PATCH /api/internal/tickets/{ticketId}/ticketing-status - 티켓팅 상태를 전환한다")
     @WithMockUser
@@ -99,6 +102,9 @@ class TicketTransitionControllerTest {
             googlePlaceId = "ChIJPLACE",
             detailAddress = "2층 A게이트 앞",
             validDate = "2026-08-15",
+            openAt = null,
+            imageKey = null,
+            imageUrl = null,
             totalCount = 100,
             allowDuplicate = false,
             maxPerUser = 1,
@@ -107,11 +113,12 @@ class TicketTransitionControllerTest {
             ownerUserId = "owner-1",
         )
 
-        given(ticketService.updateIssuedStatus(20L, IssuedTicketStatus.VERIFYING)).willReturn(response)
+        given(ticketService.updateIssuedStatus(20L, "owner-1", IssuedTicketStatus.VERIFYING)).willReturn(response)
 
         mockMvc.perform(
             patch("/api/internal/issued-tickets/20/status")
                 .with(csrf())
+                .header("X-Auth-User-Id", "owner-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )

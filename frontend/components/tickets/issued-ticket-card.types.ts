@@ -24,4 +24,5 @@ export interface IssuedTicketCardProps {
     canScan: boolean;
     onEdit: () => void;
     onScan?: () => void;
+    scanHref?: string;
 }
