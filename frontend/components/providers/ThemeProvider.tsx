@@ -19,7 +19,7 @@ import type {
   ThemeContextValue,
   ThemeProviderProps,
 } from "@/components/providers/theme-provider.types"
-import type { ResolvedTheme, ThemePreference } from "@/lib/theme/theme.types"
+import type { ThemePreference } from "@/lib/theme/theme.types"
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 

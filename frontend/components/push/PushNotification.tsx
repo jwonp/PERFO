@@ -8,6 +8,24 @@ interface PushPublicKeyResponse {
     publicKey?: string;
 }
 
+const fetchVapidPublicKey = async (vapidPublicKey?: string): Promise<string> => {
+    if (vapidPublicKey) {
+        return vapidPublicKey;
+    }
+
+    const response = await fetch('/api/push/public-key', {
+        method: 'GET',
+        cache: 'no-store',
+    });
+
+    if (!response.ok) {
+        throw new Error(`VAPID key request failed: ${response.status}`);
+    }
+
+    const payload = await response.json() as PushPublicKeyResponse;
+    return typeof payload.publicKey === 'string' ? payload.publicKey : '';
+};
+
 const PushNotification = ({
     vapidPublicKey,
     children,
@@ -17,32 +35,6 @@ const PushNotification = ({
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [resolvedVapidPublicKey, setResolvedVapidPublicKey] = useState(vapidPublicKey ?? '');
-
-    const fetchVapidPublicKey = async (): Promise<string> => {
-        if (vapidPublicKey) {
-            return vapidPublicKey;
-        }
-
-        try {
-            const response = await fetch('/api/push/public-key', {
-                method: 'GET',
-                cache: 'no-store',
-            });
-
-            if (!response.ok) {
-                throw new Error(`VAPID key request failed: ${response.status}`);
-            }
-
-            const payload = await response.json() as PushPublicKeyResponse;
-            const publicKey = typeof payload.publicKey === 'string' ? payload.publicKey : '';
-            setResolvedVapidPublicKey(publicKey);
-            return publicKey;
-        } catch (err) {
-            console.error('VAPID 공개키 조회 실패:', err);
-            setResolvedVapidPublicKey('');
-            return '';
-        }
-    };
 
     useEffect(() => {
         // 브라우저 지원 확인
@@ -61,7 +53,15 @@ const PushNotification = ({
         setResolvedVapidPublicKey(vapidPublicKey ?? '');
 
         if (!vapidPublicKey) {
-            void fetchVapidPublicKey();
+            void (async () => {
+                try {
+                    const publicKey = await fetchVapidPublicKey(vapidPublicKey);
+                    setResolvedVapidPublicKey(publicKey);
+                } catch (err) {
+                    console.error('VAPID 공개키 조회 실패:', err);
+                    setResolvedVapidPublicKey('');
+                }
+            })();
         }
     }, [vapidPublicKey]);
 
@@ -102,10 +102,14 @@ const PushNotification = ({
 
     // 푸시 알림 구독
     const subscribe = async () => {
-        const publicKey = resolvedVapidPublicKey || await fetchVapidPublicKey();
+        const publicKey = resolvedVapidPublicKey || await fetchVapidPublicKey(vapidPublicKey);
         if (!publicKey) {
             setError('VAPID 공개키가 설정되지 않았습니다');
             return;
+        }
+
+        if (publicKey !== resolvedVapidPublicKey) {
+            setResolvedVapidPublicKey(publicKey);
         }
 
         const previousSubscribed = isSubscribed;
