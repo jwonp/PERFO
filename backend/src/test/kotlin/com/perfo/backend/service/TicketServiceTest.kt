@@ -21,6 +21,7 @@ import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.access.AccessDeniedException
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.Optional
 
 @ExtendWith(MockitoExtension::class)
@@ -95,6 +96,40 @@ class TicketServiceTest {
 
         assertThat(tickets).extracting<Long> { it.id }.containsExactly(2L, 1L)
         assertThat(tickets).allMatch { it.ownerUserId == "owner-1" }
+    }
+
+    @Test
+    @DisplayName("소유자별 티켓 조회 - openAt이 지나면 저장 상태와 무관하게 즉시 VERIFYING으로 계산한다")
+    fun findAllByOwnerUserId_resolvesVerifyingImmediatelyAfterOpenAt() {
+        val ticket = issuedTicket(
+            id = 3L,
+            ownerUserId = "owner-1",
+            status = IssuedTicketStatus.ISSUING,
+            validDate = LocalDate.now(ZoneOffset.UTC),
+            openAt = OffsetDateTime.now(ZoneOffset.UTC).minusSeconds(1),
+        )
+        given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(ticket))
+
+        val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
+
+        assertThat(tickets.single().status).isEqualTo(IssuedTicketStatus.VERIFYING)
+    }
+
+    @Test
+    @DisplayName("소유자별 티켓 조회 - 유효 날짜가 지나면 즉시 EXPIRED로 계산한다")
+    fun findAllByOwnerUserId_resolvesExpiredImmediatelyAfterValidDate() {
+        val ticket = issuedTicket(
+            id = 4L,
+            ownerUserId = "owner-1",
+            status = IssuedTicketStatus.VERIFYING,
+            validDate = LocalDate.now(ZoneOffset.UTC).minusDays(1),
+            openAt = OffsetDateTime.now(ZoneOffset.UTC).minusHours(1),
+        )
+        given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(ticket))
+
+        val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
+
+        assertThat(tickets.single().status).isEqualTo(IssuedTicketStatus.EXPIRED)
     }
 
     @Test
@@ -198,6 +233,96 @@ class TicketServiceTest {
         assertThat(updated.status).isEqualTo(IssuedTicketStatus.INACTIVE)
         then(issuedTicketRepository).should(never()).save(any())
         verifyNoInteractions(notificationBridgeService)
+    }
+
+    @Test
+    @DisplayName("자동 상태 동기화 - openAt이 지난 ISSUING 티켓은 VERIFYING으로 전환한다")
+    fun reconcileIssuedTicketStatuses_movesOpenTicketsToVerifying() {
+        val ticket = issuedTicket(
+            id = 11L,
+            ownerUserId = "owner-1",
+            status = IssuedTicketStatus.ISSUING,
+            validDate = LocalDate.now(ZoneOffset.UTC),
+            openAt = OffsetDateTime.now(ZoneOffset.UTC).minusMinutes(5),
+        )
+        given(
+            issuedTicketRepository.findByStatusInAndValidDateBefore(
+                listOf(
+                    IssuedTicketStatus.INACTIVE,
+                    IssuedTicketStatus.ISSUING,
+                    IssuedTicketStatus.VERIFYING,
+                ),
+                LocalDate.now(ZoneOffset.UTC),
+            ),
+        ).willReturn(emptyList())
+        given(
+            issuedTicketRepository.findByStatusAndOpenAtLessThanEqual(
+                eq(IssuedTicketStatus.ISSUING),
+                any(),
+            ),
+        ).willReturn(listOf(ticket))
+        given(issuedTicketRepository.save(ticket)).willAnswer { it.arguments[0] as IssuedTicket }
+
+        ticketService.reconcileIssuedTicketStatuses()
+
+        assertThat(ticket.status).isEqualTo(IssuedTicketStatus.VERIFYING)
+        then(notificationBridgeService).should().notifyTicketTransition(
+            TicketTransitionNotificationRequest(
+                userId = "owner-1",
+                scope = "issued",
+                ticketId = "11",
+                ticketName = "PERFO Test Ticket",
+                targetUrl = "/my-tickets/11/scan",
+                statusKey = "issueStatus",
+                previousStatus = IssuedTicketStatus.ISSUING.name,
+                nextStatus = IssuedTicketStatus.VERIFYING.name,
+            ),
+        )
+    }
+
+    @Test
+    @DisplayName("자동 상태 동기화 - 유효 날짜가 지난 티켓은 EXPIRED로 전환한다")
+    fun reconcileIssuedTicketStatuses_expiresPastValidDate() {
+        val expiredTicket = issuedTicket(
+            id = 12L,
+            ownerUserId = "owner-1",
+            status = IssuedTicketStatus.VERIFYING,
+            validDate = LocalDate.now(ZoneOffset.UTC).minusDays(1),
+            openAt = OffsetDateTime.now(ZoneOffset.UTC).minusHours(2),
+        )
+        given(
+            issuedTicketRepository.findByStatusInAndValidDateBefore(
+                listOf(
+                    IssuedTicketStatus.INACTIVE,
+                    IssuedTicketStatus.ISSUING,
+                    IssuedTicketStatus.VERIFYING,
+                ),
+                LocalDate.now(ZoneOffset.UTC),
+            ),
+        ).willReturn(listOf(expiredTicket))
+        given(
+            issuedTicketRepository.findByStatusAndOpenAtLessThanEqual(
+                eq(IssuedTicketStatus.ISSUING),
+                any(),
+            ),
+        ).willReturn(emptyList())
+        given(issuedTicketRepository.save(expiredTicket)).willAnswer { it.arguments[0] as IssuedTicket }
+
+        ticketService.reconcileIssuedTicketStatuses()
+
+        assertThat(expiredTicket.status).isEqualTo(IssuedTicketStatus.EXPIRED)
+        then(notificationBridgeService).should().notifyTicketTransition(
+            TicketTransitionNotificationRequest(
+                userId = "owner-1",
+                scope = "issued",
+                ticketId = "12",
+                ticketName = "PERFO Test Ticket",
+                targetUrl = "/my-tickets/12/scan",
+                statusKey = "issueStatus",
+                previousStatus = IssuedTicketStatus.VERIFYING.name,
+                nextStatus = IssuedTicketStatus.EXPIRED.name,
+            ),
+        )
     }
 
     @Test
@@ -357,6 +482,8 @@ class TicketServiceTest {
         name: String = "PERFO Test Ticket",
         status: IssuedTicketStatus = IssuedTicketStatus.INACTIVE,
         imageKey: String? = null,
+        validDate: LocalDate = LocalDate.parse("2026-08-15"),
+        openAt: OffsetDateTime = OffsetDateTime.parse("2026-08-15T08:00:00Z"),
     ) = IssuedTicket(
         id = id,
         ownerUserId = ownerUserId,
@@ -364,8 +491,8 @@ class TicketServiceTest {
         venue = "올림픽공원 체조경기장",
         googlePlaceId = "ChIJPLACE",
         detailAddress = "2층 A게이트 앞",
-        validDate = LocalDate.parse("2026-08-15"),
-        openAt = OffsetDateTime.parse("2026-08-15T08:00:00Z"),
+        validDate = validDate,
+        openAt = openAt,
         imageKey = imageKey,
         totalCount = 100,
         allowDuplicate = false,

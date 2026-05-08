@@ -11,6 +11,7 @@ interface TicketRepository : JpaRepository<Ticket, Long> {
     fun findByIdempotencyKey(idempotencyKey: String): Ticket?
     fun findByUserIdOrderByIdDesc(userId: Long): List<Ticket>
     fun countByEventIdAndUserId(eventId: Long, userId: Long): Int
+    fun findByEventIdAndUserIdOrderByIdAsc(eventId: Long, userId: Long): List<Ticket>
 
     @Modifying
     @Query(

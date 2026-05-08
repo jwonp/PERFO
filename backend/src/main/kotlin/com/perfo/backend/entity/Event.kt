@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.Instant
 import java.time.LocalDateTime
 
 @Entity
@@ -33,8 +34,20 @@ class Event(
     @Column(name = "remaining_quantity", nullable = false)
     var remainingQuantity: Int = 0,
 
+    @Column(name = "sale_open_at", nullable = false)
+    var saleOpenAt: Instant = Instant.now(),
+
+    @Column(name = "sale_close_at", nullable = false)
+    var saleCloseAt: Instant = Instant.now(),
+
     @Column(name = "max_per_user", nullable = false)
     var maxPerUser: Int = 1,
+
+    @Column(name = "allow_duplicate", nullable = false)
+    var allowDuplicate: Boolean = false,
+
+    @Column(name = "next_ticket_number", nullable = false)
+    var nextTicketNumber: Int = 1,
 
     @Column(nullable = false)
     var active: Boolean = true
@@ -48,7 +61,11 @@ class Event(
             validUntil = validUntil,
             totalQuantity = totalQuantity,
             remainingQuantity = nextRemainingQuantity,
+            saleOpenAt = saleOpenAt,
+            saleCloseAt = saleCloseAt,
             maxPerUser = maxPerUser,
+            allowDuplicate = allowDuplicate,
+            nextTicketNumber = nextTicketNumber,
             active = active
         )
     }

@@ -7,9 +7,14 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
 
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:true}
+    locations: classpath:db/migration
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
     properties:
       hibernate:
@@ -21,6 +26,16 @@ spring:
       expiration: 86400000 # 24 hours
 
 app:
+  security:
+    internal-jwt:
+      # Backend internal proxy auth for protected server-to-server API calls.
+      # Production should set active key material and run with
+      # SPRING_JPA_HIBERNATE_DDL_AUTO=validate after applying explicit migrations.
+      issuer: ${INTERNAL_API_JWT_ISSUER:perfo-frontend}
+      audience: ${INTERNAL_API_JWT_AUDIENCE:perfo-backend-ticketing}
+      active-kid: ${INTERNAL_API_JWT_ACTIVE_KID:}
+      active-secret: ${INTERNAL_API_JWT_ACTIVE_SECRET:}
+      previous-keys: ${INTERNAL_API_JWT_PREVIOUS_KEYS:}
   notifications:
     bridge-url: ${NOTIFICATION_BRIDGE_URL:}
     secret: ${INTERNAL_NOTIFICATION_SECRET:}
@@ -33,3 +48,9 @@ app:
       bucket-profile-images: ${MINIO_BUCKET_PROFILE_IMAGES:profile-images}
       bucket-ticket-images: ${MINIO_BUCKET_TICKET_IMAGES:ticket-images}
       public-base-url: ${MINIO_PUBLIC_BASE_URL:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

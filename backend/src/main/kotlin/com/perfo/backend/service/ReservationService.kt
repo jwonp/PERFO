@@ -1,11 +1,13 @@
 package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.TicketRepository
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class ReservationService(
@@ -23,6 +25,7 @@ class ReservationService(
 
         return reservations.mapNotNull { reservation ->
             val event = eventsById[reservation.eventId] ?: return@mapNotNull null
+            val usageStatus = resolveUsageStatus(reservation.usageStatus, event)
 
             TicketDto.ReservationResponse(
                 id = reservation.id ?: return@mapNotNull null,
@@ -32,8 +35,34 @@ class ReservationService(
                 ticketNumber = reservation.ticketNumber,
                 totalCount = event.totalQuantity,
                 ticketingStatus = reservation.ticketingStatus,
-                usageStatus = reservation.usageStatus.toReservedUsageStatus(),
+                usageStatus = usageStatus.toReservedUsageStatus(),
             )
+        }
+    }
+
+    private fun resolveUsageStatus(
+        storedStatus: TicketUsageStatus,
+        event: Event,
+        now: LocalDateTime = TicketingTime.eventNow(),
+    ): TicketUsageStatus {
+        if (storedStatus == TicketUsageStatus.USED) {
+            return TicketUsageStatus.USED
+        }
+
+        if (now.isAfter(event.validUntil)) {
+            return TicketUsageStatus.EXPIRED
+        }
+
+        if (now.isBefore(event.validFrom)) {
+            return TicketUsageStatus.BEFORE_SERVING
+        }
+
+        return when (storedStatus) {
+            TicketUsageStatus.BEFORE_SERVING,
+            TicketUsageStatus.WAITING,
+            TicketUsageStatus.NOW_SERVING,
+            TicketUsageStatus.EXPIRED -> TicketUsageStatus.NOW_SERVING
+            TicketUsageStatus.USED -> TicketUsageStatus.USED
         }
     }
 

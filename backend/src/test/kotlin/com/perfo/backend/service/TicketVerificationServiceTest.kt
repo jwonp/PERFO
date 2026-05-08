@@ -6,6 +6,8 @@ import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.entity.VerificationRecord
+import com.perfo.backend.entity.Event
+import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -20,6 +22,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.junit.jupiter.MockitoExtension
+import java.time.LocalDateTime
 import java.time.Instant
 import java.util.Optional
 
@@ -33,6 +36,9 @@ class TicketVerificationServiceTest {
     private lateinit var verificationRecordRepository: VerificationRecordRepository
 
     @Mock
+    private lateinit var eventRepository: EventRepository
+
+    @Mock
     private lateinit var qrSignatureService: QrSignatureService
 
     @Mock
@@ -42,6 +48,7 @@ class TicketVerificationServiceTest {
     private lateinit var ticketVerificationService: TicketVerificationService
 
     private lateinit var ticket: Ticket
+    private lateinit var event: Event
 
     @BeforeEach
     fun setUp() {
@@ -53,6 +60,17 @@ class TicketVerificationServiceTest {
             ticketingStatus = TicketingStatus.SUCCESS,
             usageStatus = TicketUsageStatus.NOW_SERVING,
             idempotencyKey = "idem-1",
+        )
+        event = Event(
+            id = 10L,
+            name = "PERFO Event",
+            venue = "올림픽공원 체조경기장",
+            validFrom = LocalDateTime.now().minusHours(1),
+            validUntil = LocalDateTime.now().plusHours(2),
+            totalQuantity = 100,
+            remainingQuantity = 10,
+            maxPerUser = 1,
+            active = true,
         )
     }
 
@@ -77,6 +95,7 @@ class TicketVerificationServiceTest {
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
         given(ticketRepository.markUsedIfNotUsed(100L, TicketUsageStatus.USED)).willReturn(1)
         given(verificationRecordRepository.save(org.mockito.ArgumentMatchers.any(VerificationRecord::class.java)))
             .willReturn(VerificationRecord(id = 1L, ticketId = 100L, eventId = 10L, userId = 1L))
@@ -115,6 +134,7 @@ class TicketVerificationServiceTest {
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(usedTicket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
 
         val response = ticketVerificationService.validateTicketByQr(10L, request)
 
@@ -131,6 +151,7 @@ class TicketVerificationServiceTest {
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(beforeServingTicket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2))))
 
         val response = ticketVerificationService.validateTicketByQr(10L, request)
 
@@ -147,10 +168,27 @@ class TicketVerificationServiceTest {
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(waitingTicket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2))))
 
         val response = ticketVerificationService.validateTicketByQr(10L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+    }
+
+    @Test
+    @DisplayName("QR 검표 실패 시 이벤트 종료 후면 저장 상태와 무관하게 만료 결과를 반환한다")
+    fun validateQr_expiredByEventWindow() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().minusHours(2), LocalDateTime.now().minusMinutes(1))))
+
+        val response = ticketVerificationService.validateTicketByQr(10L, request)
+
+        assertThat(response.result).isEqualTo(TicketValidationResult.EXPIRED)
         then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
     }
 
@@ -163,5 +201,19 @@ class TicketVerificationServiceTest {
         val response = ticketVerificationService.validateTicketByQr(10L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.INVALID)
+    }
+
+    private fun Event.copyWithWindow(validFrom: LocalDateTime, validUntil: LocalDateTime): Event {
+        return Event(
+            id = id,
+            name = name,
+            venue = venue,
+            validFrom = validFrom,
+            validUntil = validUntil,
+            totalQuantity = totalQuantity,
+            remainingQuantity = remainingQuantity,
+            maxPerUser = maxPerUser,
+            active = active,
+        )
     }
 }

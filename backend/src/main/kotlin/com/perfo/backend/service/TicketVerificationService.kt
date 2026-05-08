@@ -1,17 +1,21 @@
 package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.VerificationRecord
+import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 @Service
 class TicketVerificationService(
     private val ticketRepository: TicketRepository,
+    private val eventRepository: EventRepository,
     private val verificationRecordRepository: VerificationRecordRepository,
     private val qrSignatureService: QrSignatureService,
     private val notificationBridgeService: NotificationBridgeService,
@@ -63,12 +67,19 @@ class TicketVerificationService(
             )
         }
 
-        when (reservation.usageStatus) {
+        val event = eventRepository.findById(reservation.eventId).orElse(null)
+            ?: return TicketDto.TicketValidationResponse(
+                result = TicketDto.TicketValidationResult.INVALID,
+                message = "Event not found",
+            )
+        val effectiveUsageStatus = resolveUsageStatus(reservation.usageStatus, event)
+
+        when (effectiveUsageStatus) {
             TicketUsageStatus.USED -> {
                 return TicketDto.TicketValidationResponse(
                     result = TicketDto.TicketValidationResult.ALREADY_USED,
                     ticketNumber = reservation.ticketNumber,
-                    usageStatus = reservation.usageStatus,
+                    usageStatus = effectiveUsageStatus,
                     message = "Ticket already used",
                 )
             }
@@ -78,15 +89,21 @@ class TicketVerificationService(
                 return TicketDto.TicketValidationResponse(
                     result = TicketDto.TicketValidationResult.NOT_OPEN,
                     ticketNumber = reservation.ticketNumber,
-                    usageStatus = reservation.usageStatus,
+                    usageStatus = effectiveUsageStatus,
                     message = "Ticket is not open for validation",
                 )
             }
 
-            TicketUsageStatus.NOW_SERVING,
             TicketUsageStatus.EXPIRED -> {
-                // continue
+                return TicketDto.TicketValidationResponse(
+                    result = TicketDto.TicketValidationResult.EXPIRED,
+                    ticketNumber = reservation.ticketNumber,
+                    usageStatus = effectiveUsageStatus,
+                    message = "Ticket expired",
+                )
             }
+
+            TicketUsageStatus.NOW_SERVING -> Unit
         }
 
         val updatedCount = ticketRepository.markUsedIfNotUsed(payload.ticketId)
@@ -115,7 +132,7 @@ class TicketVerificationService(
                 ticketName = "Ticket #${reservation.ticketNumber}",
                 targetUrl = "/reserved/${payload.ticketId}",
                 statusKey = "usageStatus",
-                previousStatus = reservation.usageStatus.name,
+                previousStatus = effectiveUsageStatus.name,
                 nextStatus = TicketUsageStatus.USED.name,
             ),
         )
@@ -127,5 +144,31 @@ class TicketVerificationService(
             usageStatus = TicketUsageStatus.USED,
             message = "Ticket verified",
         )
+    }
+
+    private fun resolveUsageStatus(
+        storedStatus: TicketUsageStatus,
+        event: Event,
+        now: LocalDateTime = TicketingTime.eventNow(),
+    ): TicketUsageStatus {
+        if (storedStatus == TicketUsageStatus.USED) {
+            return TicketUsageStatus.USED
+        }
+
+        if (now.isAfter(event.validUntil)) {
+            return TicketUsageStatus.EXPIRED
+        }
+
+        if (now.isBefore(event.validFrom)) {
+            return TicketUsageStatus.BEFORE_SERVING
+        }
+
+        return when (storedStatus) {
+            TicketUsageStatus.BEFORE_SERVING,
+            TicketUsageStatus.WAITING,
+            TicketUsageStatus.NOW_SERVING,
+            TicketUsageStatus.EXPIRED -> TicketUsageStatus.NOW_SERVING
+            TicketUsageStatus.USED -> TicketUsageStatus.USED
+        }
     }
 }

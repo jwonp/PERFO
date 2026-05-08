@@ -2,7 +2,10 @@ package com.perfo.backend.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.config.HeaderAuthenticationFilter
+import com.perfo.backend.config.InternalApiJwtService
+import com.perfo.backend.config.SecurityConfig
 import com.perfo.backend.dto.UserProfileDto
+import com.perfo.backend.observability.InternalProxyAuthObservability
 import com.perfo.backend.service.ProfileImageContent
 import com.perfo.backend.service.UserService
 import org.junit.jupiter.api.DisplayName
@@ -27,9 +30,22 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.mock.web.MockMultipartFile
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
+import java.time.Instant
+import java.util.Date
 
-@WebMvcTest(UserController::class)
-@Import(HeaderAuthenticationFilter::class)
+@WebMvcTest(
+    value = [UserController::class],
+    properties = [
+        "app.security.internal-jwt.issuer=perfo-frontend",
+        "app.security.internal-jwt.audience=perfo-backend-ticketing",
+        "app.security.internal-jwt.active-kid=test-v1",
+        "app.security.internal-jwt.active-secret=test-internal-jwt-secret-key-should-be-long-enough-123456",
+        "app.cors.allowed-origins=http://localhost:14138",
+    ],
+)
+@Import(SecurityConfig::class, HeaderAuthenticationFilter::class, InternalApiJwtService::class)
 class UserControllerTest {
 
     @Autowired
@@ -41,9 +57,11 @@ class UserControllerTest {
     @field:MockitoBean
     private lateinit var userService: UserService
 
+    @field:MockitoBean
+    private lateinit var internalProxyAuthObservability: InternalProxyAuthObservability
+
     @Test
     @DisplayName("GET /api/users/me - 현재 인증 사용자 프로필을 반환한다")
-    @WithMockUser(username = "hong@example.com")
     fun getMyProfile_returns200() {
         val response = UserProfileDto.MyProfileResponse(
             id = 1L,
@@ -56,7 +74,10 @@ class UserControllerTest {
         )
         given(userService.getMyProfile("hong@example.com")).willReturn(response)
 
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(
+            get("/api/users/me")
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users")}"),
+        )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value("hong@example.com"))
             .andExpect(jsonPath("$.displayName").value("홍길동"))
@@ -66,7 +87,6 @@ class UserControllerTest {
 
     @Test
     @DisplayName("PATCH /api/users/me/profile - 현재 인증 사용자 프로필을 수정한다")
-    @WithMockUser(username = "hong@example.com")
     fun updateMyProfile_returns200() {
         val request = UserProfileDto.UpdateMyProfileRequest(
             displayName = "새 닉네임",
@@ -87,6 +107,7 @@ class UserControllerTest {
         mockMvc.perform(
             patch("/api/users/me/profile")
                 .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users")}")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
@@ -98,7 +119,7 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PATCH /api/users/me/profile - 인증되지 않으면 401 또는 403을 반환한다")
+    @DisplayName("PATCH /api/users/me/profile - 인증되지 않으면 401을 반환한다")
     fun updateMyProfile_unauthenticated_returnsError() {
         val request = UserProfileDto.UpdateMyProfileRequest(
             displayName = "새 닉네임",
@@ -112,12 +133,11 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
-            .andExpect(status().is4xxClientError)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
     @DisplayName("POST /api/users/me/profile-image - multipart 업로드 성공 시 업데이트된 프로필을 반환한다")
-    @WithMockUser(username = "hong@example.com")
     fun uploadMyProfileImage_returns200() {
         val file = MockMultipartFile("file", "avatar.png", "image/png", "png".toByteArray())
         val response = UserProfileDto.MyProfileResponse(
@@ -134,7 +154,8 @@ class UserControllerTest {
         mockMvc.perform(
             multipart("/api/users/me/profile-image")
                 .file(file)
-                .with(csrf()),
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users")}"),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.profileImageType").value("UPLOADED"))
@@ -144,7 +165,6 @@ class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/users/me/profile-image - 현재 사용자 프로필 이미지를 반환한다")
-    @WithMockUser(username = "hong@example.com")
     fun getMyProfileImage_returns200() {
         given(userService.getMyProfileImage("hong@example.com")).willReturn(
             ProfileImageContent(
@@ -153,9 +173,49 @@ class UserControllerTest {
             ),
         )
 
-        mockMvc.perform(get("/api/users/me/profile-image"))
+        mockMvc.perform(
+            get("/api/users/me/profile-image")
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users")}"),
+        )
             .andExpect(status().isOk)
             .andExpect(content().contentType("image/png"))
             .andExpect(content().bytes("png".toByteArray()))
+    }
+
+    @Test
+    @DisplayName("GET /api/users/me - 만료된 내부 JWT면 401을 반환한다")
+    fun getMyProfile_expiredToken_returns401() {
+        mockMvc.perform(
+            get("/api/users/me")
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users", Instant.now().minusSeconds(5))}"),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    private fun createInternalToken(
+        userId: Long,
+        email: String,
+        scope: String,
+        expiresAt: Instant = Instant.now().plusSeconds(30),
+    ): String {
+        val signingKey = Keys.hmacShaKeyFor(
+            "test-internal-jwt-secret-key-should-be-long-enough-123456".toByteArray(Charsets.UTF_8),
+        )
+        return Jwts.builder()
+            .header()
+            .keyId("test-v1")
+            .and()
+            .issuer("perfo-frontend")
+            .subject("internal-proxy")
+            .audience()
+            .add("perfo-backend-ticketing")
+            .and()
+            .issuedAt(Date.from(Instant.now()))
+            .expiration(Date.from(expiresAt))
+            .claim("uid", userId)
+            .claim("email", email)
+            .claim("scope", listOf(scope))
+            .signWith(signingKey)
+            .compact()
     }
 }
