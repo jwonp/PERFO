@@ -2,6 +2,7 @@ package com.perfo.backend.dto
 
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
+import com.perfo.backend.entity.TicketPurchaseResult
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -142,5 +143,27 @@ object TicketDto {
         val ticketId: Long,
         val ticketingStatus: TicketingStatus,
         val usageStatus: TicketUsageStatus,
+    )
+
+    data class TicketingRequestSubmitRequest(
+        @field:NotBlank
+        @field:Pattern(regexp = "^[A-Za-z0-9:_-]{8,120}$")
+        val requestId: String,
+        @field:Min(1)
+        val eventId: Long,
+        @field:Min(1)
+        @field:Max(10)
+        val quantity: Int,
+    )
+
+    data class TicketingRequestSubmitResponse(
+        val requestId: String,
+        val eventId: Long,
+        val quantity: Int,
+        val result: TicketPurchaseResult,
+        val ticketIds: List<Long>,
+        val ticketNumbers: List<Int>,
+        val remainingQuantity: Int?,
+        val message: String? = null,
     )
 }

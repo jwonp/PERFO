@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth.config";
+import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth";
 
 const backendUrl = process.env.BACKEND_URL;
 
@@ -15,13 +16,25 @@ export const PATCH = async (request: Request) => {
         return NextResponse.json({ message: "BACKEND_URL is not configured" }, { status: 500 });
     }
 
+    let authHeaders: { Authorization: string };
+    try {
+        authHeaders = createInternalProxyAuthHeaders(
+            {
+                id: session.user.id,
+                email: session.user.email,
+            },
+            ["users"],
+        );
+    } catch {
+        return NextResponse.json({ message: "Internal API JWT signing is not configured" }, { status: 500 });
+    }
+
     const payload = await request.json();
     const response = await fetch(`${backendUrl}/api/users/me/profile`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
-            "X-Auth-User-Id": session.user.id,
-            "X-Auth-User-Email": session.user.email,
+            ...authHeaders,
         },
         body: JSON.stringify(payload),
     });

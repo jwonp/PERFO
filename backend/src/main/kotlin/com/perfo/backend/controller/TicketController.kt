@@ -1,5 +1,6 @@
 package com.perfo.backend.controller
 
+import com.perfo.backend.config.InternalAuthenticatedUser
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.service.TicketService
 import com.perfo.backend.service.TicketTransitionService
@@ -24,8 +25,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.security.core.Authentication
 import java.util.concurrent.TimeUnit
 
 @RestController
@@ -38,44 +39,44 @@ class TicketController(
 ) {
     @PostMapping("/tickets")
     fun createTicket(
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
         @Valid @RequestBody request: TicketDto.CreateTicketRequest,
     ): TicketDto.TicketResponse {
-        return ticketService.create(request, ownerUserId)
+        return ticketService.create(request, resolveAuthenticatedUserId(authentication))
     }
 
     @GetMapping("/tickets")
     fun listIssuedTickets(
-        @RequestHeader("X-Auth-User-Id") authenticatedOwnerUserId: String,
+        authentication: Authentication,
         @RequestParam ownerUserId: String,
     ): List<TicketDto.TicketResponse> {
-        return ticketService.findAllByOwnerUserId(ownerUserId, authenticatedOwnerUserId)
+        return ticketService.findAllByOwnerUserId(ownerUserId, resolveAuthenticatedUserId(authentication))
     }
 
     @PatchMapping("/tickets/{ticketId}")
     fun updateTicket(
         @PathVariable ticketId: Long,
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
         @Valid @RequestBody request: TicketDto.UpdateTicketRequest,
     ): TicketDto.TicketResponse {
-        return ticketService.updateTicket(ticketId, ownerUserId, request)
+        return ticketService.updateTicket(ticketId, resolveAuthenticatedUserId(authentication), request)
     }
 
     @PostMapping("/tickets/{ticketId}/image")
     fun uploadTicketImage(
         @PathVariable ticketId: Long,
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
         @RequestParam("file") file: MultipartFile,
     ): TicketDto.TicketImageUploadResponse {
-        return ticketService.uploadTicketImage(ticketId, ownerUserId, file)
+        return ticketService.uploadTicketImage(ticketId, resolveAuthenticatedUserId(authentication), file)
     }
 
     @GetMapping("/tickets/{ticketId}/image")
     fun getTicketImage(
         @PathVariable ticketId: Long,
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
     ): ResponseEntity<ByteArray> {
-        val image: ProfileImageContent = ticketService.getTicketImage(ticketId, ownerUserId)
+        val image: ProfileImageContent = ticketService.getTicketImage(ticketId, resolveAuthenticatedUserId(authentication))
 
         return ResponseEntity.ok()
             .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate().cachePrivate())
@@ -88,10 +89,10 @@ class TicketController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun cleanupTicketImage(
         @PathVariable ticketId: Long,
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
         @RequestParam imageKey: String,
     ) {
-        ticketService.cleanupUploadedTicketImage(ticketId, ownerUserId, imageKey)
+        ticketService.cleanupUploadedTicketImage(ticketId, resolveAuthenticatedUserId(authentication), imageKey)
     }
 
     @GetMapping("/reservations")
@@ -135,10 +136,10 @@ class TicketController(
     @PatchMapping("/internal/issued-tickets/{ticketId}/status")
     fun transitionIssuedTicketStatus(
         @PathVariable ticketId: Long,
-        @RequestHeader("X-Auth-User-Id") ownerUserId: String,
+        authentication: Authentication,
         @RequestBody request: TicketDto.IssuedTicketStatusTransitionRequest,
     ): TicketDto.TicketResponse {
-        return ticketService.updateIssuedStatus(ticketId, ownerUserId, request.nextStatus)
+        return ticketService.updateIssuedStatus(ticketId, resolveAuthenticatedUserId(authentication), request.nextStatus)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -157,5 +158,16 @@ class TicketController(
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(exception: IllegalStateException): Map<String, String> {
         return mapOf("message" to (exception.message ?: "Storage unavailable"))
+    }
+
+    private fun resolveAuthenticatedUserId(authentication: Authentication): String {
+        val principal = authentication.principal
+        if (principal is InternalAuthenticatedUser && principal.userId != null) {
+            return principal.userId.toString()
+        }
+
+        return authentication.name.ifBlank {
+            throw IllegalArgumentException("Authenticated user id is missing")
+        }
     }
 }

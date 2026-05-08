@@ -18,6 +18,8 @@
 - [11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md](./11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md): 발급 티켓 상태 수정, 오픈 시간, 이미지 추가/수정 구현 계획
 - [12_TICKET_FILTER_PLAN.md](./12_TICKET_FILTER_PLAN.md): 사용 완료 티켓 표시와 중복 구매 허용 필터 구현 계획
 - [13_PERFORMANCE_TEST_PLAN.md](./13_PERFORMANCE_TEST_PLAN.md): 성능 테스트 실행과 결과 문서화 계획
+- [14_CICD_IMPLEMENTATION_PLAN.md](./14_CICD_IMPLEMENTATION_PLAN.md): 현재 Ubuntu 서버 기준 CI/CD 구축 실행 계획
+- [15_TICKETING_ENGINE_STABILITY_PLAN.md](./15_TICKETING_ENGINE_STABILITY_PLAN.md): 티켓 오픈 시각, 예매 가능 시점, 검표 시각을 안정적으로 운영하기 위한 티켓팅 엔진 구현 계획
 
 ## 개발 원칙
 

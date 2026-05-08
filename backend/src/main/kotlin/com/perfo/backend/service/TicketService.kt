@@ -4,6 +4,7 @@ import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.entity.IssuedTicket
 import com.perfo.backend.repository.IssuedTicketRepository
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -52,7 +53,7 @@ class TicketService(
             ),
         )
 
-        return saved.toResponse()
+        return saved.toResponse(resolveCurrentTime())
     }
 
     @Transactional(readOnly = true)
@@ -61,9 +62,10 @@ class TicketService(
         authenticatedOwnerUserId: String,
     ): List<TicketDto.TicketResponse> {
         validateOwner(ownerUserId, authenticatedOwnerUserId)
+        val now = resolveCurrentTime()
 
         return issuedTicketRepository.findByOwnerUserIdOrderByIdDesc(ownerUserId)
-            .map { it.toResponse() }
+            .map { it.toResponse(now) }
     }
 
     @Transactional
@@ -75,12 +77,14 @@ class TicketService(
         validatePlaceId(request.googlePlaceId)
 
         val ticket = findOwnedTicket(ticketId, authenticatedOwnerUserId)
-        val previousStatus = ticket.status
+        val nextValidDate = LocalDate.parse(request.validDate)
+        val currentStatus = resolveEffectiveStatus(ticket.status, ticket.openAt, ticket.validDate)
+        val previousStatus = currentStatus
         val previousImageKey = ticket.imageKey
         val nextImageKey = normalizeImageKey(request.imageKey, "${authenticatedOwnerUserId}/${ticketId}/")
         val nextOpenAt = normalizeOpenAt(request.openAt)
         val nextStatus = try {
-            resolveNextStatus(previousStatus, request.status, nextOpenAt)
+            resolveNextStatus(currentStatus, request.status, nextOpenAt, nextValidDate)
         } catch (exception: IllegalArgumentException) {
             cleanupReplacedImage(previousImageKey, nextImageKey)
             throw exception
@@ -90,7 +94,7 @@ class TicketService(
         ticket.venue = request.venue.trim()
         ticket.googlePlaceId = request.googlePlaceId
         ticket.detailAddress = request.detailAddress?.trim()?.ifBlank { null }
-        ticket.validDate = LocalDate.parse(request.validDate)
+        ticket.validDate = nextValidDate
         ticket.openAt = nextOpenAt
         ticket.totalCount = request.totalCount
         ticket.allowDuplicate = request.allowDuplicate
@@ -107,11 +111,12 @@ class TicketService(
 
         cleanupPreviousImage(previousImageKey, nextImageKey)
 
-        if (previousStatus != saved.status) {
-            notifyIssuedStatusTransition(saved, previousStatus, saved.status)
+        val savedStatus = resolveEffectiveStatus(saved.status, saved.openAt, saved.validDate)
+        if (previousStatus != savedStatus) {
+            notifyIssuedStatusTransition(saved, previousStatus, savedStatus)
         }
 
-        return saved.toResponse()
+        return saved.toResponse(resolveCurrentTime())
     }
 
     @Transactional
@@ -121,16 +126,49 @@ class TicketService(
         nextStatus: IssuedTicketStatus,
     ): TicketDto.TicketResponse {
         val ticket = findOwnedTicket(ticketId, authenticatedOwnerUserId)
-        val previousStatus = ticket.status
-        val resolvedStatus = resolveNextStatus(previousStatus, nextStatus, ticket.openAt)
-        if (previousStatus == resolvedStatus) {
-            return ticket.toResponse()
+        val previousStatus = resolveEffectiveStatus(ticket.status, ticket.openAt, ticket.validDate)
+        val resolvedStatus = resolveNextStatus(previousStatus, nextStatus, ticket.openAt, ticket.validDate)
+        if (ticket.status == resolvedStatus) {
+            return ticket.toResponse(resolveCurrentTime())
         }
 
         ticket.status = resolvedStatus
         val saved = issuedTicketRepository.save(ticket)
-        notifyIssuedStatusTransition(saved, previousStatus, resolvedStatus)
-        return saved.toResponse()
+        val savedStatus = resolveEffectiveStatus(saved.status, saved.openAt, saved.validDate)
+        notifyIssuedStatusTransition(saved, previousStatus, savedStatus)
+        return saved.toResponse(resolveCurrentTime())
+    }
+
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    fun reconcileIssuedTicketStatuses() {
+        val now = resolveCurrentTime()
+        val today = now.toLocalDate()
+
+        issuedTicketRepository.findByStatusInAndValidDateBefore(
+            listOf(
+                IssuedTicketStatus.INACTIVE,
+                IssuedTicketStatus.ISSUING,
+                IssuedTicketStatus.VERIFYING,
+            ),
+            today,
+        ).forEach { ticket ->
+            val previousStatus = ticket.status
+            ticket.status = IssuedTicketStatus.EXPIRED
+            val saved = issuedTicketRepository.save(ticket)
+            notifyIssuedStatusTransition(saved, previousStatus, IssuedTicketStatus.EXPIRED)
+        }
+
+        issuedTicketRepository.findByStatusAndOpenAtLessThanEqual(
+            IssuedTicketStatus.ISSUING,
+            now,
+        ).filter { it.validDate >= today }
+            .forEach { ticket ->
+                val previousStatus = ticket.status
+                ticket.status = IssuedTicketStatus.VERIFYING
+                val saved = issuedTicketRepository.save(ticket)
+                notifyIssuedStatusTransition(saved, previousStatus, IssuedTicketStatus.VERIFYING)
+            }
     }
 
     @Transactional
@@ -246,20 +284,26 @@ class TicketService(
         currentStatus: IssuedTicketStatus,
         requestedStatus: IssuedTicketStatus?,
         openAt: OffsetDateTime?,
+        validDate: LocalDate,
     ): IssuedTicketStatus {
         val nextStatus = requestedStatus ?: return currentStatus
         if (currentStatus == nextStatus) {
             return currentStatus
         }
 
-        val now = OffsetDateTime.now(ZoneOffset.UTC)
+        val now = resolveCurrentTime()
+        if (validDate.isBefore(now.toLocalDate())) {
+            return IssuedTicketStatus.EXPIRED
+        }
+
         val isOpen = openAt == null || !now.isBefore(openAt)
 
         val allowed = when {
             nextStatus == IssuedTicketStatus.EXPIRED -> true
+            nextStatus == IssuedTicketStatus.INACTIVE &&
+                currentStatus != IssuedTicketStatus.EXPIRED -> true
             currentStatus == IssuedTicketStatus.INACTIVE && nextStatus == IssuedTicketStatus.ISSUING -> true
             currentStatus == IssuedTicketStatus.ISSUING && nextStatus == IssuedTicketStatus.VERIFYING && isOpen -> true
-            currentStatus == IssuedTicketStatus.VERIFYING && nextStatus == IssuedTicketStatus.ISSUING -> true
             else -> false
         }
 
@@ -268,6 +312,31 @@ class TicketService(
         }
 
         return nextStatus
+    }
+
+    private fun resolveEffectiveStatus(
+        storedStatus: IssuedTicketStatus,
+        openAt: OffsetDateTime?,
+        validDate: LocalDate,
+        now: OffsetDateTime = resolveCurrentTime(),
+    ): IssuedTicketStatus {
+        if (storedStatus == IssuedTicketStatus.EXPIRED || validDate.isBefore(now.toLocalDate())) {
+            return IssuedTicketStatus.EXPIRED
+        }
+
+        if (storedStatus == IssuedTicketStatus.INACTIVE) {
+            return IssuedTicketStatus.INACTIVE
+        }
+
+        if (openAt != null && now.isBefore(openAt)) {
+            return IssuedTicketStatus.ISSUING
+        }
+
+        return IssuedTicketStatus.VERIFYING
+    }
+
+    private fun resolveCurrentTime(): OffsetDateTime {
+        return TicketingTime.utcNow()
     }
 
     private fun validateUploadFile(file: MultipartFile) {
@@ -334,7 +403,7 @@ class TicketService(
         return imageKey?.let { ticketImageStorageService.buildTicketImageUrl(ticketId) }
     }
 
-    private fun IssuedTicket.toResponse(): TicketDto.TicketResponse {
+    private fun IssuedTicket.toResponse(now: OffsetDateTime = resolveCurrentTime()): TicketDto.TicketResponse {
         val ticketId = requireNotNull(id) { "Ticket id is missing" }
         return TicketDto.TicketResponse(
             id = ticketId,
@@ -349,7 +418,7 @@ class TicketService(
             totalCount = totalCount,
             allowDuplicate = allowDuplicate,
             maxPerUser = maxPerUser,
-            status = status,
+            status = resolveEffectiveStatus(status, openAt, validDate, now),
             issuedCount = issuedCount,
             ownerUserId = ownerUserId,
         )

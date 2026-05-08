@@ -46,7 +46,9 @@ vi.mock('next-intl', () => ({
       'myTickets.placeAutocompleteUnavailable': '자동완성 사용 불가: 장소명을 직접 입력하세요',
       'myTickets.placeAutocompleteSelected': '장소가 자동완성으로 선택되었습니다',
       'myTickets.fieldDate': '유효 날짜',
+      'myTickets.fieldDateHint': '이 날짜가 지나면 티켓 상태가 자동으로 기간만료로 바뀝니다.',
       'myTickets.fieldOpenAt': '검표 오픈 시각',
+      'myTickets.fieldOpenAtHint': '이 시각이 되면 발급중 티켓이 자동으로 검표중으로 전환됩니다.',
       'myTickets.fieldStatus': '운영 상태',
       'myTickets.fieldTotal': '총 티켓 수',
       'myTickets.fieldAllowDuplicate': '중복 구매 허용',
@@ -169,6 +171,8 @@ describe('MyTicketsPage', () => {
     expect(screen.getByLabelText('검표 오픈 시각')).toBeInTheDocument()
     expect(screen.getByLabelText('대표 이미지')).toBeInTheDocument()
     expect(screen.getByText('자동완성 사용 불가: 장소명을 직접 입력하세요')).toBeInTheDocument()
+    expect(screen.getByText('이 날짜가 지나면 티켓 상태가 자동으로 기간만료로 바뀝니다.')).toBeInTheDocument()
+    expect(screen.getByText('이 시각이 되면 발급중 티켓이 자동으로 검표중으로 전환됩니다.')).toBeInTheDocument()
   })
 
   it('티켓 발급 시 openAt을 포함한 payload를 서버에 저장한다', async () => {

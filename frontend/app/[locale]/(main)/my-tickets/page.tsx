@@ -246,6 +246,7 @@ const TicketFormSheet = ({
                             onChange={set("validDate")}
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
+                        <p className="text-xs text-[var(--text-muted)]">{t("myTickets.fieldDateHint")}</p>
                     </FormField>
 
                     <FormField>
@@ -257,6 +258,7 @@ const TicketFormSheet = ({
                             onChange={set("openAt")}
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
+                        <p className="text-xs text-[var(--text-muted)]">{t("myTickets.fieldOpenAtHint")}</p>
                     </FormField>
 
                     {isEdit ? (
@@ -282,7 +284,7 @@ const TicketFormSheet = ({
                     ) : null}
 
                     {isFutureVerifyingRequest(form.status, form.openAt) ? (
-                        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        <div className="rounded-xl border border-border bg-[color:color-mix(in_srgb,var(--warning)_14%,white)] px-4 py-3 text-sm text-[var(--warning)]">
                             <div className="flex items-start gap-2">
                                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                                 <span>{t("myTickets.verifyingFutureOpenAtWarning")}</span>
@@ -359,7 +361,7 @@ const TicketFormSheet = ({
                     </FormField>
 
                     {errorMessage ? (
-                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-xl border border-border bg-[color:color-mix(in_srgb,var(--danger)_14%,white)] px-4 py-3 text-sm text-[var(--danger)]">
                             {errorMessage}
                         </div>
                     ) : null}

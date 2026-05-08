@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const { getServerSessionMock } = vi.hoisted(() => ({
   getServerSessionMock: vi.fn(),
 }))
+const { createInternalProxyAuthHeadersMock } = vi.hoisted(() => ({
+  createInternalProxyAuthHeadersMock: vi.fn(),
+}))
 
 vi.mock('next-auth', () => ({
   getServerSession: getServerSessionMock,
@@ -10,6 +13,9 @@ vi.mock('next-auth', () => ({
 
 vi.mock('@/lib/auth/auth.config', () => ({
   authOptions: {},
+}))
+vi.mock('@/lib/server/internal-proxy-auth', () => ({
+  createInternalProxyAuthHeaders: createInternalProxyAuthHeadersMock,
 }))
 
 const importRoute = async () => {
@@ -21,6 +27,7 @@ const importRoute = async () => {
 describe('/api/tickets/[ticketId] route', () => {
   afterEach(() => {
     getServerSessionMock.mockReset()
+    createInternalProxyAuthHeadersMock.mockReset()
     vi.unstubAllEnvs()
     vi.unstubAllGlobals()
     vi.resetModules()
@@ -28,6 +35,7 @@ describe('/api/tickets/[ticketId] route', () => {
 
   it('PATCH는 세션 사용자 id를 헤더에 담아 백엔드 수정 API로 전달한다', async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       id: 5,
       name: 'Updated Ticket',
@@ -63,7 +71,7 @@ describe('/api/tickets/[ticketId] route', () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'X-Auth-User-Id': 'owner-1',
+          Authorization: 'Bearer ticket-jwt',
         },
         body: JSON.stringify(payload),
       }),

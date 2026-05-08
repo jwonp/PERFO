@@ -2,9 +2,12 @@ package com.perfo.backend.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.config.HeaderAuthenticationFilter
+import com.perfo.backend.config.InternalApiJwtService
+import com.perfo.backend.config.SecurityConfig
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.TicketValidationResult
 import com.perfo.backend.entity.TicketUsageStatus
+import com.perfo.backend.observability.InternalProxyAuthObservability
 import com.perfo.backend.service.ProfileImageContent
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.service.TicketService
@@ -35,9 +38,22 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.mock.web.MockMultipartFile
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
+import java.time.Instant
+import java.util.Date
 
-@WebMvcTest(TicketController::class)
-@Import(HeaderAuthenticationFilter::class)
+@WebMvcTest(
+    value = [TicketController::class],
+    properties = [
+        "app.security.internal-jwt.issuer=perfo-frontend",
+        "app.security.internal-jwt.audience=perfo-backend-ticketing",
+        "app.security.internal-jwt.active-kid=test-v1",
+        "app.security.internal-jwt.active-secret=test-internal-jwt-secret-key-should-be-long-enough-123456",
+        "app.cors.allowed-origins=http://localhost:14138",
+    ],
+)
+@Import(SecurityConfig::class, HeaderAuthenticationFilter::class, InternalApiJwtService::class)
 class TicketControllerTest {
 
     @Autowired
@@ -58,9 +74,12 @@ class TicketControllerTest {
     @field:MockitoBean
     private lateinit var ticketTransitionService: TicketTransitionService
 
+    @field:MockitoBean
+    private lateinit var internalProxyAuthObservability: InternalProxyAuthObservability
+
     @Test
     @DisplayName("POST /api/tickets - 티켓 생성 성공 시 200과 생성 결과를 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun createTicket_returns200() {
         val request = TicketDto.CreateTicketRequest(
             name = "PERFO Test Ticket",
@@ -82,7 +101,6 @@ class TicketControllerTest {
         mockMvc.perform(
             post("/api/tickets")
                 .with(csrf())
-                .header("X-Auth-User-Id", "owner-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
@@ -95,13 +113,12 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/tickets - ownerUserId의 발행 티켓 목록을 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun listIssuedTickets_returnsOwnerTickets() {
         given(ticketService.findAllByOwnerUserId("owner-1", "owner-1")).willReturn(listOf(ticketResponse()))
 
         mockMvc.perform(
             get("/api/tickets")
-                .header("X-Auth-User-Id", "owner-1")
                 .param("ownerUserId", "owner-1"),
         )
             .andExpect(status().isOk)
@@ -113,7 +130,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("PATCH /api/tickets/{ticketId} - 수정 결과를 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun updateTicket_returns200() {
         val request = TicketDto.UpdateTicketRequest(
             name = "Updated Ticket",
@@ -143,7 +160,6 @@ class TicketControllerTest {
         mockMvc.perform(
             patch("/api/tickets/1")
                 .with(csrf())
-                .header("X-Auth-User-Id", "owner-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
@@ -155,7 +171,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets/{ticketId}/image - 이미지 업로드 결과를 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun uploadTicketImage_returns200() {
         val file = MockMultipartFile("file", "cover.png", "image/png", "png".toByteArray())
         given(ticketService.uploadTicketImage(eq(1L), eq("owner-1"), any())).willReturn(
@@ -168,8 +184,7 @@ class TicketControllerTest {
         mockMvc.perform(
             multipart("/api/tickets/1/image")
                 .file(file)
-                .with(csrf())
-                .header("X-Auth-User-Id", "owner-1"),
+                .with(csrf()),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.imageKey").value("owner-1/1/generated.png"))
@@ -178,7 +193,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/tickets/{ticketId}/image - 현재 티켓 이미지를 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun getTicketImage_returns200() {
         given(ticketService.getTicketImage(1L, "owner-1")).willReturn(
             ProfileImageContent(
@@ -188,8 +203,7 @@ class TicketControllerTest {
         )
 
         mockMvc.perform(
-            get("/api/tickets/1/image")
-                .header("X-Auth-User-Id", "owner-1"),
+            get("/api/tickets/1/image"),
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("image/png"))
@@ -198,12 +212,11 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("DELETE /api/tickets/{ticketId}/image - cleanup 요청을 처리한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun cleanupTicketImage_returns204() {
         mockMvc.perform(
             delete("/api/tickets/1/image")
                 .with(csrf())
-                .header("X-Auth-User-Id", "owner-1")
                 .param("imageKey", "owner-1/1/transient.png"),
         )
             .andExpect(status().isNoContent)
@@ -211,7 +224,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/reservations - userId의 예약 티켓 목록을 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun listReservations_returnsUserReservations() {
         val response = TicketDto.ReservationResponse(
             id = 21L,
@@ -238,7 +251,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets - googlePlaceId가 형식에 맞지 않으면 400을 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun createTicket_invalidPlaceId_returns400() {
         val request = TicketDto.CreateTicketRequest(
             name = "PERFO Test Ticket",
@@ -254,7 +267,6 @@ class TicketControllerTest {
         mockMvc.perform(
             post("/api/tickets")
                 .with(csrf())
-                .header("X-Auth-User-Id", "owner-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
@@ -263,7 +275,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("PATCH /api/tickets/{ticketId} - 소유자가 아니면 403을 반환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun updateTicket_ownerMismatch_returns403() {
         val request = TicketDto.UpdateTicketRequest(
             name = "Updated Ticket",
@@ -284,7 +296,6 @@ class TicketControllerTest {
         mockMvc.perform(
             patch("/api/tickets/1")
                 .with(csrf())
-                .header("X-Auth-User-Id", "owner-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)),
         )
@@ -337,6 +348,53 @@ class TicketControllerTest {
             .andExpect(jsonPath("$.ticketNumber").value(121))
     }
 
+    @Test
+    @DisplayName("POST /api/tickets - 인증되지 않으면 401을 반환한다")
+    fun createTicket_unauthenticated_returns401() {
+        val request = TicketDto.CreateTicketRequest(
+            name = "PERFO Test Ticket",
+            venue = "올림픽공원 체조경기장",
+            googlePlaceId = "ChIJPLACE",
+            detailAddress = "2층 A게이트 앞",
+            validDate = "2026-08-15",
+            totalCount = 100,
+            allowDuplicate = false,
+            maxPerUser = 1,
+        )
+
+        mockMvc.perform(
+            post("/api/tickets")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("POST /api/tickets - 만료된 내부 JWT면 401을 반환한다")
+    fun createTicket_expiredJwt_returns401() {
+        val request = TicketDto.CreateTicketRequest(
+            name = "PERFO Test Ticket",
+            venue = "올림픽공원 체조경기장",
+            googlePlaceId = "ChIJPLACE",
+            detailAddress = "2층 A게이트 앞",
+            validDate = "2026-08-15",
+            totalCount = 100,
+            allowDuplicate = false,
+            maxPerUser = 1,
+        )
+
+        mockMvc.perform(
+            post("/api/tickets")
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(42L, "tickets", Instant.now().minusSeconds(5))}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
     private fun ticketResponse(
         name: String = "PERFO Test Ticket",
         venue: String = "올림픽공원 체조경기장",
@@ -362,4 +420,29 @@ class TicketControllerTest {
         issuedCount = 0,
         ownerUserId = "owner-1",
     )
+
+    private fun createInternalToken(
+        userId: Long,
+        scope: String,
+        expiresAt: Instant = Instant.now().plusSeconds(30),
+    ): String {
+        val signingKey = Keys.hmacShaKeyFor(
+            "test-internal-jwt-secret-key-should-be-long-enough-123456".toByteArray(Charsets.UTF_8),
+        )
+        return Jwts.builder()
+            .header()
+            .keyId("test-v1")
+            .and()
+            .issuer("perfo-frontend")
+            .subject("internal-proxy")
+            .audience()
+            .add("perfo-backend-ticketing")
+            .and()
+            .issuedAt(Date.from(Instant.now()))
+            .expiration(Date.from(expiresAt))
+            .claim("uid", userId)
+            .claim("scope", listOf(scope))
+            .signWith(signingKey)
+            .compact()
+    }
 }
