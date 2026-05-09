@@ -60,6 +60,7 @@ class HeaderAuthenticationFilter(
     private fun resolveRequiredScope(request: HttpServletRequest): String? {
         val path = request.requestURI
         return when {
+            path.matches(Regex("^/api/ticketing/events/[^/]+/projection/?$")) -> "ticketing:projection"
             path.startsWith("/api/ticketing/") -> "ticketing"
             path.startsWith("/api/users/") -> "users"
             path == "/api/tickets" -> "tickets"

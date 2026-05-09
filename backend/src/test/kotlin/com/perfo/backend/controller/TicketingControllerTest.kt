@@ -7,6 +7,7 @@ import com.perfo.backend.config.SecurityConfig
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.entity.TicketPurchaseResult
 import com.perfo.backend.observability.InternalProxyAuthObservability
+import com.perfo.backend.service.TicketingProjectionQueryService
 import com.perfo.backend.service.TicketingService
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -21,6 +22,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.Instant
@@ -47,6 +49,9 @@ class TicketingControllerTest {
 
     @field:MockitoBean
     private lateinit var ticketingService: TicketingService
+
+    @field:MockitoBean
+    private lateinit var ticketingProjectionQueryService: TicketingProjectionQueryService
 
     @field:MockitoBean
     private lateinit var internalProxyAuthObservability: InternalProxyAuthObservability
@@ -123,8 +128,50 @@ class TicketingControllerTest {
             .andExpect(status().isUnauthorized)
     }
 
+    @Test
+    @DisplayName("GET /api/ticketing/events/{eventId}/projection - projection summary를 반환한다")
+    fun getEventProjection_returns200() {
+        given(ticketingProjectionQueryService.getEventProjectionSummary(11L, 5)).willReturn(
+            TicketDto.TicketingProjectionSummaryResponse(
+                eventId = 11L,
+                projectedCount = 2,
+                successCount = 1,
+                rejectedCount = 1,
+                lastOccurredAt = "2026-05-08T13:00:02Z",
+                lastProjectedAt = "2026-05-08T22:00:04",
+                recentAttempts = listOf(
+                    TicketDto.TicketingProjectionAttemptResponse(
+                        outboxId = 2002L,
+                        requestId = "projection_summary_0002",
+                        eventType = "PURCHASE_REJECTED",
+                        result = TicketPurchaseResult.SOLD_OUT,
+                        quantity = 2,
+                        ticketIds = emptyList(),
+                        ticketNumbers = emptyList(),
+                        remainingQuantity = 0,
+                        message = "Insufficient inventory",
+                        occurredAt = "2026-05-08T13:00:02Z",
+                        projectedAt = "2026-05-08T22:00:04",
+                    ),
+                ),
+            ),
+        )
+
+        mockMvc.perform(
+            get("/api/ticketing/events/11/projection")
+                .header("Authorization", "Bearer ${createInternalToken(userId = 42L, scope = "ticketing:projection")}")
+                .param("limit", "5"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.eventId").value(11))
+            .andExpect(jsonPath("$.projectedCount").value(2))
+            .andExpect(jsonPath("$.recentAttempts[0].eventType").value("PURCHASE_REJECTED"))
+            .andExpect(jsonPath("$.recentAttempts[0].result").value("SOLD_OUT"))
+    }
+
     private fun createInternalToken(
         userId: Long,
+        scope: String = "ticketing",
         expiresAt: Instant = Instant.now().plusSeconds(30),
     ): String {
         val signingKey = Keys.hmacShaKeyFor(
@@ -142,7 +189,7 @@ class TicketingControllerTest {
             .issuedAt(Date.from(Instant.now()))
             .expiration(Date.from(expiresAt))
             .claim("uid", userId)
-            .claim("scope", listOf("ticketing"))
+            .claim("scope", listOf(scope))
             .signWith(signingKey)
             .compact()
     }

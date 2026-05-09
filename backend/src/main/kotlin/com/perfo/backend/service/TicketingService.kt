@@ -12,12 +12,14 @@ import com.perfo.backend.repository.TicketRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
+import java.time.Instant
 
 @Service
 class TicketingService(
     private val eventRepository: EventRepository,
     private val ticketRepository: TicketRepository,
     private val ticketingRequestLedgerService: TicketingRequestLedgerService,
+    private val ticketingOutboxService: TicketingOutboxService,
     private val databaseTimeService: DatabaseTimeService,
     private val ticketingObservability: TicketingObservability,
     private val transactionTemplate: TransactionTemplate,
@@ -175,6 +177,17 @@ class TicketingService(
             remainingQuantity = event.remainingQuantity,
             message = "Purchase confirmed",
         )
+        ticketingOutboxService.savePurchaseSucceeded(
+            requestId = completed.requestId,
+            eventId = completed.eventId,
+            userId = completed.userId,
+            quantity = completed.quantity,
+            ticketIds = savedTickets.mapNotNull { it.id },
+            ticketNumbers = savedTickets.map { it.ticketNumber },
+            remainingQuantity = event.remainingQuantity,
+            message = completed.message,
+            occurredAt = databaseNow,
+        )
         return ticketingRequestLedgerService.toResponse(completed).also { response ->
             ticketingObservability.recordOutcome(
                 requestId = response.requestId,
@@ -216,12 +229,23 @@ class TicketingService(
         result: TicketPurchaseResult,
         remainingQuantity: Int? = null,
         message: String? = null,
+        occurredAt: Instant = databaseTimeService.currentInstant(),
     ): TicketDto.TicketingRequestSubmitResponse {
         val completed = ticketingRequestLedgerService.complete(
             request = ledger,
             result = result,
             remainingQuantity = remainingQuantity,
             message = message,
+        )
+        ticketingOutboxService.savePurchaseRejected(
+            requestId = completed.requestId,
+            eventId = completed.eventId,
+            userId = completed.userId,
+            quantity = completed.quantity,
+            result = completed.result,
+            remainingQuantity = completed.remainingQuantity,
+            message = completed.message,
+            occurredAt = occurredAt,
         )
         return ticketingRequestLedgerService.toResponse(completed).also { response ->
             ticketingObservability.recordOutcome(
