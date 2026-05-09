@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.config.InternalApiJwtService
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
+import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.observability.InternalProxyAuthObservability
@@ -113,9 +114,13 @@ class TicketTransitionControllerTest {
             totalCount = 100,
             allowDuplicate = false,
             maxPerUser = 1,
+            discoveryMode = TicketDiscoveryMode.LISTED,
             status = IssuedTicketStatus.VERIFYING,
             issuedCount = 15,
             ownerUserId = "owner-1",
+            eventId = 20L,
+            publicBookingPath = "/events/20",
+            publicBookingUrl = null,
         )
 
         given(ticketService.updateIssuedStatus(20L, "owner-1", IssuedTicketStatus.VERIFYING)).willReturn(response)

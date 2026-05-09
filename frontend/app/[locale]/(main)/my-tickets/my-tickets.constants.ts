@@ -10,6 +10,7 @@ export const EMPTY_FORM: TicketForm = {
     totalCount: "",
     allowDuplicate: false,
     maxPerUser: "1",
+    discoveryMode: "LISTED",
     status: "INACTIVE",
     imageKey: undefined,
     imageUrl: undefined,

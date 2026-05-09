@@ -56,6 +56,13 @@ class IssuedTicket(
     var maxPerUser: Int = 1,
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "discovery_mode", nullable = false)
+    var discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
+
+    @Column(name = "event_id")
+    var eventId: Long? = null,
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: IssuedTicketStatus = IssuedTicketStatus.INACTIVE,
 

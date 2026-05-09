@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Plus, Search } from "lucide-react";
+import { AlertTriangle, Copy, Plus, Search, Share2 } from "lucide-react";
 import PageEmptyState from "@/components/layout/PageEmptyState";
 import PageFab from "@/components/layout/PageFab";
 import PageFilterBar from "@/components/layout/PageFilterBar";
@@ -21,7 +21,7 @@ import { Tabs, TabsButton } from "@/components/ui/tabs";
 import { ToggleRow } from "@/components/ui/toggle-row";
 import { PlaceAutocompleteInput, googleMapsSearchUrl } from "./PlaceAutocompleteInput";
 import { EMPTY_FORM, STATUS_BADGE_STYLE } from "./my-tickets.constants";
-import type { DuplicatePurchaseFilter, IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
+import type { DiscoveryMode, DuplicatePurchaseFilter, IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
 const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>): string => {
     const map: Record<IssueStatus, string> = {
@@ -88,6 +88,10 @@ const mapTicket = (item: Record<string, unknown>): IssuedTicket => ({
     totalCount: Number(item.totalCount),
     allowDuplicate: Boolean(item.allowDuplicate),
     maxPerUser: Number(item.maxPerUser),
+    discoveryMode: String(item.discoveryMode ?? "LISTED") as DiscoveryMode,
+    eventId: item.eventId ? String(item.eventId) : undefined,
+    publicBookingPath: item.publicBookingPath ? String(item.publicBookingPath) : undefined,
+    publicBookingUrl: item.publicBookingUrl ? String(item.publicBookingUrl) : undefined,
 });
 
 const TicketFormSheet = ({
@@ -121,6 +125,7 @@ const TicketFormSheet = ({
                       totalCount: String(editTarget.totalCount),
                       allowDuplicate: editTarget.allowDuplicate,
                       maxPerUser: String(editTarget.maxPerUser),
+                      discoveryMode: editTarget.discoveryMode,
                       status: editTarget.status,
                       imageKey: editTarget.imageKey,
                       imageUrl: editTarget.imageUrl,
@@ -320,6 +325,23 @@ const TicketFormSheet = ({
                         />
                     </div>
 
+                    <div className="rounded-xl bg-[var(--surface-muted)] px-4">
+                        <ToggleRow
+                            checked={form.discoveryMode === "LISTED"}
+                            label={form.discoveryMode === "LISTED"
+                                ? t("myTickets.discoveryModeListed")
+                                : t("myTickets.discoveryModeLinkOnly")}
+                            onToggle={() =>
+                                setForm((currentForm) => ({
+                                    ...currentForm,
+                                    discoveryMode: currentForm.discoveryMode === "LISTED" ? "LINK_ONLY" : "LISTED",
+                                }))
+                            }
+                            labelClassName="cursor-pointer"
+                        />
+                        <p className="pb-3 text-xs text-[var(--text-muted)]">{t("myTickets.discoveryModeHint")}</p>
+                    </div>
+
                     {form.allowDuplicate ? (
                         <FormField>
                             <FormFieldLabel htmlFor="ticket-max-per-user">{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
@@ -402,6 +424,8 @@ const MyTicketsPage = () => {
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<IssuedTicket | null>(null);
     const [duplicateFilter, setDuplicateFilter] = useState<DuplicatePurchaseFilter>("ALL");
+    const [shareTarget, setShareTarget] = useState<IssuedTicket | null>(null);
+    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
     const openCreate = () => {
         setEditTarget(null);
@@ -436,6 +460,7 @@ const MyTicketsPage = () => {
         totalCount: Number(form.totalCount),
         allowDuplicate: form.allowDuplicate,
         maxPerUser: Number(form.maxPerUser),
+        discoveryMode: form.discoveryMode,
         status: form.status,
         imageKey: imageKey ?? form.imageKey ?? null,
     });
@@ -485,6 +510,7 @@ const MyTicketsPage = () => {
             setTickets((currentTickets) =>
                 currentTickets.map((ticket) => (ticket.id === nextTicket.id ? nextTicket : ticket)),
             );
+            setShareTarget(nextTicket);
             return;
         }
 
@@ -503,6 +529,7 @@ const MyTicketsPage = () => {
                 totalCount: Number(form.totalCount),
                 allowDuplicate: form.allowDuplicate,
                 maxPerUser: Number(form.maxPerUser),
+                discoveryMode: form.discoveryMode,
             }),
         });
 
@@ -535,6 +562,42 @@ const MyTicketsPage = () => {
 
         const nextTicket = mapTicket(finalTicket);
         setTickets((currentTickets) => [nextTicket, ...currentTickets.filter((ticket) => ticket.id !== nextTicket.id)]);
+        setShareTarget(nextTicket);
+    };
+
+    const buildPublicBookingUrl = (ticket: IssuedTicket) => {
+        if (ticket.publicBookingUrl) {
+            return ticket.publicBookingUrl;
+        }
+
+        if (typeof window === "undefined" || !ticket.publicBookingPath) {
+            return null;
+        }
+
+        return `${window.location.origin}/${locale}${ticket.publicBookingPath}`;
+    };
+
+    const handleCopyBookingUrl = async (ticket: IssuedTicket) => {
+        const publicUrl = buildPublicBookingUrl(ticket);
+        if (!publicUrl || !navigator.clipboard?.writeText) {
+            return;
+        }
+
+        await navigator.clipboard.writeText(publicUrl);
+        setCopyFeedback(t("myTickets.copySuccess"));
+    };
+
+    const handleShareBookingUrl = async (ticket: IssuedTicket) => {
+        const publicUrl = buildPublicBookingUrl(ticket);
+        if (!publicUrl || !navigator.share) {
+            return;
+        }
+
+        await navigator.share({
+            title: ticket.name,
+            text: ticket.name,
+            url: publicUrl,
+        });
     };
 
     useEffect(() => {
@@ -633,6 +696,43 @@ const MyTicketsPage = () => {
                             </TabsButton>
                         </Tabs>
                     </PageFilterBar>
+                    {shareTarget ? (
+                        <div className="rounded-3xl border border-border bg-[var(--surface-raised)] px-5 py-4">
+                            <div className="flex flex-col gap-3">
+                                <div>
+                                    <p className="text-sm font-semibold text-primary">{t("myTickets.publicBookingTitle")}</p>
+                                    <p className="mt-1 text-xs text-[var(--text-muted)]">{shareTarget.name}</p>
+                                </div>
+                                <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-3 text-xs text-[var(--text)] break-all">
+                                    {buildPublicBookingUrl(shareTarget) ?? shareTarget.publicBookingPath ?? t("myTickets.publicBookingUnavailable")}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="h-11 flex-1 rounded-xl border-border"
+                                        onClick={() => void handleCopyBookingUrl(shareTarget)}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        {t("myTickets.copyBookingUrl")}
+                                    </Button>
+                                    {typeof navigator !== "undefined" && navigator.share ? (
+                                        <Button
+                                            type="button"
+                                            className="h-11 flex-1 rounded-xl"
+                                            onClick={() => void handleShareBookingUrl(shareTarget)}
+                                        >
+                                            <Share2 className="h-4 w-4" />
+                                            {t("myTickets.shareBookingUrl")}
+                                        </Button>
+                                    ) : null}
+                                </div>
+                                {copyFeedback ? (
+                                    <p className="text-xs text-primary">{copyFeedback}</p>
+                                ) : null}
+                            </div>
+                        </div>
+                    ) : null}
                 </PageSection>
             </div>
 
@@ -658,6 +758,7 @@ const MyTicketsPage = () => {
                                 issuedCountLabel={t("myTickets.issuedCount")}
                                 editLabel={t("myTickets.edit")}
                                 scanLabel={t("myTickets.scan")}
+                                linkOnlyLabel={t("myTickets.linkOnlyBadge")}
                                 canScan={ticket.status === "ISSUING" || ticket.status === "VERIFYING"}
                                 scanHref={`/${locale}/my-tickets/${ticket.id}/scan`}
                                 onEdit={() => openEdit(ticket)}

@@ -6,6 +6,7 @@ import com.perfo.backend.config.InternalApiJwtService
 import com.perfo.backend.config.SecurityConfig
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.TicketValidationResult
+import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.observability.InternalProxyAuthObservability
 import com.perfo.backend.service.ProfileImageContent
@@ -416,9 +417,13 @@ class TicketControllerTest {
         totalCount = 100,
         allowDuplicate = false,
         maxPerUser = 1,
+        discoveryMode = TicketDiscoveryMode.LISTED,
         status = status,
         issuedCount = 0,
         ownerUserId = "owner-1",
+        eventId = 11L,
+        publicBookingPath = "/events/11",
+        publicBookingUrl = null,
     )
 
     private fun createInternalToken(

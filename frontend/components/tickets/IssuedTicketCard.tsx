@@ -17,6 +17,7 @@ const IssuedTicketCard = ({
     onEdit,
     onScan,
     scanHref,
+    linkOnlyLabel,
 }: IssuedTicketCardProps) => {
     const progressPct = Math.round((ticket.issuedCount / ticket.totalCount) * 100);
 
@@ -41,6 +42,11 @@ const IssuedTicketCard = ({
                     )}
                     {ticket.detailAddress ? (
                         <span className="truncate text-[11px] text-[var(--text-muted)]">{ticket.detailAddress}</span>
+                    ) : null}
+                    {ticket.discoveryMode === "LINK_ONLY" && linkOnlyLabel ? (
+                        <span className="mt-1 inline-flex w-fit rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--text-muted)]">
+                            {linkOnlyLabel}
+                        </span>
                     ) : null}
                 </span>
             }

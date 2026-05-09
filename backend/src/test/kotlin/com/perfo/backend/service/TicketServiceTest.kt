@@ -2,7 +2,10 @@ package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
+import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.IssuedTicket
+import com.perfo.backend.entity.TicketDiscoveryMode
+import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.IssuedTicketRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -31,6 +34,9 @@ class TicketServiceTest {
     private lateinit var issuedTicketRepository: IssuedTicketRepository
 
     @org.mockito.Mock
+    private lateinit var eventRepository: EventRepository
+
+    @org.mockito.Mock
     private lateinit var notificationBridgeService: NotificationBridgeService
 
     @org.mockito.Mock
@@ -49,8 +55,13 @@ class TicketServiceTest {
         )
         given(issuedTicketRepository.save(any())).willAnswer {
             val ticket = it.arguments[0] as IssuedTicket
-            ticket.id = 1L
+            ticket.id = ticket.id ?: 1L
             ticket
+        }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 11L
+            event
         }
         given(ticketImageStorageService.buildTicketImageUrl(1L)).willReturn("/api/tickets/1/image")
 
@@ -65,6 +76,9 @@ class TicketServiceTest {
         assertThat(created.openAt).isEqualTo("2026-08-15T08:00Z")
         assertThat(created.imageKey).isEqualTo("owner-1/1/cover.png")
         assertThat(created.imageUrl).isEqualTo("/api/tickets/1/image")
+        assertThat(created.discoveryMode).isEqualTo(TicketDiscoveryMode.LISTED)
+        assertThat(created.eventId).isEqualTo(11L)
+        assertThat(created.publicBookingPath).isEqualTo("/events/11")
     }
 
     @Test
@@ -157,12 +171,19 @@ class TicketServiceTest {
         given(issuedTicketRepository.findById(10L)).willReturn(Optional.of(ticket))
         given(ticketImageStorageService.buildTicketImageUrl(10L)).willReturn("/api/tickets/10/image")
         given(issuedTicketRepository.save(ticket)).willAnswer { it.arguments[0] as IssuedTicket }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 22L
+            event
+        }
 
         val updated = ticketService.updateTicket(10L, "owner-1", request)
 
         assertThat(updated.name).isEqualTo("Updated Ticket")
         assertThat(updated.imageKey).isEqualTo("owner-1/10/new.png")
         assertThat(updated.imageUrl).isEqualTo("/api/tickets/10/image")
+        assertThat(updated.discoveryMode).isEqualTo(TicketDiscoveryMode.LISTED)
+        assertThat(updated.publicBookingPath).isEqualTo("/events/22")
         then(ticketImageStorageService).should().deleteTicketImage("owner-1/10/old.png")
         verifyNoInteractions(notificationBridgeService)
     }
@@ -497,6 +518,7 @@ class TicketServiceTest {
         totalCount = 100,
         allowDuplicate = false,
         maxPerUser = 1,
+        discoveryMode = TicketDiscoveryMode.LISTED,
         status = status,
         issuedCount = 0,
     )

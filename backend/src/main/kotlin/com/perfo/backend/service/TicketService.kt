@@ -2,14 +2,19 @@ package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
+import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.IssuedTicket
+import com.perfo.backend.entity.TicketDiscoveryMode
+import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.IssuedTicketRepository
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -17,6 +22,7 @@ import java.util.UUID
 @Service
 class TicketService(
     private val issuedTicketRepository: IssuedTicketRepository,
+    private val eventRepository: EventRepository,
     private val notificationBridgeService: NotificationBridgeService,
     private val ticketImageStorageService: TicketImageStorageService,
 ) {
@@ -48,12 +54,17 @@ class TicketService(
                 totalCount = request.totalCount,
                 allowDuplicate = request.allowDuplicate,
                 maxPerUser = request.maxPerUser,
+                discoveryMode = request.discoveryMode,
                 status = IssuedTicketStatus.INACTIVE,
                 issuedCount = 0,
             ),
         )
 
-        return saved.toResponse(resolveCurrentTime())
+        val linkedEvent = syncLinkedEvent(saved)
+        saved.eventId = linkedEvent.id
+        val savedWithEvent = issuedTicketRepository.save(saved)
+
+        return savedWithEvent.toResponse(resolveCurrentTime())
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +110,7 @@ class TicketService(
         ticket.totalCount = request.totalCount
         ticket.allowDuplicate = request.allowDuplicate
         ticket.maxPerUser = request.maxPerUser
+        ticket.discoveryMode = request.discoveryMode
         ticket.imageKey = nextImageKey
         ticket.status = nextStatus
 
@@ -109,6 +121,7 @@ class TicketService(
             throw exception
         }
 
+        syncLinkedEvent(saved)
         cleanupPreviousImage(previousImageKey, nextImageKey)
 
         val savedStatus = resolveEffectiveStatus(saved.status, saved.openAt, saved.validDate)
@@ -403,6 +416,54 @@ class TicketService(
         return imageKey?.let { ticketImageStorageService.buildTicketImageUrl(ticketId) }
     }
 
+    private fun syncLinkedEvent(ticket: IssuedTicket): Event {
+        val event = ticket.eventId?.let { existingEventId ->
+            eventRepository.findById(existingEventId).orElse(null)
+        } ?: Event()
+
+        val ticketId = requireNotNull(ticket.id) { "Ticket id is missing" }
+        val now = resolveCurrentTime()
+        val persistedTotalQuantity = event.totalQuantity
+        val soldCount = (persistedTotalQuantity - event.remainingQuantity).coerceAtLeast(0)
+        val nextRemainingQuantity = (ticket.totalCount - soldCount).coerceAtLeast(0)
+
+        event.name = ticket.name
+        event.venue = ticket.venue
+        event.validFrom = resolveValidFrom(ticket, now)
+        event.validUntil = resolveValidUntil(ticket)
+        event.totalQuantity = ticket.totalCount
+        event.remainingQuantity = nextRemainingQuantity
+        event.saleOpenAt = resolveSaleOpenAt(ticket, now)
+        event.saleCloseAt = resolveSaleCloseAt(ticket)
+        event.maxPerUser = ticket.maxPerUser
+        event.allowDuplicate = ticket.allowDuplicate
+        event.active = ticket.status != IssuedTicketStatus.EXPIRED
+        event.discoveryMode = ticket.discoveryMode
+        event.issuedTicketId = ticketId
+        event.nextTicketNumber = event.nextTicketNumber.coerceAtLeast(1)
+
+        val savedEvent = eventRepository.save(event)
+        ticket.eventId = savedEvent.id
+        return savedEvent
+    }
+
+    private fun resolveValidFrom(ticket: IssuedTicket, now: OffsetDateTime): LocalDateTime {
+        return ticket.openAt?.withOffsetSameInstant(ZoneOffset.UTC)?.toLocalDateTime()
+            ?: now.toLocalDateTime()
+    }
+
+    private fun resolveValidUntil(ticket: IssuedTicket): LocalDateTime {
+        return ticket.validDate.plusDays(1).atStartOfDay().minusSeconds(1)
+    }
+
+    private fun resolveSaleOpenAt(ticket: IssuedTicket, now: OffsetDateTime): Instant {
+        return now.toInstant()
+    }
+
+    private fun resolveSaleCloseAt(ticket: IssuedTicket): Instant {
+        return ticket.validDate.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)
+    }
+
     private fun IssuedTicket.toResponse(now: OffsetDateTime = resolveCurrentTime()): TicketDto.TicketResponse {
         val ticketId = requireNotNull(id) { "Ticket id is missing" }
         return TicketDto.TicketResponse(
@@ -418,9 +479,13 @@ class TicketService(
             totalCount = totalCount,
             allowDuplicate = allowDuplicate,
             maxPerUser = maxPerUser,
+            discoveryMode = discoveryMode,
             status = resolveEffectiveStatus(status, openAt, validDate, now),
             issuedCount = issuedCount,
             ownerUserId = ownerUserId,
+            eventId = eventId,
+            publicBookingPath = eventId?.let { "/events/$it" },
+            publicBookingUrl = null,
         )
     }
 

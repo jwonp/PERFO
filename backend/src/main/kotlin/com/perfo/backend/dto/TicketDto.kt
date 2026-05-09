@@ -1,6 +1,7 @@
 package com.perfo.backend.dto
 
 import com.perfo.backend.entity.TicketUsageStatus
+import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.entity.TicketPurchaseResult
 import jakarta.validation.constraints.Max
@@ -40,6 +41,7 @@ object TicketDto {
         @field:Min(1)
         @field:Max(100)
         val maxPerUser: Int,
+        val discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
         val imageKey: String? = null,
         val ownerUserId: String? = null,
     )
@@ -61,6 +63,7 @@ object TicketDto {
         @field:Min(1)
         @field:Max(100)
         val maxPerUser: Int,
+        val discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
         val status: IssuedTicketStatus? = null,
         val imageKey: String? = null,
     )
@@ -78,9 +81,13 @@ object TicketDto {
         val totalCount: Int,
         val allowDuplicate: Boolean,
         val maxPerUser: Int,
+        val discoveryMode: TicketDiscoveryMode,
         val status: IssuedTicketStatus,
         val issuedCount: Int,
         val ownerUserId: String,
+        val eventId: Long?,
+        val publicBookingPath: String?,
+        val publicBookingUrl: String?,
     )
 
     data class TicketImageUploadResponse(
