@@ -17,7 +17,7 @@
 
 ## 2. 현재 서버 사양
 
-사용자 제공 이미지 `/Users/joowon/Downloads/IMG_5155.HEIC` 기준으로 확인한 장비 사양:
+사용자 제공 장비 이미지 기준으로 확인한 장비 사양:
 
 ```text
 Model: T8PLUS

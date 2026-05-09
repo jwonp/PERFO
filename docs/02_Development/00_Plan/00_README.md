@@ -20,6 +20,11 @@
 - [13_PERFORMANCE_TEST_PLAN.md](./13_PERFORMANCE_TEST_PLAN.md): 성능 테스트 실행과 결과 문서화 계획
 - [14_CICD_IMPLEMENTATION_PLAN.md](./14_CICD_IMPLEMENTATION_PLAN.md): 현재 Ubuntu 서버 기준 CI/CD 구축 실행 계획
 - [15_TICKETING_ENGINE_STABILITY_PLAN.md](./15_TICKETING_ENGINE_STABILITY_PLAN.md): 티켓 오픈 시각, 예매 가능 시점, 검표 시각을 안정적으로 운영하기 위한 티켓팅 엔진 구현 계획
+- [16_TICKETING_PHASE1_DEPLOYMENT_PLAN.md](./16_TICKETING_PHASE1_DEPLOYMENT_PLAN.md): 티켓팅 엔진 Phase 1 운영 배포 절차와 검증 계획
+- [17_TICKETING_PROJECTION_CONTRACT.md](./17_TICKETING_PROJECTION_CONTRACT.md): 티켓팅 outbox relay와 projection consumer payload 계약
+- [18_TICKETING_OBSERVABILITY_ALERTS.md](./18_TICKETING_OBSERVABILITY_ALERTS.md): 티켓팅 관측성과 알림 기준 정리
+- [19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md](./19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md): 사용자가 이벤트를 발견하고 상세를 거쳐 예매까지 진입하는 플로우 구현 계획
+- [20_MVP_OPEN_READINESS_PLAN.md](./20_MVP_OPEN_READINESS_PLAN.md): 현재 구현 상태를 기준으로 MVP 오픈 차단 이슈와 우선 개발 계획을 정리한 문서
 
 ## 개발 원칙
 
