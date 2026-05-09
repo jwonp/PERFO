@@ -99,6 +99,7 @@ Phase 1 구매 엔진의 운영 배포 시 `ddl-auto=update`에 의존하지 않
 - 동일 `requestId` 재시도 시 동일 응답이 반환되는지 확인
 - 매진 상태에서 초과 판매가 없는지 확인
 - `/actuator/metrics/perfo.internal_proxy_auth.reject` 와 `/actuator/metrics/perfo.ticketing.purchase.result` 에 데이터가 적재되는지 확인
+- [18_TICKETING_OBSERVABILITY_ALERTS.md](/Users/joowon/Desktop/workspace/PERFO/docs/02_Development/00_Plan/18_TICKETING_OBSERVABILITY_ALERTS.md:1) 기준으로 outbox / projection 메트릭이 노출되는지 확인
 
 ## 핵심 스모크 기준
 
@@ -125,6 +126,8 @@ Phase 1 구매 엔진의 운영 배포 시 `ddl-auto=update`에 의존하지 않
   `NOT_OPEN`, `SUCCESS`, `SOLD_OUT`, `SALE_CLOSED` 비율이 예상 범위인지 확인
 - 오픈 직후 5분:
   초과 판매, requestId 충돌, DB lock timeout 여부 확인
+- 오픈 직후 5분:
+  `perfo.ticketing.outbox.pending.count`, `perfo.ticketing.outbox.failed.count`, `perfo.ticketing.projection.last_lag.seconds` 가 경보 기준을 넘지 않는지 확인
 
 ## 현재 내부 인증 상태
 

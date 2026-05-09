@@ -1,17 +1,17 @@
 package com.perfo.backend.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.perfo.backend.config.HeaderAuthenticationFilter
+import com.perfo.backend.config.InternalApiJwtService
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.dto.TicketDto.IssuedTicketStatus
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
+import com.perfo.backend.observability.InternalProxyAuthObservability
 import com.perfo.backend.service.TicketTransitionService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
@@ -23,7 +23,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.mockito.BDDMockito.given
 
 @WebMvcTest(TicketController::class)
-@Import(HeaderAuthenticationFilter::class)
 class TicketTransitionControllerTest {
 
     @Autowired
@@ -43,6 +42,12 @@ class TicketTransitionControllerTest {
 
     @field:MockitoBean
     private lateinit var reservationService: com.perfo.backend.service.ReservationService
+
+    @field:MockitoBean
+    private lateinit var internalApiJwtService: InternalApiJwtService
+
+    @field:MockitoBean
+    private lateinit var internalProxyAuthObservability: InternalProxyAuthObservability
 
     @Test
     @DisplayName("PATCH /api/internal/tickets/{ticketId}/ticketing-status - 티켓팅 상태를 전환한다")
@@ -92,7 +97,7 @@ class TicketTransitionControllerTest {
 
     @Test
     @DisplayName("PATCH /api/internal/issued-tickets/{ticketId}/status - 발행 티켓 상태를 전환한다")
-    @WithMockUser
+    @WithMockUser(username = "owner-1")
     fun transitionIssuedTicketStatus_returns200() {
         val request = TicketDto.IssuedTicketStatusTransitionRequest(nextStatus = IssuedTicketStatus.VERIFYING)
         val response = TicketDto.TicketResponse(

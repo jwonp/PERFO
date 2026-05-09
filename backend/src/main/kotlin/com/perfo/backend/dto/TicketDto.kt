@@ -166,4 +166,28 @@ object TicketDto {
         val remainingQuantity: Int?,
         val message: String? = null,
     )
+
+    data class TicketingProjectionSummaryResponse(
+        val eventId: Long,
+        val projectedCount: Long,
+        val successCount: Long,
+        val rejectedCount: Long,
+        val lastOccurredAt: String?,
+        val lastProjectedAt: String?,
+        val recentAttempts: List<TicketingProjectionAttemptResponse>,
+    )
+
+    data class TicketingProjectionAttemptResponse(
+        val outboxId: Long,
+        val requestId: String,
+        val eventType: String,
+        val result: TicketPurchaseResult,
+        val quantity: Int,
+        val ticketIds: List<Long>,
+        val ticketNumbers: List<Int>,
+        val remainingQuantity: Int?,
+        val message: String?,
+        val occurredAt: String,
+        val projectedAt: String?,
+    )
 }

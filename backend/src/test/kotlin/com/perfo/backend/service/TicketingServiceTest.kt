@@ -1,13 +1,18 @@
 package com.perfo.backend.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.TicketPurchaseResult
+import com.perfo.backend.entity.TicketingOutbox
+import com.perfo.backend.entity.TicketingOutboxEventType
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.TicketRepository
+import com.perfo.backend.repository.TicketingOutboxRepository
 import com.perfo.backend.repository.TicketingRequestRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -31,14 +36,21 @@ class TicketingServiceTest {
     private lateinit var ticketingRequestRepository: TicketingRequestRepository
 
     @Autowired
+    private lateinit var ticketingOutboxRepository: TicketingOutboxRepository
+
+    @Autowired
     private lateinit var ticketingService: TicketingService
 
     @Autowired
     private lateinit var databaseTimeService: DatabaseTimeService
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     @BeforeEach
     fun setUp() {
         ticketRepository.deleteAll()
+        ticketingOutboxRepository.deleteAll()
         ticketingRequestRepository.deleteAll()
         eventRepository.deleteAll()
     }
@@ -60,6 +72,10 @@ class TicketingServiceTest {
         assertThat(response.result).isEqualTo(TicketPurchaseResult.NOT_OPEN)
         assertThat(response.ticketIds).isEmpty()
         assertThat(ticketRepository.findAll()).isEmpty()
+        val outbox = ticketingOutboxRepository.findByRequestId("req_before_open_0001")
+        assertThat(outbox).isNotNull
+        assertThat(outbox?.eventType).isEqualTo(TicketingOutboxEventType.PURCHASE_REJECTED)
+        assertThat(outbox?.payload).contains("\"result\":\"NOT_OPEN\"")
     }
 
     @Test
@@ -94,6 +110,11 @@ class TicketingServiceTest {
         assertThat(persistedEvent.nextTicketNumber).isEqualTo(12)
         assertThat(tickets).hasSize(2)
         assertThat(tickets.map { it.usageStatus }).containsOnly(TicketUsageStatus.BEFORE_SERVING)
+        val outbox = ticketingOutboxRepository.findByRequestId("req_after_open_0001")
+        assertThat(outbox).isNotNull
+        assertThat(outbox?.eventType).isEqualTo(TicketingOutboxEventType.PURCHASE_SUCCEEDED)
+        assertThat(outbox?.payload).contains("\"result\":\"SUCCESS\"")
+        assertThat(outbox?.payload).contains("\"ticketNumbers\":[10,11]")
     }
 
     @Test
@@ -191,6 +212,57 @@ class TicketingServiceTest {
 
         assertThat(response.result).isEqualTo(TicketPurchaseResult.SALE_CLOSED)
         assertThat(ticketRepository.findAll()).isEmpty()
+    }
+
+    @Test
+    @DisplayName("outbox 저장이 실패하면 ledger, ticket, outbox 모두 롤백된다")
+    fun submitRequest_outboxFailure_rollsBackWholeTransaction() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(
+            activeEvent(
+                remainingQuantity = 5,
+                saleOpenAt = now.minusSeconds(60),
+                saleCloseAt = now.plusSeconds(3600),
+            ),
+        )
+        val requestId = "req_outbox_conflict_0001"
+        ticketingOutboxRepository.save(
+            TicketingOutbox(
+                requestId = requestId,
+                eventId = event.id!!,
+                userId = 999L,
+                aggregateId = requestId,
+                eventType = TicketingOutboxEventType.PURCHASE_SUCCEEDED,
+                payload = objectMapper.writeValueAsString(
+                    TicketingOutboxPayload(
+                        requestId = requestId,
+                        eventId = event.id!!,
+                        userId = 999L,
+                        quantity = 1,
+                        result = TicketPurchaseResult.SUCCESS,
+                        occurredAt = now,
+                    ),
+                ),
+            ),
+        )
+
+        assertThrows(IllegalStateException::class.java) {
+            ticketingService.submitRequest(
+                authenticatedUserId = 7L,
+                request = TicketDto.TicketingRequestSubmitRequest(
+                    requestId = requestId,
+                    eventId = event.id!!,
+                    quantity = 1,
+                ),
+            )
+        }
+
+        assertThat(ticketingRequestRepository.findByRequestId(requestId)).isNull()
+        assertThat(ticketRepository.findByEventIdAndUserIdOrderByIdAsc(event.id!!, 7L)).isEmpty()
+        assertThat(ticketingOutboxRepository.findAll()).hasSize(1)
+        val persistedEvent = eventRepository.findById(event.id!!).orElseThrow()
+        assertThat(persistedEvent.remainingQuantity).isEqualTo(5)
+        assertThat(persistedEvent.nextTicketNumber).isEqualTo(1)
     }
 
     private fun activeEvent(
