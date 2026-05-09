@@ -15,6 +15,8 @@
 - 운영자는 발급한 티켓의 기본 정보와 운영 상태를 앱에서 수정할 수 있다.
 - 운영자는 티켓이 실제로 검표 가능해지는 오픈 시간을 설정할 수 있다.
 - 운영자는 티켓 대표 이미지를 추가하거나 교체할 수 있다.
+- 운영자는 티켓을 목록에 노출할지, URL로만 공유할지 생성/수정 시 선택할 수 있다.
+- 운영자는 생성된 예매 URL을 앱에서 바로 복사하거나 공유할 수 있다.
 - 티켓 상태 전이는 수동 수정과 시간 기반 자동 전이를 함께 고려해 일관되게 처리한다.
 - 이미지 저장은 현재 도입된 MinIO 기반 업로드 패턴을 재사용한다.
 - 수정 결과는 새로고침 후에도 유지되어야 하며, 프론트 로컬 상태에만 머물지 않아야 한다.
@@ -26,6 +28,7 @@
 - 운영자가 일반 수정에 사용할 `PATCH /api/tickets/{ticketId}` API가 없다.
 - `frontend/app/[locale]/(main)/my-tickets/page.tsx`의 수정 동작은 현재 서버 호출 없이 클라이언트 상태만 바꾼다.
 - 같은 화면의 생성 폼에도 이미지 업로드 입력과 오픈 시간 입력이 없다.
+- 같은 화면의 생성 폼에는 예매 노출 방식 토글과 예매 URL 복사/공유 UX가 없다.
 - `frontend/components/tickets/IssuedTicketCard.tsx`는 `ticket.imageUrl`이 있으면 이미지를 렌더링하지만, 실제 백엔드 응답에는 이미지 필드가 없다.
 - 상태 전이는 `/api/internal/issued-tickets/{ticketId}/status`로만 노출되어 있어 운영자 일반 수정 화면에서 바로 쓰기 어렵다.
 - MinIO와 업로드 서비스는 프로필 이미지 기준으로 이미 도입 방향이 정리되어 있어, 티켓 이미지 저장 전략을 새로 만들 필요는 없다.
@@ -37,6 +40,7 @@
 1. 운영자 일반 수정
 2. 운영 상태 수정과 오픈 시간 정책 추가
 3. 티켓 대표 이미지 추가와 교체
+4. 예매 노출 방식 설정과 공개 URL 공유 UX
 
 초기 범위에서 제외한다.
 
@@ -75,6 +79,26 @@
 - DB나 응답에 외부 절대 URL만 저장하지 않는다.
 - 프로필 이미지와 동일하게 MinIO object key를 기준으로 저장한다.
 - 프론트 표시에 필요한 URL은 백엔드가 조립하거나 별도 조회 API에서 반환한다.
+
+### 4.4 예매 노출 방식은 `LISTED`와 `LINK_ONLY` 두 가지로 고정한다
+
+- `LISTED`
+  - 사용자 `events` 메뉴에 노출된다.
+  - 앱 안에서 탐색 가능한 티켓팅 대상이다.
+- `LINK_ONLY`
+  - 사용자 `events` 메뉴에는 노출되지 않는다.
+  - 운영자가 전달한 URL로만 진입 가능하다.
+
+권장안:
+
+- 예매 가능 여부와 노출 여부를 분리한다.
+- `status=ISSUING` 이더라도 `discoveryMode=LINK_ONLY` 면 목록에는 보이지 않는다.
+
+### 4.5 공개 URL은 저장 가능한 응답 필드로 내려준다
+
+- 운영자 화면은 저장 직후 복사 가능한 예매 URL을 알아야 한다.
+- 따라서 응답에 최소한 `publicBookingPath` 또는 `publicBookingUrl`을 포함하는 것이 맞다.
+- 초기에는 숫자 ID 기반 경로를 써도 되지만, 후속으로 `publicSlug`를 붙일 확장 여지를 남긴다.
 
 ## 5. 상태 정책
 
@@ -147,6 +171,7 @@ data class UpdateTicketRequest(
     @field:Min(1)
     @field:Max(100)
     val maxPerUser: Int,
+    val discoveryMode: TicketDiscoveryMode,
     val status: IssuedTicketStatus?,
     val imageKey: String?,
 )
@@ -157,6 +182,9 @@ data class UpdateTicketRequest(
 - `openAt`
 - `imageUrl`
 - `imageKey`
+- `discoveryMode`
+- `publicBookingPath`
+- `publicBookingUrl`
 - 필요하면 `canEditStatus`, `canScanNow` 같은 파생 필드
 
 ### 6.2 엔티티 또는 저장 모델
@@ -194,6 +222,8 @@ data class UpdateTicketRequest(
 - `totalCount`
 - `allowDuplicate`
 - `maxPerUser`
+- `discoveryMode`
+- `publicSlug`
 - `imageKey`
 - `createdAt`
 - `updatedAt`
@@ -220,6 +250,7 @@ Content-Type: application/json
   "totalCount": 300,
   "allowDuplicate": false,
   "maxPerUser": 1,
+  "discoveryMode": "LISTED",
   "status": "ISSUING",
   "imageKey": "ticket-images/owner-1/uuid.webp"
 }
@@ -241,8 +272,11 @@ Content-Type: application/json
   "totalCount": 300,
   "allowDuplicate": false,
   "maxPerUser": 1,
+  "discoveryMode": "LISTED",
   "imageKey": "ticket-images/owner-1/uuid.webp",
   "imageUrl": "/api/tickets/12/image",
+  "publicBookingPath": "/events/12",
+  "publicBookingUrl": "https://perfo.example/events/12",
   "ownerUserId": "owner-1"
 }
 ```
@@ -354,12 +388,17 @@ ticket-images/owner-1/7f1b5c0e-9e2b-4f50-a6de-1f9a8e42c001.webp
 - `openAt`
 - `imageUrl`
 - `imageKey`
+- `discoveryMode`
+- `publicBookingPath`
+- `publicBookingUrl`
 
 UI 변경:
 
 - 날짜 입력 아래에 `오픈 시간` `datetime-local` 입력 추가
+- `목록에 노출 / 링크로만 공유` 토글 추가
 - 대표 이미지 업로드 버튼 추가
 - 현재 이미지가 있으면 미리보기와 교체 액션 제공
+- 저장 후 `예매 URL 복사`와 `공유` 액션 제공
 - 저장 중, 업로드 중, 실패 상태를 분리 표시
 
 ### 9.2 수정 동작을 실제 API로 연결
@@ -381,6 +420,21 @@ UI 변경:
 3. 업로드 성공 시 `imageKey` 확보
 4. 일반 수정 저장 API 호출
 5. 성공 응답으로 목록 상태 갱신
+
+### 9.2A 예매 URL 복사/공유 UX
+
+권장 방식:
+
+- 저장 전에는 URL 액션을 비활성화한다.
+- 저장 후 서버 응답의 `publicBookingPath` 또는 `publicBookingUrl`을 사용한다.
+- `복사` 버튼은 항상 제공한다.
+- `공유` 버튼은 지원 브라우저에서만 노출한다.
+
+추가 UX:
+
+- `LINK_ONLY` 상태에서는 “목록에는 보이지 않고 링크로만 접근 가능” 설명 문구 표시
+- 카드에도 `LISTED` / `LINK_ONLY` 배지를 노출
+- 복사 성공 토스트와 실패 토스트를 분리한다
 
 ### 9.3 상태 수정 UX
 
@@ -411,6 +465,13 @@ UI 변경:
 - `myTickets.fieldOpenAt`
 - `myTickets.fieldOpenAtPlaceholder`
 - `myTickets.fieldImage`
+- `myTickets.fieldDiscoveryMode`
+- `myTickets.discoveryModeListed`
+- `myTickets.discoveryModeLinkOnly`
+- `myTickets.copyBookingUrl`
+- `myTickets.shareBookingUrl`
+- `myTickets.bookingUrlCopied`
+- `myTickets.bookingUrlCopyFailed`
 - `myTickets.uploadImage`
 - `myTickets.replaceImage`
 - `myTickets.statusHintInactive`
@@ -498,6 +559,8 @@ UI 변경:
 - `openAt` 필드 렌더링 및 기존값 표시
 - 이미지 업로드 성공 후 저장 payload에 `imageKey` 반영
 - `openAt` 미래 상태에서 `VERIFYING` 경고 노출
+- `discoveryMode` 토글 값이 저장 payload에 반영되는지 확인
+- URL 복사 버튼이 저장 후 응답 URL을 사용하는지 확인
 
 ### 11.4 E2E
 
@@ -509,9 +572,11 @@ UI 변경:
 
 1. 운영자가 티켓 생성
 2. 오픈 시간 지정
-3. 이미지 업로드
-4. 저장 후 목록 카드에 반영 확인
-5. 수정 재진입 시 기존 값 유지 확인
+3. `LISTED` 또는 `LINK_ONLY` 노출 방식 선택
+4. 이미지 업로드
+5. 저장 후 목록 카드에 반영 확인
+6. 예매 URL 복사 또는 공유 동작 확인
+7. 수정 재진입 시 기존 값 유지 확인
 
 ## 12. 구현 순서
 
@@ -531,9 +596,10 @@ UI 변경:
 - 티켓 이미지를 예약자 카드와 운영자 카드에 동일하게 노출할지
 - 만료 티켓의 이미지 교체와 텍스트 수정까지 허용할지
 - 티켓 이미지도 프로필 이미지처럼 백엔드 프록시 URL로만 제공할지, presigned URL을 허용할지
+- `LINK_ONLY` 공개 URL을 숫자 ID 기반으로 둘지, `publicSlug`를 별도로 둘지
 
 ## 14. 권장 결론
 
-현재 구조에서 가장 먼저 막아야 할 문제는 `수정이 서버에 저장되지 않는 점`이다. 따라서 1차 구현은 `PATCH /api/tickets/{ticketId}`와 `POST /api/tickets/{ticketId}/image`를 추가하고, `my-tickets` 편집 시트에 `openAt`과 이미지 업로드를 붙이는 데 집중하는 것이 맞다.
+현재 구조에서 가장 먼저 막아야 할 문제는 `수정이 서버에 저장되지 않는 점`이다. 따라서 1차 구현은 `PATCH /api/tickets/{ticketId}`와 `POST /api/tickets/{ticketId}/image`를 추가하고, `my-tickets` 편집 시트에 `openAt`, 이미지 업로드, `discoveryMode`, 예매 URL 복사/공유 UX를 붙이는 데 집중하는 것이 맞다.
 
 그 다음 단계에서 `openAt` 기반 자동 상태 전이와 전용 DB 엔티티 정리를 이어가면, 지금 필요한 기능을 빠르게 제공하면서도 이후 QR 검표와 알림 계획 문서와 충돌 없이 확장할 수 있다.

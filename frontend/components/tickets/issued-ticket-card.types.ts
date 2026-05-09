@@ -2,6 +2,7 @@ import type { TicketBadgeVariant } from "@/components/tickets/ticket-shell.types
 
 export interface IssuedTicketCardData {
     id?: string;
+    eventId?: string;
     name: string;
     venue: string;
     detailAddress?: string;
@@ -12,6 +13,7 @@ export interface IssuedTicketCardData {
     status: string;
     issuedCount: number;
     totalCount: number;
+    discoveryMode?: "LISTED" | "LINK_ONLY";
 }
 
 export interface IssuedTicketCardProps {
@@ -25,4 +27,5 @@ export interface IssuedTicketCardProps {
     onEdit: () => void;
     onScan?: () => void;
     scanHref?: string;
+    linkOnlyLabel?: string;
 }

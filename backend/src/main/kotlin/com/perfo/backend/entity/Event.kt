@@ -2,12 +2,19 @@ package com.perfo.backend.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
 import java.time.LocalDateTime
+
+enum class TicketDiscoveryMode {
+    LISTED,
+    LINK_ONLY,
+}
 
 @Entity
 @Table(name = "events")
@@ -50,7 +57,14 @@ class Event(
     var nextTicketNumber: Int = 1,
 
     @Column(nullable = false)
-    var active: Boolean = true
+    var active: Boolean = true,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discovery_mode", nullable = false)
+    var discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
+
+    @Column(name = "issued_ticket_id")
+    var issuedTicketId: Long? = null,
 ) {
     fun copyWithRemainingQuantity(nextRemainingQuantity: Int): Event {
         return Event(
@@ -66,7 +80,9 @@ class Event(
             maxPerUser = maxPerUser,
             allowDuplicate = allowDuplicate,
             nextTicketNumber = nextTicketNumber,
-            active = active
+            active = active,
+            discoveryMode = discoveryMode,
+            issuedTicketId = issuedTicketId,
         )
     }
 }

@@ -55,6 +55,15 @@ vi.mock('next-intl', () => ({
       'myTickets.fieldMaxPerUser': '1인당 최대 수량',
       'myTickets.fieldImage': '대표 이미지',
       'myTickets.fieldImageHint': 'PNG, JPG, WEBP만 업로드할 수 있습니다.',
+      'myTickets.discoveryModeListed': '목록에 노출',
+      'myTickets.discoveryModeLinkOnly': '링크로만 공유',
+      'myTickets.discoveryModeHint': '목록 노출 여부만 제어합니다. 두 경우 모두 상세 접근과 예매는 가능합니다.',
+      'myTickets.publicBookingTitle': '공개 예매 URL',
+      'myTickets.publicBookingUnavailable': '공개 예매 URL을 아직 만들 수 없습니다.',
+      'myTickets.copyBookingUrl': '복사',
+      'myTickets.shareBookingUrl': '공유',
+      'myTickets.copySuccess': '예매 URL을 복사했습니다.',
+      'myTickets.linkOnlyBadge': '링크 전용',
       'myTickets.verifyingFutureOpenAtWarning': '오픈 시각이 아직 미래면 VERIFYING 상태로 저장할 수 없습니다.',
       'myTickets.cancel': '취소',
       'myTickets.save': '저장',
@@ -89,6 +98,9 @@ describe('MyTicketsPage', () => {
             issuedCount: 0,
             ownerUserId: 'user-1',
             imageUrl: null,
+            discoveryMode: body.discoveryMode ?? 'LISTED',
+            eventId: 999,
+            publicBookingPath: '/events/999',
           }),
         }
       }
@@ -113,6 +125,9 @@ describe('MyTicketsPage', () => {
             imageUrl: body.imageKey ? '/api/tickets/42/image' : null,
             issuedCount: 25,
             ownerUserId: 'user-1',
+            discoveryMode: body.discoveryMode ?? 'LISTED',
+            eventId: 42,
+            publicBookingPath: '/events/42',
           }),
         }
       }
@@ -207,9 +222,10 @@ describe('MyTicketsPage', () => {
       totalCount: 100,
       allowDuplicate: false,
       maxPerUser: 1,
+      discoveryMode: 'LISTED',
     })
 
-    const ticket = screen.getByText('PERFO Test Ticket').closest('article')
+    const ticket = screen.getAllByText('PERFO Test Ticket')[1]?.closest('article')
 
     expect(ticket).not.toBeNull()
     expect(within(ticket as HTMLElement).getByText('올림픽공원 체조경기장')).toBeInTheDocument()
@@ -254,6 +270,51 @@ describe('MyTicketsPage', () => {
     expect(screen.getByText('발급한 티켓이 없습니다')).toBeInTheDocument()
   })
 
+  it('discoveryMode 토글 값이 생성 payload와 카드 배지에 반영된다', async () => {
+    const user = userEvent.setup()
+    render(<MyTicketsPage />)
+
+    await user.click(screen.getByRole('button', { name: '티켓 발급' }))
+    await user.click(screen.getByRole('switch', { name: '목록에 노출' }))
+    await user.type(screen.getByLabelText('티켓 이름'), 'Link Only Ticket')
+    await user.type(screen.getByLabelText('사용 장소'), '올림픽공원 체조경기장')
+    await user.type(screen.getByLabelText('유효 날짜'), '2026-08-15')
+    await user.type(screen.getByLabelText('총 티켓 수'), '100')
+    await user.click(screen.getByRole('button', { name: '발급하기' }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/tickets', expect.objectContaining({ method: 'POST' })))
+
+    const [, createRequest] = vi.mocked(fetch).mock.calls[1]
+    expect(JSON.parse(String(createRequest?.body))).toMatchObject({
+      discoveryMode: 'LINK_ONLY',
+    })
+    expect(screen.getByText('링크 전용')).toBeInTheDocument()
+  })
+
+  it('저장 후 공개 예매 URL 복사 버튼이 동작한다', async () => {
+    const user = userEvent.setup()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    })
+
+    render(<MyTicketsPage />)
+
+    await user.click(screen.getByRole('button', { name: '티켓 발급' }))
+    await user.type(screen.getByLabelText('티켓 이름'), 'Copyable Ticket')
+    await user.type(screen.getByLabelText('사용 장소'), '올림픽공원 체조경기장')
+    await user.type(screen.getByLabelText('유효 날짜'), '2026-08-15')
+    await user.type(screen.getByLabelText('총 티켓 수'), '100')
+    await user.click(screen.getByRole('button', { name: '발급하기' }))
+
+    const copyButton = await screen.findByRole('button', { name: '복사' })
+    await user.click(copyButton)
+
+    expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/ko\/events\/999$/))
+    expect(screen.getByText('예매 URL을 복사했습니다.')).toBeInTheDocument()
+  })
+
   it('수정 저장은 PATCH API를 호출하고 서버 응답으로 목록을 갱신한다', async () => {
     const user = userEvent.setup()
     vi.mocked(fetch).mockImplementationOnce(async () => ({
@@ -293,7 +354,7 @@ describe('MyTicketsPage', () => {
       })),
     )
 
-    expect(await screen.findByText('Edited Ticket')).toBeInTheDocument()
+    expect((await screen.findAllByText('Edited Ticket')).length).toBeGreaterThan(0)
   })
 
   it('VERIFYING 선택 시 openAt이 미래면 경고를 표시한다', async () => {
