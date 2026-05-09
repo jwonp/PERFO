@@ -13,6 +13,19 @@ const TicketIcon = ({ className }: IconProps) => {
     );
 };
 
+const EventsIcon = ({ className }: IconProps) => {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 5h16" />
+            <path d="M4 12h16" />
+            <path d="M4 19h16" />
+            <path d="M8 3v4" />
+            <path d="M16 10v4" />
+            <path d="M10 17v4" />
+        </svg>
+    );
+};
+
 const MyTicketsIcon = ({ className }: IconProps) => {
     return (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -36,6 +49,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     const pathname = usePathname();
 
     const tabs = [
+        { href: "/events", label: t("events"), Icon: EventsIcon, key: "events" },
         { href: "/reserved", label: t("reserved"), Icon: TicketIcon, key: "reserved" },
         { href: "/my-tickets", label: t("myTickets"), Icon: MyTicketsIcon, key: "my-tickets" },
         { href: "/profile", label: t("profile"), Icon: ProfileIcon, key: "profile" },
