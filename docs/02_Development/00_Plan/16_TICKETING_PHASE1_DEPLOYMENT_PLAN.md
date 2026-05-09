@@ -26,7 +26,7 @@ Phase 1 구매 엔진의 운영 배포 시 `ddl-auto=update`에 의존하지 않
 
 ## 스키마 적용 순서
 
-1. 1차 운영 도입에서는 [V20260508_1__ticketing_phase1.sql](/Users/joowon/Desktop/workspace/PERFO/backend/src/main/resources/db/migration/V20260508_1__ticketing_phase1.sql:1) 과 동일한 SQL을 수동 검증하거나 Flyway migrate로 적용
+1. 1차 운영 도입에서는 [`V20260508_1__ticketing_phase1.sql`](../../../backend/src/main/resources/db/migration/V20260508_1__ticketing_phase1.sql) 과 동일한 SQL을 수동 검증하거나 Flyway migrate로 적용
 2. 기존 `events` 데이터 backfill 확인
 3. `ticketing_requests` 테이블과 인덱스 생성 확인
 4. 백엔드에 새 active key와 필요 시 previous key 설정
@@ -99,7 +99,7 @@ Phase 1 구매 엔진의 운영 배포 시 `ddl-auto=update`에 의존하지 않
 - 동일 `requestId` 재시도 시 동일 응답이 반환되는지 확인
 - 매진 상태에서 초과 판매가 없는지 확인
 - `/actuator/metrics/perfo.internal_proxy_auth.reject` 와 `/actuator/metrics/perfo.ticketing.purchase.result` 에 데이터가 적재되는지 확인
-- [18_TICKETING_OBSERVABILITY_ALERTS.md](/Users/joowon/Desktop/workspace/PERFO/docs/02_Development/00_Plan/18_TICKETING_OBSERVABILITY_ALERTS.md:1) 기준으로 outbox / projection 메트릭이 노출되는지 확인
+- [18_TICKETING_OBSERVABILITY_ALERTS.md](./18_TICKETING_OBSERVABILITY_ALERTS.md) 기준으로 outbox / projection 메트릭이 노출되는지 확인
 
 ## 핵심 스모크 기준
 

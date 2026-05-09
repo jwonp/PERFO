@@ -48,6 +48,7 @@ frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
 frontend/.data/
+frontend/tsconfig.tsbuildinfo
 
 # Misc
 *.pem
