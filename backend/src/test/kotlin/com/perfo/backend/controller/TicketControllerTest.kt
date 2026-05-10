@@ -80,7 +80,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets - 티켓 생성 성공 시 200과 생성 결과를 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun createTicket_returns200() {
         val request = TicketDto.CreateTicketRequest(
             name = "PERFO Test Ticket",
@@ -114,7 +114,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/tickets - ownerUserId의 발행 티켓 목록을 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun listIssuedTickets_returnsOwnerTickets() {
         given(ticketService.findAllByOwnerUserId("owner-1", "owner-1")).willReturn(listOf(ticketResponse()))
 
@@ -131,7 +131,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("PATCH /api/tickets/{ticketId} - 수정 결과를 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun updateTicket_returns200() {
         val request = TicketDto.UpdateTicketRequest(
             name = "Updated Ticket",
@@ -172,7 +172,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets/{ticketId}/image - 이미지 업로드 결과를 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun uploadTicketImage_returns200() {
         val file = MockMultipartFile("file", "cover.png", "image/png", "png".toByteArray())
         given(ticketService.uploadTicketImage(eq(1L), eq("owner-1"), any())).willReturn(
@@ -194,7 +194,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/tickets/{ticketId}/image - 현재 티켓 이미지를 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun getTicketImage_returns200() {
         given(ticketService.getTicketImage(1L, "owner-1")).willReturn(
             ProfileImageContent(
@@ -213,7 +213,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("DELETE /api/tickets/{ticketId}/image - cleanup 요청을 처리한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun cleanupTicketImage_returns204() {
         mockMvc.perform(
             delete("/api/tickets/1/image")
@@ -225,7 +225,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/reservations - userId의 예약 티켓 목록을 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun listReservations_returnsUserReservations() {
         val response = TicketDto.ReservationResponse(
             id = 21L,
@@ -252,7 +252,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets - googlePlaceId가 형식에 맞지 않으면 400을 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun createTicket_invalidPlaceId_returns400() {
         val request = TicketDto.CreateTicketRequest(
             name = "PERFO Test Ticket",
@@ -276,7 +276,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("PATCH /api/tickets/{ticketId} - 소유자가 아니면 403을 반환한다")
-    @WithMockUser(username = "owner-1")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun updateTicket_ownerMismatch_returns403() {
         val request = TicketDto.UpdateTicketRequest(
             name = "Updated Ticket",
@@ -306,7 +306,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/reservations/{reservationId}/qr-token 요청 시 QR 토큰을 발급한다")
-    @WithMockUser
+    @WithMockUser(roles = ["ORGANIZER"])
     fun issueQrToken_returns200() {
         val response = TicketDto.TicketQrTokenResponse(
             token = buildString {
@@ -328,7 +328,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets/{ticketId}/validations 요청 시 검표 결과를 반환한다")
-    @WithMockUser
+    @WithMockUser(roles = ["ORGANIZER"])
     fun validateTicket_returns200() {
         val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
         val response = TicketDto.TicketValidationResponse(

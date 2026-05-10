@@ -59,6 +59,7 @@ class InternalApiJwtService(
             InternalAuthenticatedUser(
                 userId = userId,
                 email = claims["email"]?.toString()?.trim()?.lowercase(),
+                role = claims["role"]?.toString()?.trim()?.uppercase(),
             )
         } catch (_: ExpiredJwtException) {
             reject("expired_token", requiredScope, requestPath)

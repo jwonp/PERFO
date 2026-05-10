@@ -34,7 +34,7 @@ describe('/api/tickets route', () => {
   })
 
   it('GET은 세션 사용자 id를 ownerUserId로 백엔드에 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'user-42' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'user-42', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([
       {
@@ -67,7 +67,7 @@ describe('/api/tickets route', () => {
   })
 
   it('POST는 세션 사용자 id를 ownerUserId로 추가해 백엔드에 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       id: 20,
@@ -125,7 +125,7 @@ describe('/api/tickets route', () => {
   })
 
   it('내부 JWT 서명이 없으면 500을 반환한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockImplementation(() => {
       throw new Error('missing config')
     })

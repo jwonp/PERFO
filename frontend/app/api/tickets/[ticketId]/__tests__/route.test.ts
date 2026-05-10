@@ -34,7 +34,7 @@ describe('/api/tickets/[ticketId] route', () => {
   })
 
   it('PATCH는 세션 사용자 id를 헤더에 담아 백엔드 수정 API로 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       id: 5,
