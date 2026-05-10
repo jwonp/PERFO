@@ -1,7 +1,10 @@
 package com.perfo.backend.service
 
 import com.perfo.backend.dto.AuthDto
+import com.perfo.backend.entity.AuthVerificationCode
+import com.perfo.backend.entity.AuthVerificationPurpose
 import com.perfo.backend.entity.User
+import com.perfo.backend.repository.AuthVerificationCodeRepository
 import com.perfo.backend.repository.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -9,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -20,6 +22,7 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentCaptor
+import java.time.LocalDateTime
 
 /**
  * AuthService 단위 테스트 (Unit Test)
@@ -40,14 +43,28 @@ class AuthServiceTest {
     @Mock
     private lateinit var profileImageStorageService: ProfileImageStorageService
 
-    @InjectMocks
+    @Mock
+    private lateinit var mailSender: MailSender
+
     private lateinit var authService: AuthService
+
+    @Mock
+    private lateinit var authVerificationCodeRepository: AuthVerificationCodeRepository
 
     private lateinit var signUpRequest: AuthDto.SignUpRequest
     private lateinit var savedUser: User
 
     @BeforeEach
     fun setUp() {
+        authService = AuthService(
+            userRepository = userRepository,
+            authVerificationCodeRepository = authVerificationCodeRepository,
+            passwordEncoder = passwordEncoder,
+            profileImageStorageService = profileImageStorageService,
+            mailSender = mailSender,
+            previewCodeEnabled = true,
+        )
+
         signUpRequest = AuthDto.SignUpRequest(
             "test@example.com",
             "password123!",
@@ -314,5 +331,32 @@ class AuthServiceTest {
         // then
         assertThat(response.exists).isFalse()
         assertThat(response.provider).isNull()
+    }
+
+    @Test
+    @DisplayName("인증코드 요청 - 회원가입용 코드 저장 후 메일 발송을 호출한다")
+    fun requestVerificationCode_signUp_sendsMail() {
+        val request = AuthDto.VerificationCodeRequest(
+            email = "new@example.com",
+            purpose = "SIGN_UP",
+        )
+        given(userRepository.findByEmail("new@example.com")).willReturn(null)
+        given(passwordEncoder.encode(anyString())).willReturn("encoded-code")
+        given(authVerificationCodeRepository.save(any(AuthVerificationCode::class.java))).willAnswer { invocation ->
+            val entity = invocation.arguments[0] as AuthVerificationCode
+            entity.id = 1L
+            entity.expiresAt = LocalDateTime.now().plusMinutes(10)
+            entity
+        }
+
+        val response = authService.requestVerificationCode(request)
+
+        assertThat(response.email).isEqualTo("new@example.com")
+        assertThat(response.purpose).isEqualTo("SIGN_UP")
+        then(mailSender).should().sendVerificationCode(
+            org.mockito.kotlin.eq("new@example.com"),
+            anyString(),
+            org.mockito.kotlin.eq("SIGN_UP"),
+        )
     }
 }

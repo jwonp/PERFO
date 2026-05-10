@@ -38,6 +38,34 @@ class AuthController(
         return ResponseEntity.ok(authService.oauthLogin(request))
     }
 
+    @PostMapping("/verification-codes/request")
+    fun requestVerificationCode(
+        @Valid @RequestBody request: AuthDto.VerificationCodeRequest,
+    ): ResponseEntity<AuthDto.VerificationCodeResponse> {
+        return ResponseEntity.ok(authService.requestVerificationCode(request))
+    }
+
+    @PostMapping("/verification-codes/verify")
+    fun verifyVerificationCode(
+        @Valid @RequestBody request: AuthDto.VerificationCodeVerifyRequest,
+    ): ResponseEntity<AuthDto.VerificationCodeVerifyResponse> {
+        return ResponseEntity.ok(authService.verifyVerificationCode(request))
+    }
+
+    @PostMapping("/signup/verified")
+    fun completeVerifiedSignUp(
+        @Valid @RequestBody request: AuthDto.VerifiedSignUpRequest,
+    ): ResponseEntity<AuthDto.AuthResponse> {
+        return ResponseEntity.ok(authService.completeVerifiedSignUp(request))
+    }
+
+    @PostMapping("/password-reset")
+    fun resetPassword(
+        @Valid @RequestBody request: AuthDto.PasswordResetRequest,
+    ): ResponseEntity<AuthDto.PasswordResetResponse> {
+        return ResponseEntity.ok(authService.resetPassword(request))
+    }
+
     @GetMapping("/check-email")
     fun checkEmail(@RequestParam email: String): ResponseEntity<AuthDto.CheckEmailResponse> {
         return ResponseEntity.ok(authService.checkEmail(email))
@@ -46,5 +74,10 @@ class AuthController(
     @GetMapping("/health")
     fun health(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("status" to "ok"))
+    }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(exception: IllegalArgumentException): ResponseEntity<Map<String, String>> {
+        return ResponseEntity.badRequest().body(mapOf("message" to (exception.message ?: "Invalid request")))
     }
 }

@@ -42,6 +42,13 @@ app:
   notifications:
     bridge-url: ${NOTIFICATION_BRIDGE_URL:}
     secret: ${INTERNAL_NOTIFICATION_SECRET:}
+  mail:
+    provider: ${MAIL_PROVIDER:resend}
+    from: ${MAIL_FROM:}
+    reply-to: ${MAIL_REPLY_TO:}
+    resend:
+      api-url: ${RESEND_API_URL:https://api.resend.com}
+      api-key: ${RESEND_API_KEY:}
   ticketing:
     outbox:
       relay-enabled: ${TICKETING_OUTBOX_RELAY_ENABLED:false}
