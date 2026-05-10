@@ -1,13 +1,8 @@
-import { expect, test, type Page } from '@playwright/test'
-
-async function enableVisualAuth(page: Page) {
-  await page.setExtraHTTPHeaders({
-    'x-playwright-visual-auth': '1',
-  })
-}
+import { expect, test } from '@playwright/test'
+import { captureNamedScreenshot, enableVisualAuth } from './test-helpers'
 
 test.describe('테마 선호 설정', () => {
-  test('프로필 다크 모드 토글은 html 클래스에 반영되고 새로고침 후에도 유지된다', async ({ page }) => {
+  test('프로필 다크 모드 토글은 html 클래스에 반영되고 새로고침 후에도 유지된다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
     await page.goto('/ko/profile', { waitUntil: 'networkidle' })
 
@@ -30,9 +25,11 @@ test.describe('테마 선호 설정', () => {
         preference: window.localStorage.getItem('perfo-theme'),
       }))
     ).toEqual({ isDark: true, preference: 'dark' })
+
+    await captureNamedScreenshot(page, testInfo)
   })
 
-  test('저장된 테마 선호가 없으면 OS 컬러 스킴을 따른다', async ({ browser }) => {
+  test('저장된 테마 선호가 없으면 OS 컬러 스킴을 따른다', async ({ browser }, testInfo) => {
     const context = await browser.newContext({ colorScheme: 'dark' })
     const page = await context.newPage()
 
@@ -51,6 +48,7 @@ test.describe('테마 선호 설정', () => {
       }))
     ).toEqual({ isDark: true, preference: null })
 
+    await captureNamedScreenshot(page, testInfo)
     await context.close()
   })
 })

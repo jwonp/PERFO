@@ -1,13 +1,8 @@
-import { expect, type Page, test } from '@playwright/test'
-
-async function enableVisualAuth(page: Page) {
-  await page.setExtraHTTPHeaders({
-    'x-playwright-visual-auth': '1',
-  })
-}
+import { expect, test } from '@playwright/test'
+import { captureNamedScreenshot, enableVisualAuth } from './test-helpers'
 
 test.describe('티켓 발급 플로우', () => {
-  test('발급 티켓 필터가 중복 허용 여부에 따라 목록을 전환한다', async ({ page }) => {
+  test('발급 티켓 필터가 중복 허용 여부에 따라 목록을 전환한다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
 
     await page.route('**/api/tickets**', async (route) => {
@@ -67,9 +62,11 @@ test.describe('티켓 발급 플로우', () => {
     await page.getByRole('button', { name: '중복 미허용' }).click()
     await expect(page.getByText('중복 허용 티켓')).not.toBeVisible()
     await expect(page.getByText('중복 미허용 티켓')).toBeVisible()
+
+    await captureNamedScreenshot(page, testInfo)
   })
 
-  test('발급자는 사용 장소와 세부 주소를 입력해 티켓을 발급할 수 있다', async ({ page }) => {
+  test('발급자는 사용 장소와 세부 주소를 입력해 티켓을 발급할 수 있다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
     let createdPayload: Record<string, unknown> | null = null
 
@@ -133,9 +130,11 @@ test.describe('티켓 발급 플로우', () => {
       allowDuplicate: false,
       maxPerUser: 1,
     })
+
+    await captureNamedScreenshot(page, testInfo)
   })
 
-  test('발급자는 기존 티켓의 상태와 오픈 시각을 수정할 수 있다', async ({ page }) => {
+  test('발급자는 기존 티켓의 상태와 오픈 시각을 수정할 수 있다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
     let updatedPayload: Record<string, unknown> | null = null
 
@@ -201,9 +200,11 @@ test.describe('티켓 발급 플로우', () => {
       name: 'Edited E2E Ticket',
       status: 'VERIFYING',
     })
+
+    await captureNamedScreenshot(page, testInfo)
   })
 
-  test('이미지 업로드 후 저장 실패 시 cleanup API를 호출한다', async ({ page }) => {
+  test('이미지 업로드 후 저장 실패 시 cleanup API를 호출한다', async ({ page }, testInfo) => {
     await enableVisualAuth(page)
     let cleanupRequested = false
 
@@ -283,5 +284,7 @@ test.describe('티켓 발급 플로우', () => {
 
     await expect(page.getByText('patch failed')).toBeVisible()
     expect(cleanupRequested).toBe(true)
+
+    await captureNamedScreenshot(page, testInfo)
   })
 })
