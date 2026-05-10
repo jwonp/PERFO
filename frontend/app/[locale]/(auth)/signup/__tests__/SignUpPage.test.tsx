@@ -52,6 +52,8 @@ describe('SignUpPage', () => {
   beforeEach(() => {
     push.mockClear()
     searchParams = new URLSearchParams('email=new%40example.com')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ exists: false }), { status: 200 })))
+    window.sessionStorage.clear()
   })
 
   it('비밀번호가 8자 미만이면 8자 이상 조건이 실패 상태다', async () => {
@@ -107,6 +109,6 @@ describe('SignUpPage', () => {
     await user.click(screen.getByRole('checkbox', { name: /개인정보/ }))
     await user.click(screen.getByRole('button', { name: '가입하기' }))
 
-    expect(push).toHaveBeenCalledWith('/verify?email=new%40example.com')
+    expect(push).toHaveBeenCalledWith('/verify?email=new%40example.com&mode=signup')
   })
 })

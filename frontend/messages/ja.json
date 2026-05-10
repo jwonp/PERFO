@@ -30,22 +30,35 @@
         "copyright": "© 2026 PERFO. All rights reserved."
     },
     "login": {
-        "welcome": "ようこそ、ログインしてください",
-        "subtitle": "メールアドレスを入力してください",
-        "google": "Google",
-        "naver": "Naver",
-        "line": "LINE"
+        "welcome": "PERFOにログイン",
+        "subtitle": "メールまたはソーシャルアカウントで続行できます。",
+        "google": "Googleで続行",
+        "naver": "Naverで続行",
+        "line": "LINEで続行",
+        "emailRequired": "メールアドレスを入力してください。",
+        "checkingEmail": "メールを確認中...",
+        "lookupFailed": "メール状態の確認に失敗しました。",
+        "socialAccountHint": "このメールアドレスは{provider}のソーシャルログインで登録されています。"
     },
     "passwordLogin": {
         "welcome": "ようこそ、{email}",
         "subtitle": "パスワードを入力してください",
-        "forgotPassword": "パスワードをお忘れですか？"
+        "forgotPassword": "パスワードをお忘れですか？",
+        "signingIn": "ログイン中..."
     },
     "verify": {
         "title": "{email}に6桁の認証コードを送信しました",
         "subtitle": "受信トレイを確認し、以下にコードを入力してください",
         "verify": "認証",
-        "resend": "コード再送信"
+        "resend": "コード再送信",
+        "verifying": "認証中...",
+        "previewCode": "テスト用認証コード: {code}",
+        "requestFailed": "認証コードの要求に失敗しました。",
+        "failed": "認証コードの確認に失敗しました。",
+        "missingEmail": "メール情報がありません。サインアップをやり直してください。",
+        "missingDraft": "サインアップ情報の有効期限が切れました。もう一度入力してください。",
+        "codeIncomplete": "6桁の認証コードをすべて入力してください。",
+        "signupFailed": "サインアップを完了できませんでした。"
     },
     "signup": {
         "title": "以下の要件を満たすパスワードを入力してください。",
@@ -53,7 +66,11 @@
         "signUp": "サインアップ",
         "termsAgreement": "（必須）利用規約に同意します",
         "privacyAgreement": "（必須）プライバシーポリシーに同意します",
-        "marketingAgreement": "（任意）マーケティング情報の受信に同意します"
+        "marketingAgreement": "（任意）マーケティング情報の受信に同意します",
+        "sendingCode": "認証コードを準備中...",
+        "submitFailed": "サインアップを続行できませんでした。",
+        "emailExists": "このメールアドレスはすでに登録されています。",
+        "socialAccountHint": "このメールアドレスは{provider}のソーシャルログインで登録されています。"
     },
     "signupComplete": {
         "title": "{email}のアカウントが作成されました",
@@ -62,7 +79,9 @@
     "resetPassword": {
         "title": "以下の要件を満たすパスワードを入力してください。",
         "subtitle": "{email}のパスワードをリセット",
-        "resetButton": "パスワードをリセット"
+        "resetButton": "パスワードをリセット",
+        "resetting": "パスワードを変更中...",
+        "failed": "パスワードをリセットできませんでした。"
     },
     "resetComplete": {
         "title": "{email}のパスワードが更新されました",
