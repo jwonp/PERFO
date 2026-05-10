@@ -5,7 +5,7 @@ import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth
 
 const backendUrl = process.env.BACKEND_URL;
 
-const getSessionUser = async (): Promise<{ id: string; email?: string | null } | null> => {
+const getSessionUser = async (): Promise<{ id: string; email?: string | null; role?: string | null } | null> => {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
 
@@ -13,7 +13,7 @@ const getSessionUser = async (): Promise<{ id: string; email?: string | null } |
         return null;
     }
 
-    return { id: userId, email: session?.user?.email };
+    return { id: userId, email: session?.user?.email, role: session?.user?.role };
 };
 
 export const GET = async (

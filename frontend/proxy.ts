@@ -29,10 +29,8 @@ const proxy = async (request: NextRequest) => {
         req: request,
         secret: process.env.NEXTAUTH_SECRET,
     });
-    const visualQaTokenEnabled =
-        process.env.PLAYWRIGHT_VISUAL_AUTH === "1" || process.env.NODE_ENV !== "production";
-    const visualQaToken =
-        visualQaTokenEnabled && request.headers.get("x-playwright-visual-auth") === "1";
+    const visualQaTokenEnabled = process.env.PLAYWRIGHT_VISUAL_AUTH === "1" || process.env.NODE_ENV !== "production";
+    const visualQaToken = visualQaTokenEnabled && request.headers.get("x-playwright-visual-auth") === "1";
     const isAuthenticated = Boolean(token || visualQaToken);
 
     const locale = pathname.match(/^\/(ko|en|ja)/)?.[1] || routing.defaultLocale;

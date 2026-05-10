@@ -34,7 +34,7 @@ describe('/api/tickets/[ticketId]/image route', () => {
   })
 
   it('POST는 세션 사용자 id 헤더와 함께 multipart 업로드를 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       imageKey: 'owner-1/5/generated.png',
@@ -70,7 +70,7 @@ describe('/api/tickets/[ticketId]/image route', () => {
   })
 
   it('DELETE는 imageKey query와 함께 cleanup 요청을 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
     createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(null, { status: 204 })))
 

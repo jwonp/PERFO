@@ -22,6 +22,7 @@ export const GET = async () => {
             {
                 id: session.user.id,
                 email: session.user.email,
+                role: session.user.role,
             },
             ["users"],
         );

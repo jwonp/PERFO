@@ -27,6 +27,7 @@ export const GET = async () => {
             {
                 id: session.user.id,
                 email: session.user.email,
+                role: session.user.role,
             },
             ["tickets"],
         );
@@ -79,6 +80,7 @@ export const POST = async (request: Request) => {
             {
                 id: session.user.id,
                 email: session.user.email,
+                role: session.user.role,
             },
             ["tickets"],
         );

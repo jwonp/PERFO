@@ -7,6 +7,7 @@ const DEFAULT_TTL_SECONDS = 30;
 type InternalApiJwtPayload = {
     userId: string;
     email?: string | null;
+    role?: string | null;
     scopes: string[];
 };
 
@@ -17,6 +18,7 @@ const base64UrlEncode = (value: string) => {
 export const createInternalApiJwt = ({
     userId,
     email,
+    role,
     scopes,
 }: InternalApiJwtPayload) => {
     const activeKid = process.env.INTERNAL_API_JWT_ACTIVE_KID;
@@ -46,6 +48,7 @@ export const createInternalApiJwt = ({
         uid: Number(userId),
         scope: scopes,
         ...(email ? { email } : {}),
+        ...(role ? { role } : {}),
     };
 
     const encodedHeader = base64UrlEncode(JSON.stringify(header));
