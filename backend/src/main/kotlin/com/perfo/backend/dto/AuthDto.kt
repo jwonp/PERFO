@@ -35,15 +35,71 @@ class AuthDto {
         val profileImage: String? = null
     )
 
+    data class VerificationCodeRequest(
+        @field:NotBlank
+        @field:Email
+        val email: String,
+        @field:NotBlank
+        val purpose: String,
+    )
+
+    data class VerificationCodeVerifyRequest(
+        @field:NotBlank
+        @field:Email
+        val email: String,
+        @field:NotBlank
+        val purpose: String,
+        @field:NotBlank
+        @field:Size(min = 6, max = 6)
+        val code: String,
+    )
+
+    data class VerifiedSignUpRequest(
+        @field:NotBlank
+        @field:Email
+        val email: String,
+        @field:NotBlank
+        @field:Size(min = 8)
+        val password: String,
+        val name: String? = null,
+        @field:NotBlank
+        val verificationToken: String,
+    )
+
+    data class PasswordResetRequest(
+        @field:NotBlank
+        @field:Email
+        val email: String,
+        @field:NotBlank
+        @field:Size(min = 8)
+        val password: String,
+        @field:NotBlank
+        val verificationToken: String,
+    )
+
     data class AuthResponse(
         val id: Long,
         val email: String,
         val name: String?,
         val provider: String,
+        val role: String,
         val profileImage: String?,
         val profileImageType: String?,
         val profileImageValue: String?,
         val profileImageUrl: String?
+    )
+
+    data class VerificationCodeResponse(
+        val email: String,
+        val purpose: String,
+        val expiresAt: String,
+        val previewCode: String? = null,
+    )
+
+    data class VerificationCodeVerifyResponse(
+        val email: String,
+        val purpose: String,
+        val verificationToken: String,
     )
 
     data class CheckEmailResponse(
@@ -53,5 +109,9 @@ class AuthDto {
 
     data class LogoutResponse(
         val success: Boolean
+    )
+
+    data class PasswordResetResponse(
+        val success: Boolean,
     )
 }

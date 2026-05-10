@@ -13,34 +13,30 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "users")
-class User(
+@Table(name = "auth_verification_codes")
+class AuthVerificationCode(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     var email: String = "",
-    @Column
-    var password: String? = null,
-    @Column
-    var name: String? = null,
-    @Column
-    var provider: String = "",
-    @Column(name = "provider_id")
-    var providerId: String? = null,
-    @Column(name = "profile_image")
-    var profileImage: String? = null,
-    @Column(name = "profile_image_type")
-    var profileImageType: String? = null,
-    @Column(name = "profile_image_value")
-    var profileImageValue: String? = null,
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var purpose: AuthVerificationPurpose = AuthVerificationPurpose.SIGN_UP,
+    @Column(name = "code_hash", nullable = false)
+    var codeHash: String = "",
+    @Column(name = "verification_key")
+    var verificationKey: String? = null,
+    @Column(name = "expires_at", nullable = false)
+    var expiresAt: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "verified_at")
+    var verifiedAt: LocalDateTime? = null,
+    @Column(name = "consumed_at")
+    var consumedAt: LocalDateTime? = null,
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     var createdAt: LocalDateTime? = null,
     @UpdateTimestamp
     @Column(name = "updated_at")
     var updatedAt: LocalDateTime? = null,
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    var role: UserRole = UserRole.USER,
 )

@@ -58,7 +58,7 @@ class AuthControllerTest {
         )
 
         val response = AuthDto.AuthResponse(
-            1L, "test@example.com", "테스터", "credentials", null, null, null, null
+            1L, "test@example.com", "테스터", "credentials", "USER", null, null, null, null
         )
 
         given(authService.signUp(request)).willReturn(response)
@@ -74,6 +74,7 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.email").value("test@example.com"))
             .andExpect(jsonPath("$.name").value("테스터"))
             .andExpect(jsonPath("$.provider").value("credentials"))
+            .andExpect(jsonPath("$.role").value("USER"))
     }
 
     @Test
@@ -107,7 +108,7 @@ class AuthControllerTest {
             "password123!"
         )
         val response = AuthDto.AuthResponse(
-            1L, "test@example.com", "테스터", "credentials", null, null, null, null
+            1L, "test@example.com", "테스터", "credentials", "USER", null, null, null, null
         )
 
         given(authService.login(request)).willReturn(response)
@@ -123,6 +124,7 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.email").value("test@example.com"))
             .andExpect(jsonPath("$.name").value("테스터"))
             .andExpect(jsonPath("$.provider").value("credentials"))
+            .andExpect(jsonPath("$.role").value("USER"))
     }
 
     @Test
