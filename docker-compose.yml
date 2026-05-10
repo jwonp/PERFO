@@ -54,7 +54,11 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:9000/minio/health/live || exit 1",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -113,6 +117,11 @@ services:
       MINIO_REGION: ${MINIO_REGION}
       MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
       MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
+      MAIL_PROVIDER: ${MAIL_PROVIDER}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO}
+      RESEND_API_URL: ${RESEND_API_URL:-https://api.resend.com}
+      RESEND_API_KEY: ${RESEND_API_KEY}
     profiles:
       - full
 
@@ -154,6 +163,11 @@ services:
       MINIO_REGION: ${MINIO_REGION}
       MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
       MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
+      MAIL_PROVIDER: ${MAIL_PROVIDER}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO}
+      RESEND_API_URL: ${RESEND_API_URL:-https://api.resend.com}
+      RESEND_API_KEY: ${RESEND_API_KEY}
     profiles:
       - dev
 
