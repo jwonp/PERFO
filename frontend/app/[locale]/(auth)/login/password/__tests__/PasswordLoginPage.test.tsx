@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PasswordLoginPage from '../page'
 
 let searchParams = new URLSearchParams()
+const push = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => searchParams,
@@ -25,6 +26,7 @@ vi.mock('next-intl', () => ({
 }))
 
 vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ push }),
   Link: ({ href, children, ...props }: React.ComponentProps<'a'>) => (
     <a href={typeof href === 'string' ? href : String(href)} {...props}>
       {children}
@@ -35,6 +37,7 @@ vi.mock('@/i18n/navigation', () => ({
 describe('PasswordLoginPage', () => {
   beforeEach(() => {
     searchParams = new URLSearchParams()
+    push.mockReset()
   })
 
   it('shows the email from the query string', () => {

@@ -5,16 +5,25 @@ import LoginPage from '../page'
 import { signIn } from 'next-auth/react'
 
 const push = vi.fn()
+let searchParams = new URLSearchParams()
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => searchParams,
+}))
 
 vi.mock('next-intl', () => ({
   useLocale: () => 'ko',
   useTranslations: () => (key: string) => {
     const messages: Record<string, string> = {
-      'login.welcome': '환영합니다, 로그인 해주세요',
-      'login.subtitle': '이메일을 입력하여 계속하세요',
-      'login.google': 'Google',
-      'login.naver': 'Naver',
-      'login.line': 'LINE',
+      'login.welcome': 'PERFO에 로그인하세요',
+      'login.subtitle': '이메일 또는 소셜 계정으로 계속할 수 있습니다.',
+      'login.google': 'Google로 계속하기',
+      'login.naver': '네이버로 계속하기',
+      'login.line': 'LINE으로 계속하기',
+      'login.emailRequired': '이메일 주소를 입력해 주세요.',
+      'login.checkingEmail': '이메일 확인 중...',
+      'login.lookupFailed': '이메일 상태를 확인하지 못했습니다.',
+      'login.socialAccountHint': '이 이메일은 social 소셜 로그인으로 가입되어 있습니다.',
       'common.email': '이메일 주소',
       'common.emailPlaceholder': 'name@example.com',
       'common.next': '다음',
@@ -40,35 +49,37 @@ vi.mock('next-auth/react', () => ({
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    searchParams = new URLSearchParams()
   })
 
-  it('renders the email login entry controls', () => {
+  it('renders email and social login entry controls', () => {
     render(<LoginPage />)
 
     expect(screen.getByRole('heading', { name: 'PERFO' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '이메일 주소' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '다음' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /google/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /naver/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /line/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Google로 계속하기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '네이버로 계속하기' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'LINE으로 계속하기' })).toBeInTheDocument()
   })
 
-  it('passes the typed email to the password step', async () => {
+  it('routes unknown email to sign-up', async () => {
     const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ exists: false }), { status: 200 })))
+
     render(<LoginPage />)
 
-    await user.type(screen.getByRole('textbox', { name: '이메일 주소' }), ' user@example.com ')
+    await user.type(screen.getByRole('textbox', { name: '이메일 주소' }), 'new@example.com')
     await user.click(screen.getByRole('button', { name: '다음' }))
 
-    expect(push).toHaveBeenCalledWith('/login/password?email=user%40example.com')
+    expect(push).toHaveBeenCalledWith('/signup?email=new%40example.com')
   })
 
   it('starts the requested social login provider', async () => {
     const user = userEvent.setup()
     render(<LoginPage />)
 
-    await user.click(screen.getByRole('button', { name: /naver/i }))
+    await user.click(screen.getByRole('button', { name: '네이버로 계속하기' }))
 
-    expect(signIn).toHaveBeenCalledWith('naver', { callbackUrl: '/' })
+    expect(signIn).toHaveBeenCalledWith('naver', { callbackUrl: '/reserved' })
   })
 })

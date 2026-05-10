@@ -30,22 +30,35 @@
         "copyright": "© 2026 PERFO. All rights reserved."
     },
     "login": {
-        "welcome": "Welcome, please log in",
-        "subtitle": "Enter your email to continue",
-        "google": "Google",
-        "naver": "Naver",
-        "line": "LINE"
+        "welcome": "Log in to PERFO",
+        "subtitle": "Continue with email or a social account.",
+        "google": "Continue with Google",
+        "naver": "Continue with Naver",
+        "line": "Continue with LINE",
+        "emailRequired": "Enter your email address.",
+        "checkingEmail": "Checking email...",
+        "lookupFailed": "Failed to check the email status.",
+        "socialAccountHint": "This email is registered with {provider} social login."
     },
     "passwordLogin": {
         "welcome": "Welcome, {email}",
         "subtitle": "Enter your password to continue",
-        "forgotPassword": "Forgot password?"
+        "forgotPassword": "Forgot password?",
+        "signingIn": "Signing in..."
     },
     "verify": {
         "title": "We've sent a 6-digit verification code to {email}",
         "subtitle": "Check your inbox and enter the code below",
         "verify": "Verify",
-        "resend": "Resend Code"
+        "resend": "Resend Code",
+        "verifying": "Verifying...",
+        "previewCode": "Test verification code: {code}",
+        "requestFailed": "Failed to request a verification code.",
+        "failed": "Failed to verify the code.",
+        "missingEmail": "Email information is missing. Start sign-up again.",
+        "missingDraft": "Your sign-up information expired. Enter it again.",
+        "codeIncomplete": "Enter all 6 digits of the verification code.",
+        "signupFailed": "Failed to complete sign-up."
     },
     "signup": {
         "title": "Enter a password that meets the requirements below.",
@@ -53,7 +66,11 @@
         "signUp": "Sign Up",
         "termsAgreement": "(Required) I agree to the Terms of Service",
         "privacyAgreement": "(Required) I agree to the Privacy Policy",
-        "marketingAgreement": "(Optional) I agree to receive marketing updates"
+        "marketingAgreement": "(Optional) I agree to receive marketing updates",
+        "sendingCode": "Preparing verification code...",
+        "submitFailed": "Failed to continue sign-up.",
+        "emailExists": "This email is already registered.",
+        "socialAccountHint": "This email is registered with {provider} social login."
     },
     "signupComplete": {
         "title": "Account created for {email}",
@@ -62,7 +79,9 @@
     "resetPassword": {
         "title": "Enter a password that meets the requirements below.",
         "subtitle": "Reset your password for {email}",
-        "resetButton": "Reset Password"
+        "resetButton": "Reset Password",
+        "resetting": "Updating password...",
+        "failed": "Failed to reset your password."
     },
     "resetComplete": {
         "title": "Password updated for {email}",

@@ -1,11 +1,16 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ResetPasswordCompletePage = () => {
     const t = useTranslations();
+    const searchParams = useSearchParams();
+    const email = searchParams.get("email")?.trim() || "user@example.com";
 
     return (
         <Card className="border-0 bg-transparent py-0 text-center shadow-none">
@@ -14,7 +19,7 @@ const ResetPasswordCompletePage = () => {
                     <CheckCircle className="h-14 w-14 text-primary" strokeWidth={1.5} />
                 </div>
                 <CardTitle className="text-2xl text-[var(--text)]">
-                    {t("resetComplete.title", { email: "user@example.com" })}
+                    {t("resetComplete.title", { email })}
                 </CardTitle>
                 <CardDescription className="max-w-xs leading-relaxed">
                     {t("resetComplete.description")}
