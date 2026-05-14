@@ -13,12 +13,17 @@ object EventDto {
 
     data class EventResponse(
         val id: Long,
+        val issuedTicketId: Long?,
         val name: String,
         val venue: String,
+        val googlePlaceId: String? = null,
+        val detailAddress: String? = null,
         val validFrom: String,
         val validUntil: String,
+        val validDate: String,
         val saleOpenAt: String,
         val saleCloseAt: String,
+        val imageUrl: String? = null,
         val remainingQuantity: Int,
         val totalQuantity: Int,
         val maxPerUser: Int,
