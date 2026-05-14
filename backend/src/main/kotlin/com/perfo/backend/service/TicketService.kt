@@ -147,6 +147,7 @@ class TicketService(
 
         ticket.status = resolvedStatus
         val saved = issuedTicketRepository.save(ticket)
+        syncLinkedEvent(saved)
         val savedStatus = resolveEffectiveStatus(saved.status, saved.openAt, saved.validDate)
         notifyIssuedStatusTransition(saved, previousStatus, savedStatus)
         return saved.toResponse(resolveCurrentTime())
@@ -169,6 +170,7 @@ class TicketService(
             val previousStatus = ticket.status
             ticket.status = IssuedTicketStatus.EXPIRED
             val saved = issuedTicketRepository.save(ticket)
+            syncLinkedEvent(saved)
             notifyIssuedStatusTransition(saved, previousStatus, IssuedTicketStatus.EXPIRED)
         }
 
@@ -180,6 +182,7 @@ class TicketService(
                 val previousStatus = ticket.status
                 ticket.status = IssuedTicketStatus.VERIFYING
                 val saved = issuedTicketRepository.save(ticket)
+                syncLinkedEvent(saved)
                 notifyIssuedStatusTransition(saved, previousStatus, IssuedTicketStatus.VERIFYING)
             }
     }
@@ -437,7 +440,7 @@ class TicketService(
         event.saleCloseAt = resolveSaleCloseAt(ticket)
         event.maxPerUser = ticket.maxPerUser
         event.allowDuplicate = ticket.allowDuplicate
-        event.active = ticket.status != IssuedTicketStatus.EXPIRED
+        event.active = ticket.status == IssuedTicketStatus.ISSUING || ticket.status == IssuedTicketStatus.VERIFYING
         event.discoveryMode = ticket.discoveryMode
         event.issuedTicketId = ticketId
         event.nextTicketNumber = event.nextTicketNumber.coerceAtLeast(1)

@@ -225,6 +225,11 @@ class TicketServiceTest {
         val ticket = issuedTicket(id = 1L, ownerUserId = "owner-1", status = IssuedTicketStatus.INACTIVE)
         given(issuedTicketRepository.findById(1L)).willReturn(Optional.of(ticket))
         given(issuedTicketRepository.save(ticket)).willAnswer { it.arguments[0] as IssuedTicket }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 21L
+            event
+        }
 
         val updated = ticketService.updateIssuedStatus(1L, "owner-1", IssuedTicketStatus.ISSUING)
 
@@ -283,6 +288,11 @@ class TicketServiceTest {
             ),
         ).willReturn(listOf(ticket))
         given(issuedTicketRepository.save(ticket)).willAnswer { it.arguments[0] as IssuedTicket }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 31L
+            event
+        }
 
         ticketService.reconcileIssuedTicketStatuses()
 
@@ -328,6 +338,11 @@ class TicketServiceTest {
             ),
         ).willReturn(emptyList())
         given(issuedTicketRepository.save(expiredTicket)).willAnswer { it.arguments[0] as IssuedTicket }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 32L
+            event
+        }
 
         ticketService.reconcileIssuedTicketStatuses()
 
