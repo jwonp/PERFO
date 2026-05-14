@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Pencil, ScanLine } from "lucide-react";
+import { Copy, ImageOff, Pencil, ScanLine, Share2, Sparkles } from "lucide-react";
 
 import TicketShell from "@/components/tickets/ticket-shell";
 import type { IssuedTicketCardProps } from "@/components/tickets/issued-ticket-card.types";
@@ -18,8 +19,19 @@ const IssuedTicketCard = ({
     onScan,
     scanHref,
     linkOnlyLabel,
+    copyBookingUrlLabel,
+    shareBookingUrlLabel,
+    copySuccessMessage,
+    canShareBookingUrl,
+    onCopyBookingUrl,
+    onShareBookingUrl,
 }: IssuedTicketCardProps) => {
     const progressPct = Math.round((ticket.issuedCount / ticket.totalCount) * 100);
+    const [imageUnavailable, setImageUnavailable] = useState(false);
+
+    useEffect(() => {
+        setImageUnavailable(false);
+    }, [ticket.id, ticket.imageUrl]);
 
     return (
         <TicketShell
@@ -52,12 +64,33 @@ const IssuedTicketCard = ({
             }
             validDate={ticket.validDate}
             media={
-                <div className="relative h-[158px] w-full overflow-hidden">
-                    {ticket.imageUrl ? (
+                <div className="relative h-[178px] w-full overflow-hidden bg-[linear-gradient(135deg,rgba(16,55,131,0.18),rgba(155,175,217,0.12)_55%,rgba(255,255,255,0.82))]">
+                    {ticket.imageUrl && !imageUnavailable ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={ticket.imageUrl} alt={ticket.name} className="h-full w-full object-cover" />
+                        <img
+                            src={ticket.imageUrl}
+                            alt={ticket.name}
+                            className="h-full w-full object-cover"
+                            onError={() => setImageUnavailable(true)}
+                        />
                     ) : (
-                        <div className="h-full w-full bg-[var(--surface-muted)]" />
+                        <div className="flex h-full w-full items-end justify-between bg-[linear-gradient(180deg,rgba(16,55,131,0.04),rgba(16,55,131,0.16))] p-5">
+                            <div className="space-y-2">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-white/75 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-primary shadow-sm backdrop-blur">
+                                    <Sparkles className="h-3 w-3" />
+                                    PERFO Ticket
+                                </span>
+                                <p className="max-w-[220px] text-sm font-semibold leading-tight text-primary">
+                                    Ticket preview
+                                </p>
+                                <p className="text-xs text-[var(--text-muted)]">
+                                    Cover image unavailable
+                                </p>
+                            </div>
+                            <div className="rounded-2xl border border-white/70 bg-white/78 p-3 text-primary shadow-sm backdrop-blur">
+                                <ImageOff className="h-5 w-5" />
+                            </div>
+                        </div>
                     )}
                 </div>
             }
@@ -97,7 +130,7 @@ const IssuedTicketCard = ({
                 </>
             }
         >
-            <div>
+            <div className="space-y-3">
                 <div className="mb-1 flex items-center justify-between">
                     <span className="text-xs text-[var(--text-muted)]">{issuedCountLabel}</span>
                     <span className="text-xs font-semibold text-primary">
@@ -110,6 +143,35 @@ const IssuedTicketCard = ({
                         style={{ width: `${progressPct}%` }}
                     />
                 </div>
+                {onCopyBookingUrl ? (
+                    <div className="space-y-2 pt-1">
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-border px-3 text-xs font-medium text-[var(--text)] transition-colors hover:border-primary hover:text-primary"
+                                onClick={onCopyBookingUrl}
+                            >
+                                <Copy className="h-3.5 w-3.5" />
+                                {copyBookingUrlLabel}
+                            </button>
+                            {canShareBookingUrl && onShareBookingUrl && shareBookingUrlLabel ? (
+                                <button
+                                    type="button"
+                                    className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
+                                    onClick={onShareBookingUrl}
+                                >
+                                    <Share2 className="h-3.5 w-3.5" />
+                                    {shareBookingUrlLabel}
+                                </button>
+                            ) : (
+                                <div />
+                            )}
+                        </div>
+                        {copySuccessMessage ? (
+                            <p className="text-xs font-medium text-primary">{copySuccessMessage}</p>
+                        ) : null}
+                    </div>
+                ) : null}
             </div>
         </TicketShell>
     );

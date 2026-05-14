@@ -181,6 +181,7 @@
         "statusExpired": "期限切れ",
         "statusVerifying": "検票中",
         "empty": "発行したチケットはありません",
+        "emptyDescription": "まだ発行したチケットはありません。最初のチケットを作成して公開フローを始めましょう。",
         "filterAll": "すべて",
         "filterAllowDuplicate": "重複許可",
         "filterNoDuplicate": "重複不可",

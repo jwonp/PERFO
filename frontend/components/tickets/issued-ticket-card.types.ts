@@ -28,4 +28,10 @@ export interface IssuedTicketCardProps {
     onScan?: () => void;
     scanHref?: string;
     linkOnlyLabel?: string;
+    copyBookingUrlLabel?: string;
+    shareBookingUrlLabel?: string;
+    copySuccessMessage?: string | null;
+    canShareBookingUrl?: boolean;
+    onCopyBookingUrl?: () => void;
+    onShareBookingUrl?: () => void;
 }

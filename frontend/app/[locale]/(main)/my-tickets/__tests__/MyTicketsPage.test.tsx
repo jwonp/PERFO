@@ -225,7 +225,7 @@ describe('MyTicketsPage', () => {
       discoveryMode: 'LISTED',
     })
 
-    const ticket = screen.getAllByText('PERFO Test Ticket')[1]?.closest('article')
+    const ticket = screen.getByText('PERFO Test Ticket').closest('article')
 
     expect(ticket).not.toBeNull()
     expect(within(ticket as HTMLElement).getByText('올림픽공원 체조경기장')).toBeInTheDocument()
