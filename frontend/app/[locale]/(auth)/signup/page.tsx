@@ -111,7 +111,7 @@ const SignUpPage = () => {
   };
 
   return (
-    <Card className="app-card gap-5 px-6 py-8">
+    <Card className="app-card gap-6 px-6 py-8">
       <div className="text-center">
         <Link href="/">
           <h1 className="text-2xl font-extrabold text-primary">PERFO</h1>
@@ -129,6 +129,15 @@ const SignUpPage = () => {
 
       <CardContent className="px-0">
         <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="rounded-2xl border border-border bg-[var(--surface-muted)]/55 px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
+              {t("common.email")}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-[var(--text)]">
+              {email}
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label
               htmlFor="display-name"
@@ -210,7 +219,7 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2.5 rounded-2xl border border-border bg-[var(--surface-muted)]/55 p-4">
             {rules.map((rule) => (
               <PasswordRule
                 key={rule.label}
@@ -255,26 +264,30 @@ const SignUpPage = () => {
           </div>
 
           {error ? (
-            <p className="text-sm text-[var(--danger)]">{error}</p>
+            <p className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger)_22%,white)] bg-[color:color-mix(in_srgb,var(--danger)_10%,white)] px-4 py-3 text-sm text-[var(--danger)]">
+              {error}
+            </p>
           ) : null}
 
-          <Button
-            type="submit"
-            disabled={!canSubmit || submitting}
-            className="h-12 w-full"
-          >
-            {submitting ? t("signup.sendingCode") : t("signup.signUp")}
-          </Button>
-
-          <p className="text-center text-xs text-[var(--text-subtle)]">
-            {t("common.termsPrefix")}{" "}
-            <Link
-              href="#"
-              className="text-[var(--text-muted)] underline transition-colors hover:text-primary"
+          <div className="space-y-3 pt-2">
+            <Button
+              type="submit"
+              disabled={!canSubmit || submitting}
+              className="h-12 w-full"
             >
-              {t("common.termsLink")}
-            </Link>
-          </p>
+              {submitting ? t("signup.sendingCode") : t("signup.signUp")}
+            </Button>
+
+            <p className="text-center text-xs text-[var(--text-subtle)]">
+              {t("common.termsPrefix")}{" "}
+              <Link
+                href="#"
+                className="text-[var(--text-muted)] underline transition-colors hover:text-primary"
+              >
+                {t("common.termsLink")}
+              </Link>
+            </p>
+          </div>
         </form>
       </CardContent>
     </Card>
