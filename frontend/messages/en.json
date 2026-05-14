@@ -180,6 +180,7 @@
         "statusExpired": "Expired",
         "statusVerifying": "Verifying",
         "empty": "No issued tickets",
+        "emptyDescription": "You have not issued any tickets yet. Create your first ticket to start the public flow.",
         "filterAll": "All",
         "filterAllowDuplicate": "Allow duplicate",
         "filterNoDuplicate": "No duplicate",

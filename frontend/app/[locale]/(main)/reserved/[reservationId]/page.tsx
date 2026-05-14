@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 
 type QrTokenResponse = {
@@ -14,12 +15,14 @@ const ReservedQrPage = () => {
     const params = useParams<{ reservationId: string }>();
     const t = useTranslations();
     const [data, setData] = useState<QrTokenResponse | null>(null);
+    const [qrImageUrl, setQrImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const loadToken = async () => {
         setLoading(true);
         setError(null);
+        setQrImageUrl(null);
         try {
             const response = await fetch(`/api/reservations/${params.reservationId}/qr-token`, {
                 method: "POST",
@@ -30,7 +33,17 @@ const ReservedQrPage = () => {
                 return;
             }
             const body = (await response.json()) as QrTokenResponse;
+            const nextQrImageUrl = await QRCode.toDataURL(body.token, {
+                errorCorrectionLevel: "M",
+                margin: 1,
+                width: 280,
+                color: {
+                    dark: "#14233f",
+                    light: "#ffffff",
+                },
+            });
             setData(body);
+            setQrImageUrl(nextQrImageUrl);
         } catch {
             setError(t("reserved.qrLoadError"));
         } finally {
@@ -56,7 +69,17 @@ const ReservedQrPage = () => {
                 ) : data ? (
                     <>
                         <p className="text-xs text-[var(--text-muted)]">{t("reserved.qrExpiresAt")}: {data.expiresAt}</p>
-                        <pre className="mt-3 overflow-x-auto rounded-md bg-[var(--surface-muted)] p-3 text-xs text-[var(--text)]">{data.token}</pre>
+                        {qrImageUrl ? (
+                            <div className="mt-4 overflow-hidden rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src={qrImageUrl}
+                                    alt="Reservation QR code"
+                                    className="mx-auto h-auto w-full max-w-[280px]"
+                                />
+                            </div>
+                        ) : null}
+                        <pre className="mt-4 overflow-x-auto rounded-md bg-[var(--surface-muted)] p-3 text-xs text-[var(--text)]">{data.token}</pre>
                     </>
                 ) : null}
             </div>

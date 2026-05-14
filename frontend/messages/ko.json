@@ -180,6 +180,7 @@
         "statusExpired": "기간만료",
         "statusVerifying": "검표중",
         "empty": "발급한 티켓이 없습니다",
+        "emptyDescription": "아직 발급한 티켓이 없습니다. 첫 티켓을 만들어 공개 흐름을 시작해 보세요.",
         "filterAll": "전체",
         "filterAllowDuplicate": "중복 허용",
         "filterNoDuplicate": "중복 미허용",

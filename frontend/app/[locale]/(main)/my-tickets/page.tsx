@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Copy, Plus, Search, Share2 } from "lucide-react";
+import { AlertTriangle, Plus, Search } from "lucide-react";
 import PageEmptyState from "@/components/layout/PageEmptyState";
 import PageFab from "@/components/layout/PageFab";
 import PageFilterBar from "@/components/layout/PageFilterBar";
@@ -424,8 +424,7 @@ const MyTicketsPage = () => {
     const [sheetOpen, setSheetOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<IssuedTicket | null>(null);
     const [duplicateFilter, setDuplicateFilter] = useState<DuplicatePurchaseFilter>("ALL");
-    const [shareTarget, setShareTarget] = useState<IssuedTicket | null>(null);
-    const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+    const [copiedTicketId, setCopiedTicketId] = useState<string | null>(null);
 
     const openCreate = () => {
         setEditTarget(null);
@@ -510,7 +509,6 @@ const MyTicketsPage = () => {
             setTickets((currentTickets) =>
                 currentTickets.map((ticket) => (ticket.id === nextTicket.id ? nextTicket : ticket)),
             );
-            setShareTarget(nextTicket);
             return;
         }
 
@@ -562,7 +560,6 @@ const MyTicketsPage = () => {
 
         const nextTicket = mapTicket(finalTicket);
         setTickets((currentTickets) => [nextTicket, ...currentTickets.filter((ticket) => ticket.id !== nextTicket.id)]);
-        setShareTarget(nextTicket);
     };
 
     const buildPublicBookingUrl = (ticket: IssuedTicket) => {
@@ -584,7 +581,7 @@ const MyTicketsPage = () => {
         }
 
         await navigator.clipboard.writeText(publicUrl);
-        setCopyFeedback(t("myTickets.copySuccess"));
+        setCopiedTicketId(ticket.id);
     };
 
     const handleShareBookingUrl = async (ticket: IssuedTicket) => {
@@ -696,43 +693,6 @@ const MyTicketsPage = () => {
                             </TabsButton>
                         </Tabs>
                     </PageFilterBar>
-                    {shareTarget ? (
-                        <div className="rounded-3xl border border-border bg-[var(--surface-raised)] px-5 py-4">
-                            <div className="flex flex-col gap-3">
-                                <div>
-                                    <p className="text-sm font-semibold text-primary">{t("myTickets.publicBookingTitle")}</p>
-                                    <p className="mt-1 text-xs text-[var(--text-muted)]">{shareTarget.name}</p>
-                                </div>
-                                <div className="rounded-2xl bg-[var(--surface-muted)] px-4 py-3 text-xs text-[var(--text)] break-all">
-                                    {buildPublicBookingUrl(shareTarget) ?? shareTarget.publicBookingPath ?? t("myTickets.publicBookingUnavailable")}
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="h-11 flex-1 rounded-xl border-border"
-                                        onClick={() => void handleCopyBookingUrl(shareTarget)}
-                                    >
-                                        <Copy className="h-4 w-4" />
-                                        {t("myTickets.copyBookingUrl")}
-                                    </Button>
-                                    {typeof navigator !== "undefined" && navigator.share ? (
-                                        <Button
-                                            type="button"
-                                            className="h-11 flex-1 rounded-xl"
-                                            onClick={() => void handleShareBookingUrl(shareTarget)}
-                                        >
-                                            <Share2 className="h-4 w-4" />
-                                            {t("myTickets.shareBookingUrl")}
-                                        </Button>
-                                    ) : null}
-                                </div>
-                                {copyFeedback ? (
-                                    <p className="text-xs text-primary">{copyFeedback}</p>
-                                ) : null}
-                            </div>
-                        </div>
-                    ) : null}
                 </PageSection>
             </div>
 
@@ -740,6 +700,7 @@ const MyTicketsPage = () => {
                 {hasLoadedTickets && filteredTickets.length === 0 ? (
                     <PageEmptyState
                         title={emptyStateTitle}
+                        description={t("myTickets.emptyDescription")}
                         icon={
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-14 w-14">
                                 <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
@@ -762,10 +723,17 @@ const MyTicketsPage = () => {
                                 canScan={ticket.status === "ISSUING" || ticket.status === "VERIFYING"}
                                 scanHref={`/${locale}/my-tickets/${ticket.id}/scan`}
                                 onEdit={() => openEdit(ticket)}
+                                copyBookingUrlLabel={t("myTickets.copyBookingUrl")}
+                                shareBookingUrlLabel={t("myTickets.shareBookingUrl")}
+                                copySuccessMessage={copiedTicketId === ticket.id ? t("myTickets.copySuccess") : null}
+                                canShareBookingUrl={typeof navigator !== "undefined" && typeof navigator.share === "function"}
+                                onCopyBookingUrl={() => void handleCopyBookingUrl(ticket)}
+                                onShareBookingUrl={() => void handleShareBookingUrl(ticket)}
                             />
                         ))}
                     </div>
                 )}
+
             </div>
 
             <PageFab
