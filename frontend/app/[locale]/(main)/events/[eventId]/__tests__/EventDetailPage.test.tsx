@@ -5,7 +5,7 @@ import EventDetailPage from "../page";
 
 const push = vi.fn();
 
-vi.mock("next/navigation", () => ({
+vi.mock("@/i18n/navigation", () => ({
     useRouter: () => ({ push }),
 }));
 
@@ -28,11 +28,9 @@ vi.mock("next-intl", () => ({
             "events.detailMetaDiscovery": "노출 방식",
             "events.discoveryListed": "목록 노출",
             "events.discoveryLinkOnly": "링크 전용",
-            "events.detailLoadError": "이벤트 상세를 불러오지 못했습니다.",
+            "events.detailLoadError": "티켓 상세를 불러오지 못했습니다.",
+            "events.remainingLabel": "잔여 수량",
         };
-        if (key === "events.remaining") {
-            return `잔여 ${values?.remaining} / ${values?.total}`;
-        }
         return messages[key] ?? key;
     },
 }));
@@ -40,16 +38,20 @@ vi.mock("next-intl", () => ({
 describe("EventDetailPage", () => {
     beforeEach(() => {
         push.mockReset();
+        vi.stubEnv("BACKEND_URL", "http://backend.test");
         vi.stubGlobal("crypto", { randomUUID: () => "request-1" } as Crypto);
         vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
             const url = String(input);
-            if (url === "/api/events/11") {
+            if (url === "http://backend.test/api/events/11") {
                 return {
                     ok: true,
                     json: async () => ({
                         id: 11,
                         name: "PERFO 2026 SEOUL",
                         venue: "올림픽공원",
+                        detailAddress: "체조경기장",
+                        validDate: "2026-08-15",
+                        imageUrl: "/api/tickets/11/image",
                         saleOpenAt: "2026-05-20T03:00:00Z",
                         saleCloseAt: "2026-06-01T09:00:00Z",
                         remainingQuantity: 120,
@@ -71,15 +73,21 @@ describe("EventDetailPage", () => {
     });
 
     afterEach(() => {
+        vi.unstubAllEnvs();
         vi.unstubAllGlobals();
     });
 
     it("상세를 렌더링하고 예매 성공 후 reserved로 이동한다", async () => {
         const user = userEvent.setup();
-        render(<EventDetailPage params={{ eventId: "11" }} />);
+        render(await EventDetailPage({
+            params: Promise.resolve({ locale: "ko", eventId: "11" }),
+        }));
 
         expect(await screen.findByText("PERFO 2026 SEOUL")).toBeInTheDocument();
-        expect(screen.getByText((content) => content.includes("링크 전용"))).toBeInTheDocument();
+        expect(screen.getByText("링크 전용")).toBeInTheDocument();
+        expect(screen.getByText((content) => content.includes("노출 방식") && content.includes("링크 전용"))).toBeInTheDocument();
+        expect(screen.getByText("잔여 수량")).toBeInTheDocument();
+        expect(screen.getByText("120 / 300")).toBeInTheDocument();
 
         await user.click(screen.getByRole("button", { name: "예매하기" }));
 
@@ -87,6 +95,6 @@ describe("EventDetailPage", () => {
             "/api/ticketing/requests",
             expect.objectContaining({ method: "POST" }),
         ));
-        expect(push).toHaveBeenCalledWith("/ko/reserved");
+        expect(push).toHaveBeenCalledWith("/reserved");
     });
 });

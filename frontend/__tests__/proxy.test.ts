@@ -46,4 +46,12 @@ describe('proxy', () => {
     expect(response.status).toBe(307)
     expect(response.headers.get('location')).toBe('http://localhost:3000/ko/login?callbackUrl=%2Fko%2Fprofile')
   })
+
+  it('allows unauthenticated users to access public event pages', async () => {
+    getToken.mockResolvedValue(null)
+
+    const response = await proxy(new NextRequest('http://localhost:3000/ko/events/11'))
+
+    expect(response.status).toBe(200)
+  })
 })
