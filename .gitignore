@@ -69,3 +69,5 @@ docs/**/.env*
 
 /frontend/.data
 frontend/.pnpm-store
+
+docs
