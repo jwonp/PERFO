@@ -16,6 +16,16 @@
 - [08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md](./08_UBUNTU_SERVER_CICD_AUTOSCALING_PLAN.md): Ubuntu Server + Cloudflare Tunnel 기반 CI/CD와 오토스케일링 운영 계획
 - [09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md](./09_ONPREM_MINIPC_LOAD_ARCHITECTURE_PLAN.md): 온프레미스 미니PC 기준 고부하 처리 구현 계획
 - [10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md](./10_MINIO_PROFILE_IMAGE_STORAGE_PLAN.md): MinIO 기반 프로필 이미지 저장소 도입 계획
+- [11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md](./11_ISSUED_TICKET_EDIT_OPEN_TIME_IMAGE_PLAN.md): 발급 티켓 상태 수정, 오픈 시간, 이미지 추가/수정 구현 계획
+- [12_TICKET_FILTER_PLAN.md](./12_TICKET_FILTER_PLAN.md): 사용 완료 티켓 표시와 중복 구매 허용 필터 구현 계획
+- [13_PERFORMANCE_TEST_PLAN.md](./13_PERFORMANCE_TEST_PLAN.md): 성능 테스트 실행과 결과 문서화 계획
+- [14_CICD_IMPLEMENTATION_PLAN.md](./14_CICD_IMPLEMENTATION_PLAN.md): 현재 Ubuntu 서버 기준 CI/CD 구축 실행 계획
+- [15_TICKETING_ENGINE_STABILITY_PLAN.md](./15_TICKETING_ENGINE_STABILITY_PLAN.md): 티켓 오픈 시각, 예매 가능 시점, 검표 시각을 안정적으로 운영하기 위한 티켓팅 엔진 구현 계획
+- [16_TICKETING_PHASE1_DEPLOYMENT_PLAN.md](./16_TICKETING_PHASE1_DEPLOYMENT_PLAN.md): 티켓팅 엔진 Phase 1 운영 배포 절차와 검증 계획
+- [17_TICKETING_PROJECTION_CONTRACT.md](./17_TICKETING_PROJECTION_CONTRACT.md): 티켓팅 outbox relay와 projection consumer payload 계약
+- [18_TICKETING_OBSERVABILITY_ALERTS.md](./18_TICKETING_OBSERVABILITY_ALERTS.md): 티켓팅 관측성과 알림 기준 정리
+- [19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md](./19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md): 사용자가 이벤트를 발견하고 상세를 거쳐 예매까지 진입하는 플로우 구현 계획
+- [20_MVP_OPEN_READINESS_PLAN.md](./20_MVP_OPEN_READINESS_PLAN.md): 현재 구현 상태를 기준으로 MVP 오픈 차단 이슈와 우선 개발 계획을 정리한 문서
 
 ## 개발 원칙
 

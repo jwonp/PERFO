@@ -3,6 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import ReservedQrPage from '../[reservationId]/page'
 
+vi.mock('qrcode', () => ({
+  default: {
+    toDataURL: vi.fn(async (value: string) => `data:image/png;base64,${value}`),
+  },
+}))
+
 vi.mock('next/navigation', () => ({
   useParams: () => ({ reservationId: '1' }),
 }))
@@ -37,9 +43,13 @@ describe('예약 티켓 QR 페이지', () => {
     vi.clearAllMocks()
   })
 
-  it('QR 토큰을 로드해 표시한다', async () => {
+  it('QR 토큰을 로드해 실제 QR 이미지를 표시한다', async () => {
     render(<ReservedQrPage />)
     await waitFor(() => expect(screen.getByText('qr-token-test-42')).toBeInTheDocument())
+    expect(screen.getByRole('img', { name: 'Reservation QR code' })).toHaveAttribute(
+      'src',
+      'data:image/png;base64,qr-token-test-42',
+    )
     expect(screen.getByText(/만료 시각/)).toBeInTheDocument()
   })
 

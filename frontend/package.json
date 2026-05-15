@@ -1,6 +1,6 @@
 {
   "name": "perfo",
-  "version": "0.2.0-rc.2",
+  "version": "0.2.0-rc.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -33,6 +33,7 @@
     "next-intl": "^4.8.3",
     "pg": "8.20.0",
     "prisma": "^7.3.0",
+    "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0",

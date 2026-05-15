@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth.config";
+import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth";
 
 const backendUrl = process.env.BACKEND_URL;
 
@@ -27,12 +28,16 @@ export const GET = async () => {
         return NextResponse.json({ message: "BACKEND_URL is not configured" }, { status: 500 });
     }
 
+    let authHeaders: { Authorization: string };
+    try {
+        authHeaders = createInternalProxyAuthHeaders(user, ["users"]);
+    } catch {
+        return NextResponse.json({ message: "Internal API JWT signing is not configured" }, { status: 500 });
+    }
+
     const response = await fetch(`${backendUrl}/api/users/me/profile-image`, {
         method: "GET",
-        headers: {
-            "X-Auth-User-Id": user.id,
-            "X-Auth-User-Email": user.email,
-        },
+        headers: authHeaders,
         cache: "no-store",
     });
 
@@ -58,13 +63,17 @@ export const POST = async (request: Request) => {
         return NextResponse.json({ message: "BACKEND_URL is not configured" }, { status: 500 });
     }
 
+    let authHeaders: { Authorization: string };
+    try {
+        authHeaders = createInternalProxyAuthHeaders(user, ["users"]);
+    } catch {
+        return NextResponse.json({ message: "Internal API JWT signing is not configured" }, { status: 500 });
+    }
+
     const formData = await request.formData();
     const response = await fetch(`${backendUrl}/api/users/me/profile-image`, {
         method: "POST",
-        headers: {
-            "X-Auth-User-Id": user.id,
-            "X-Auth-User-Email": user.email,
-        },
+        headers: authHeaders,
         body: formData,
     });
 

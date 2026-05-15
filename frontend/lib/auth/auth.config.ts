@@ -1,6 +1,7 @@
 import GoogleProvider from "next-auth/providers/google"
 import NaverProvider from "next-auth/providers/naver"
 import LineProvider from "next-auth/providers/line"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { NextAuthOptions } from "next-auth"
 import axios from "axios"
 import { BACKEND_URL } from "@/lib/auth/auth.constants"
@@ -19,6 +20,44 @@ export const authOptions: NextAuthOptions = {
             clientId: process.env.LINE_CLIENT_ID!,
             clientSecret: process.env.LINE_CLIENT_SECRET!,
         }),
+        CredentialsProvider({
+            name: "Credentials",
+            credentials: {
+                email: { label: "Email", type: "email" },
+                password: { label: "Password", type: "password" },
+            },
+            authorize: async (credentials) => {
+                const email = credentials?.email?.trim()
+                const password = credentials?.password
+
+                if (!email || !password) {
+                    throw new Error("Email and password are required")
+                }
+
+                try {
+                    const { data } = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+                        email,
+                        password,
+                    })
+
+                    return {
+                        id: String(data.id),
+                        email: data.email,
+                        name: data.name,
+                        provider: data.provider,
+                        role: data.role,
+                        image: data.profileImageUrl ?? (data.profileImageType === "PRESET" ? null : data.profileImage),
+                        profileImageType: data.profileImageType ?? (data.profileImage ? "PROVIDER" : "NONE"),
+                        profileImageValue: data.profileImageValue ?? data.profileImage ?? null,
+                    }
+                } catch (error) {
+                    if (axios.isAxiosError(error)) {
+                        throw new Error(error.response?.data?.message ?? "Credentials login failed")
+                    }
+                    throw new Error("Credentials login failed")
+                }
+            },
+        }),
     ],
     session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
     callbacks: {
@@ -26,6 +65,7 @@ export const authOptions: NextAuthOptions = {
             console.log("signIn", user, account, profile);
 
             if (!account) return false
+            if (account.provider === "credentials") return true
 
             try {
                 const oauthPayload = {
@@ -45,6 +85,7 @@ export const authOptions: NextAuthOptions = {
                 // 백엔드에서 반환한 사용자 정보를 user 객체에 저장
                 user.id = String(backendUser.id)
                 user.name = backendUser.name
+                user.role = backendUser.role
                 user.image = backendUser.profileImageUrl ?? (backendUser.profileImageType === "PRESET" ? null : backendUser.profileImage)
                 user.profileImageType = backendUser.profileImageType ?? (backendUser.profileImage ? "PROVIDER" : "NONE")
                 user.profileImageValue = backendUser.profileImageValue ?? backendUser.profileImage ?? null
@@ -63,6 +104,7 @@ export const authOptions: NextAuthOptions = {
                 token.backendId = user.id
                 token.name = user.name
                 token.email = user.email
+                token.role = user.role
                 token.picture = user.image ?? undefined
                 token.profileImage = user.image ?? undefined
                 token.profileImageType = user.profileImageType ?? (user.image ? "PROVIDER" : "NONE")
@@ -83,6 +125,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.backendId as string
                 session.user.provider = token.provider as string
+                session.user.role = token.role as string | undefined
                 session.user.name = token.name
                 session.user.email = token.email
                 session.user.image = (token.profileImage as string | undefined) ?? null

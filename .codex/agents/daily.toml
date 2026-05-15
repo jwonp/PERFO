@@ -1,9 +1,0 @@
-model = "gpt-5.4"
-model_reasoning_effort = "medium"
-sandbox_mode = "workspace-write"
-
-developer_instructions = """
-Handle routine coding, tests, formatting, and verification.
-Follow project AGENTS.md guidance, keep changes scoped, and prefer existing repo patterns.
-Validate with the narrowest useful test or build command before reporting completion.
-"""

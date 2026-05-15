@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth.config";
+import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth";
 
 const backendUrl = process.env.BACKEND_URL;
 
@@ -20,8 +21,26 @@ export const GET = async () => {
         );
     }
 
+    let authHeaders: { Authorization: string };
+    try {
+        authHeaders = createInternalProxyAuthHeaders(
+            {
+                id: session.user.id,
+                email: session.user.email,
+                role: session.user.role,
+            },
+            ["tickets"],
+        );
+    } catch {
+        return NextResponse.json(
+            { message: "Internal API JWT signing is not configured" },
+            { status: 500 }
+        );
+    }
+
     const response = await fetch(`${backendUrl}/api/tickets?ownerUserId=${encodeURIComponent(session.user.id)}`, {
         method: "GET",
+        headers: authHeaders,
         cache: "no-store",
     });
 
@@ -55,11 +74,29 @@ export const POST = async (request: Request) => {
         );
     }
 
+    let authHeaders: { Authorization: string };
+    try {
+        authHeaders = createInternalProxyAuthHeaders(
+            {
+                id: session.user.id,
+                email: session.user.email,
+                role: session.user.role,
+            },
+            ["tickets"],
+        );
+    } catch {
+        return NextResponse.json(
+            { message: "Internal API JWT signing is not configured" },
+            { status: 500 }
+        );
+    }
+
     const payload = await request.json();
     const response = await fetch(`${backendUrl}/api/tickets`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            ...authHeaders,
         },
         body: JSON.stringify({
             ...payload,

@@ -3,6 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const { getServerSessionMock } = vi.hoisted(() => ({
   getServerSessionMock: vi.fn(),
 }))
+const { createInternalProxyAuthHeadersMock } = vi.hoisted(() => ({
+  createInternalProxyAuthHeadersMock: vi.fn(),
+}))
 
 vi.mock('next-auth', () => ({
   getServerSession: getServerSessionMock,
@@ -10,6 +13,9 @@ vi.mock('next-auth', () => ({
 
 vi.mock('@/lib/auth/auth.config', () => ({
   authOptions: {},
+}))
+vi.mock('@/lib/server/internal-proxy-auth', () => ({
+  createInternalProxyAuthHeaders: createInternalProxyAuthHeadersMock,
 }))
 
 const importRoute = async () => {
@@ -21,13 +27,15 @@ const importRoute = async () => {
 describe('/api/tickets route', () => {
   afterEach(() => {
     getServerSessionMock.mockReset()
+    createInternalProxyAuthHeadersMock.mockReset()
     vi.unstubAllEnvs()
     vi.unstubAllGlobals()
     vi.resetModules()
   })
 
   it('GET은 세션 사용자 id를 ownerUserId로 백엔드에 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'user-42' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'user-42', role: 'USER' } })
+    createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify([
       {
         id: 10,
@@ -42,7 +50,11 @@ describe('/api/tickets route', () => {
 
     expect(fetch).toHaveBeenCalledWith(
       'http://backend.test/api/tickets?ownerUserId=user-42',
-      { method: 'GET', cache: 'no-store' },
+      {
+        method: 'GET',
+        headers: { Authorization: 'Bearer ticket-jwt' },
+        cache: 'no-store',
+      },
     )
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual([
@@ -55,7 +67,8 @@ describe('/api/tickets route', () => {
   })
 
   it('POST는 세션 사용자 id를 ownerUserId로 추가해 백엔드에 전달한다', async () => {
-    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1' } })
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
+    createInternalProxyAuthHeadersMock.mockReturnValue({ Authorization: 'Bearer ticket-jwt' })
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({
       id: 20,
       name: 'Created Ticket',
@@ -83,7 +96,10 @@ describe('/api/tickets route', () => {
       'http://backend.test/api/tickets',
       expect.objectContaining({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ticket-jwt',
+        },
         body: JSON.stringify({ ...payload, ownerUserId: 'owner-1' }),
       }),
     )
@@ -106,5 +122,20 @@ describe('/api/tickets route', () => {
     expect(fetch).not.toHaveBeenCalled()
     expect(response.status).toBe(401)
     await expect(response.json()).resolves.toEqual({ message: 'Unauthorized' })
+  })
+
+  it('내부 JWT 서명이 없으면 500을 반환한다', async () => {
+    getServerSessionMock.mockResolvedValue({ user: { id: 'owner-1', role: 'USER' } })
+    createInternalProxyAuthHeadersMock.mockImplementation(() => {
+      throw new Error('missing config')
+    })
+    vi.stubGlobal('fetch', vi.fn())
+
+    const { GET } = await importRoute()
+    const response = await GET()
+
+    expect(fetch).not.toHaveBeenCalled()
+    expect(response.status).toBe(500)
+    await expect(response.json()).resolves.toEqual({ message: 'Internal API JWT signing is not configured' })
   })
 })

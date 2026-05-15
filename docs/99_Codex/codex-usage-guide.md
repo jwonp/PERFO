@@ -1098,6 +1098,61 @@ Avoid style-only feedback.
 """
 ```
 
+## 8.5 ui-ux-designer.toml
+
+`codex --profile ui-ux-designer`로 직접 실행하려면 `~/.codex/config.toml`에 아래 프로필도 함께 등록해야 한다.
+`~/.codex/agents/ui-ux-designer.toml`만 추가하면 멀티 에이전트 설정 파일은 생기지만 CLI 프로필로는 인식되지 않는다.
+
+```toml
+[profiles.ui-ux-designer]
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+personality = "pragmatic"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+web_search = "live"
+developer_instructions = """
+Own UI/UX execution for product surfaces.
+Prioritize user flows, responsive behavior, accessibility, visual hierarchy, copy clarity, and consistency with the existing design system.
+Do not introduce generic layouts or unnecessary frontend rewrites.
+"""
+```
+
+멀티 에이전트 역할로도 호출하려면 `~/.codex/config.toml`에 아래 항목을 추가한다.
+
+```toml
+[agents.ui_ux_designer]
+description = "UI/UX design execution agent for product flows, responsive interfaces, accessibility, and visual polish."
+config_file = "agents/ui-ux-designer.toml"
+```
+
+`~/.codex/agents/ui-ux-designer.toml`에는 아래 설정을 둔다.
+
+```toml
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+Own UI/UX execution for product surfaces.
+Prioritize user flows, responsive behavior, accessibility, visual hierarchy, copy clarity, and consistency with the existing design system.
+Do not introduce generic layouts or unnecessary frontend rewrites.
+
+Operating rules:
+- Start by identifying the target user flow, affected screens, and current design constraints.
+- Prefer minimum-diff improvements that preserve existing product behavior unless a redesign is explicitly requested.
+- Keep mobile-first behavior intact and verify desktop adaptations intentionally.
+- Reuse existing tokens, components, spacing scales, and interaction patterns before inventing new ones.
+- Flag accessibility issues involving focus order, contrast, semantics, labels, touch targets, and keyboard access.
+
+Output expectations:
+- Summarize the UX problem in concrete terms.
+- List the files or components that need changes.
+- Explain the intended user-facing outcome before editing when the change is non-trivial.
+- After changes, report the visible UX differences and any remaining design risks.
+"""
+```
+
 ---
 
 # 9. 작업별 빠른 치트시트
@@ -1112,6 +1167,7 @@ Avoid style-only feedback.
 | 일반 리뷰             | `codex --profile review`                                                   |
 | 고위험 리뷰           | `codex --profile deep-review`                                              |
 | 공식 문서 확인        | `codex --profile research`                                                 |
+| UI/UX 작업            | `codex --profile ui-ux-designer`                                           |
 | 외부 검색 끄기        | `codex --profile daily -c web_search=disabled`                             |
 | read-only 강제        | `codex --profile daily -c sandbox_mode=read-only`                          |
 | 단발 리뷰             | `codex exec --profile review "현재 git diff를 리뷰해줘. 수정하지 마."`     |
@@ -1166,7 +1222,3 @@ codex --profile cheap
 ```
 
 이 흐름을 쓰면 GPT-5.5는 판단용으로만 제한하고, 대부분의 구현과 수정은 GPT-5.3-Codex로 처리할 수 있다.
-
-```
-
-```

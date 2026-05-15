@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search } from "lucide-react";
 import PageEmptyState from "@/components/layout/PageEmptyState";
 import PageFilterBar from "@/components/layout/PageFilterBar";
 import PageHeader from "@/components/layout/PageHeader";
@@ -14,14 +14,14 @@ import { useNotificationSnapshotBootstrap } from "@/components/notifications/use
 import { TicketCard } from "@/components/tickets/TicketCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsButton } from "@/components/ui/tabs";
-import type { Ticket } from "./reserved.types";
+import type { ReservedTicketFilter, Ticket } from "./reserved.types";
 
 const ReservedPage = () => {
     const t = useTranslations();
     const locale = useLocale();
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [hasLoadedTickets, setHasLoadedTickets] = useState(false);
-    const [showUsedOnly, setShowUsedOnly] = useState(false);
+    const [filter, setFilter] = useState<ReservedTicketFilter>("ALL");
 
     useNotificationSnapshotBootstrap(
         tickets.map((ticket) => ({
@@ -82,9 +82,10 @@ const ReservedPage = () => {
         };
     }, []);
 
-    const filtered = showUsedOnly
-        ? tickets.filter((tk) => tk.usageStatus === "USED")
+    const filteredTickets = filter === "USED"
+        ? tickets.filter((ticket) => ticket.usageStatus === "USED")
         : tickets;
+    const emptyStateTitle = filter === "USED" ? t("reserved.emptyUsed") : t("reserved.empty");
 
     return (
         <PageShell className="ds-shell">
@@ -103,22 +104,18 @@ const ReservedPage = () => {
                     />
                     <PageFilterBar>
                         <Tabs className="rounded-full border border-primary/30 bg-transparent p-0">
-                            <TabsButton active={!showUsedOnly} onClick={() => setShowUsedOnly(false)}>
+                            <TabsButton active={filter === "ALL"} onClick={() => setFilter("ALL")}>
                                 {t("reserved.tabAll")}
                             </TabsButton>
-                            <TabsButton active={showUsedOnly} onClick={() => setShowUsedOnly(true)}>
+                            <TabsButton active={filter === "USED"} onClick={() => setFilter("USED")}>
                                 {t("reserved.tabUsed")}
                             </TabsButton>
                         </Tabs>
-                        <Button variant="outline" className="h-9 rounded-full border-primary/30 px-4 text-xs text-primary shadow-none">
-                            {t("reserved.showUsedOnly")}
-                            <SlidersHorizontal className="size-3.5" />
-                        </Button>
                     </PageFilterBar>
 
-                    {hasLoadedTickets && filtered.length === 0 ? (
+                    {hasLoadedTickets && filteredTickets.length === 0 ? (
                         <PageEmptyState
-                            title={t("reserved.empty")}
+                            title={emptyStateTitle}
                             icon={
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-14 w-14">
                                 <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v2z" />
@@ -127,7 +124,7 @@ const ReservedPage = () => {
                         />
                     ) : (
                         <div className="grid grid-cols-1 gap-5">
-                            {filtered.map((ticket) => (
+                            {filteredTickets.map((ticket) => (
                                 <TicketCard
                                     key={ticket.id}
                                     name={ticket.name}

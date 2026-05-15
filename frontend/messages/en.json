@@ -30,22 +30,35 @@
         "copyright": "© 2026 PERFO. All rights reserved."
     },
     "login": {
-        "welcome": "Welcome, please log in",
-        "subtitle": "Enter your email to continue",
-        "google": "Google",
-        "naver": "Naver",
-        "line": "LINE"
+        "welcome": "Log in to PERFO",
+        "subtitle": "Continue with email or a social account.",
+        "google": "Continue with Google",
+        "naver": "Continue with Naver",
+        "line": "Continue with LINE",
+        "emailRequired": "Enter your email address.",
+        "checkingEmail": "Checking email...",
+        "lookupFailed": "Failed to check the email status.",
+        "socialAccountHint": "This email is registered with {provider} social login."
     },
     "passwordLogin": {
         "welcome": "Welcome, {email}",
         "subtitle": "Enter your password to continue",
-        "forgotPassword": "Forgot password?"
+        "forgotPassword": "Forgot password?",
+        "signingIn": "Signing in..."
     },
     "verify": {
         "title": "We've sent a 6-digit verification code to {email}",
         "subtitle": "Check your inbox and enter the code below",
         "verify": "Verify",
-        "resend": "Resend Code"
+        "resend": "Resend Code",
+        "verifying": "Verifying...",
+        "previewCode": "Test verification code: {code}",
+        "requestFailed": "Failed to request a verification code.",
+        "failed": "Failed to verify the code.",
+        "missingEmail": "Email information is missing. Start sign-up again.",
+        "missingDraft": "Your sign-up information expired. Enter it again.",
+        "codeIncomplete": "Enter all 6 digits of the verification code.",
+        "signupFailed": "Failed to complete sign-up."
     },
     "signup": {
         "title": "Enter a password that meets the requirements below.",
@@ -53,7 +66,11 @@
         "signUp": "Sign Up",
         "termsAgreement": "(Required) I agree to the Terms of Service",
         "privacyAgreement": "(Required) I agree to the Privacy Policy",
-        "marketingAgreement": "(Optional) I agree to receive marketing updates"
+        "marketingAgreement": "(Optional) I agree to receive marketing updates",
+        "sendingCode": "Preparing verification code...",
+        "submitFailed": "Failed to continue sign-up.",
+        "emailExists": "This email is already registered.",
+        "socialAccountHint": "This email is registered with {provider} social login."
     },
     "signupComplete": {
         "title": "Account created for {email}",
@@ -62,7 +79,9 @@
     "resetPassword": {
         "title": "Enter a password that meets the requirements below.",
         "subtitle": "Reset your password for {email}",
-        "resetButton": "Reset Password"
+        "resetButton": "Reset Password",
+        "resetting": "Updating password...",
+        "failed": "Failed to reset your password."
     },
     "resetComplete": {
         "title": "Password updated for {email}",
@@ -94,15 +113,39 @@
         "panelDescription": "Each auth screen emphasizes a single action while secondary information stays quieter, so the next step is always obvious."
     },
     "nav": {
+        "events": "Tickets",
         "reserved": "Reserved",
         "myTickets": "My Tickets",
         "profile": "Profile"
     },
+    "events": {
+        "title": "Bookable Tickets",
+        "empty": "No tickets are currently listed",
+        "loadError": "Failed to load tickets.",
+        "bookNow": "Book now",
+        "booking": "Booking...",
+        "bookingFailed": "Booking request failed.",
+        "remaining": "{remaining} left / {total}",
+        "remainingLabel": "Remaining",
+        "saleStatusUpcoming": "Upcoming",
+        "saleStatusOpen": "Open",
+        "saleStatusSoldOut": "Sold out",
+        "saleStatusClosed": "Closed",
+        "saleStatusInactive": "Inactive",
+        "detailLoadError": "Failed to load ticket details.",
+        "detailMetaVenue": "Venue",
+        "detailMetaOpen": "Sales open",
+        "detailMetaClose": "Sales close",
+        "detailMetaLimit": "Max per user",
+        "detailMetaDiscovery": "Discovery",
+        "discoveryListed": "Listed",
+        "discoveryLinkOnly": "Link only"
+    },
     "reserved": {
         "title": "Reserved Tickets",
-        "showUsedOnly": "Show used tickets only",
         "tabAll": "All",
         "tabUsed": "Used",
+        "emptyUsed": "There are no used tickets yet",
         "qrShow": "Show QR",
         "qrTitle": "Ticket QR",
         "qrDescription": "Present this QR token to the checker.",
@@ -138,6 +181,12 @@
         "statusExpired": "Expired",
         "statusVerifying": "Verifying",
         "empty": "No issued tickets",
+        "emptyDescription": "You have not issued any tickets yet. Create your first ticket to start the public flow.",
+        "filterAll": "All",
+        "filterAllowDuplicate": "Allow duplicate",
+        "filterNoDuplicate": "No duplicate",
+        "emptyAllowDuplicate": "No tickets allow duplicate purchase",
+        "emptyNoDuplicate": "No tickets restrict duplicate purchase",
         "createTitle": "Issue Ticket",
         "editTitle": "Edit Ticket",
         "fieldName": "Ticket Name",
@@ -149,12 +198,30 @@
         "placeAutocompleteUnavailable": "Autocomplete unavailable: enter venue name manually",
         "placeAutocompleteSelected": "Venue selected from autocomplete",
         "fieldDate": "Valid Date",
+        "fieldDateHint": "After this date passes, the ticket automatically moves to Expired.",
+        "fieldOpenAt": "Validation opens at",
+        "fieldOpenAtHint": "At this time, issuing tickets automatically move to Verifying.",
+        "fieldStatus": "Status",
         "fieldTotal": "Total Tickets",
         "fieldAllowDuplicate": "Allow duplicate purchase",
         "fieldMaxPerUser": "Max per user",
+        "fieldImage": "Cover image",
+        "fieldImageHint": "PNG, JPG, and WEBP files are supported.",
+        "discoveryModeListed": "Show in list",
+        "discoveryModeLinkOnly": "Share by link only",
+        "discoveryModeHint": "This only controls list visibility. Both modes still allow detail access and booking.",
+        "publicBookingTitle": "Public booking URL",
+        "publicBookingUnavailable": "The public booking URL is not available yet.",
+        "copyBookingUrl": "Copy",
+        "shareBookingUrl": "Share",
+        "copySuccess": "Copied the booking URL.",
+        "linkOnlyBadge": "Link only",
+        "verifyingFutureOpenAtWarning": "VERIFYING cannot be saved while the open time is still in the future.",
         "cancel": "Cancel",
         "save": "Save",
-        "create": "Issue"
+        "create": "Issue",
+        "saving": "Saving...",
+        "saveFailed": "Failed to save the ticket."
     },
     "profile": {
         "title": "Profile",

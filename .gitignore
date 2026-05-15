@@ -48,12 +48,24 @@ frontend/coverage/
 frontend/playwright-report/
 frontend/test-results/
 frontend/.data/
+frontend/tsconfig.tsbuildinfo
 
 # Misc
 *.pem
 .claude/settings.local.json
 backend/.kotlin
 docs/00_Study
+
+# Local infra notes and secret-bearing runbooks
+infra.local.md
+INFRA_LOCAL.md
+INFRA_SECRETS.md
+docs/**/infra.local.md
+docs/**/INFRA_LOCAL.md
+docs/**/INFRA_SECRETS.md
+docs/**/secrets.local.md
+docs/**/secrets/
+docs/**/.env*
 
 /frontend/.data
 frontend/.pnpm-store

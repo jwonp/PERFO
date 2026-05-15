@@ -6,6 +6,7 @@ declare module "next-auth" {
         user: {
             id: string
             provider: string
+            role?: string
             profileImageType?: string
             profileImageValue?: string | null
         } & DefaultSession["user"]
@@ -13,6 +14,7 @@ declare module "next-auth" {
 
     interface User extends DefaultUser {
         provider?: string
+        role?: string
         profileImageType?: string
         profileImageValue?: string | null
     }
@@ -22,6 +24,7 @@ declare module "next-auth/jwt" {
     interface JWT extends DefaultJWT {
         provider?: string
         backendId?: string
+        role?: string
         profileImage?: string
         profileImageType?: string
         profileImageValue?: string | null

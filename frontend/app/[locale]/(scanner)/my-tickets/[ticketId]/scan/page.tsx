@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import { AlertTriangle, CheckCircle2, ScanLine, XCircle } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import PageShell from "@/components/layout/PageShell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -17,6 +19,24 @@ type ValidationResponse = {
 };
 
 const SCAN_COOLDOWN_MS = 2000;
+
+const resultMeta = (status: string) => {
+    if (status === "SUCCESS") {
+        return {
+            badgeVariant: "success" as const,
+            icon: CheckCircle2,
+            panelClassName: "border-[color:color-mix(in_srgb,var(--success)_20%,white)] bg-[color:color-mix(in_srgb,var(--success)_10%,white)]",
+            bodyClassName: "text-[var(--success)]",
+        };
+    }
+
+    return {
+        badgeVariant: "danger" as const,
+        icon: XCircle,
+        panelClassName: "border-[color:color-mix(in_srgb,var(--danger)_22%,white)] bg-[color:color-mix(in_srgb,var(--danger)_8%,white)]",
+        bodyClassName: "text-[var(--danger)]",
+    };
+};
 
 const TicketScanPage = () => {
     const params = useParams<{ ticketId: string }>();
@@ -122,7 +142,13 @@ const TicketScanPage = () => {
                 description={t("myTickets.scanDescription")}
             />
 
-            <div className="overflow-hidden rounded-xl border border-border bg-foreground/90">
+            <div className="relative overflow-hidden rounded-2xl border border-border bg-foreground/90 shadow-[var(--shadow-soft)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between p-3">
+                    <Badge variant="neutral" className="bg-white/80 text-[var(--text)] backdrop-blur">
+                        <ScanLine className="mr-1 h-3 w-3" />
+                        {t("myTickets.scanTitle")}
+                    </Badge>
+                </div>
                 <video
                     ref={videoRef}
                     className="h-[280px] w-full object-cover"
@@ -133,13 +159,25 @@ const TicketScanPage = () => {
             </div>
 
             {scannerStatus === "ready" ? (
-                <p className="text-xs text-[var(--text-muted)]">{t("myTickets.scanCameraReady")}</p>
+                <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--info)_16%,white)] bg-[color:color-mix(in_srgb,var(--info)_8%,white)] px-4 py-3 text-xs text-[var(--info)]">
+                    {t("myTickets.scanCameraReady")}
+                </div>
             ) : null}
             {scannerStatus === "blocked" ? (
-                <p className="text-xs text-[var(--danger)]">{t("myTickets.scanCameraBlocked")}</p>
+                <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger)_18%,white)] bg-[color:color-mix(in_srgb,var(--danger)_8%,white)] px-4 py-3 text-xs text-[var(--danger)]">
+                    <div className="flex items-start gap-2">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{t("myTickets.scanCameraBlocked")}</span>
+                    </div>
+                </div>
             ) : null}
             {scannerStatus === "error" ? (
-                <p className="text-xs text-[var(--danger)]">{t("myTickets.scanCameraError")}</p>
+                <div className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger)_18%,white)] bg-[color:color-mix(in_srgb,var(--danger)_8%,white)] px-4 py-3 text-xs text-[var(--danger)]">
+                    <div className="flex items-start gap-2">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{t("myTickets.scanCameraError")}</span>
+                    </div>
+                </div>
             ) : null}
 
             <Input
@@ -153,15 +191,31 @@ const TicketScanPage = () => {
             </Button>
 
             {result ? (
-                <div className="rounded-xl border border-border bg-[var(--surface-raised)] p-4">
-                    <p className="text-sm font-semibold text-primary">{result.result}</p>
-                    {result.message ? <p className="mt-1 text-xs text-[var(--text-muted)]">{result.message}</p> : null}
-                    {result.ticketNumber ? (
-                        <p className="mt-1 text-xs text-[var(--text-muted)]">{t("myTickets.scanTicketNumber")}: {result.ticketNumber}</p>
-                    ) : null}
-                    {result.usedAt ? (
-                        <p className="mt-1 text-xs text-[var(--text-muted)]">{t("myTickets.scanUsedAt")}: {result.usedAt}</p>
-                    ) : null}
+                <div className={`rounded-2xl border p-4 shadow-[var(--shadow-soft)] ${resultMeta(result.result).panelClassName}`}>
+                    <div className="flex items-start gap-3">
+                        {(() => {
+                            const meta = resultMeta(result.result);
+                            const Icon = meta.icon;
+
+                            return (
+                                <>
+                                    <div className="rounded-full bg-white/80 p-2 shadow-sm">
+                                        <Icon className={`h-5 w-5 ${meta.bodyClassName}`} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <Badge variant={meta.badgeVariant}>{result.result}</Badge>
+                                        {result.message ? <p className="mt-2 text-sm text-[var(--text)]">{result.message}</p> : null}
+                                        {result.ticketNumber ? (
+                                            <p className="mt-2 text-xs text-[var(--text-muted)]">{t("myTickets.scanTicketNumber")}: {result.ticketNumber}</p>
+                                        ) : null}
+                                        {result.usedAt ? (
+                                            <p className="mt-1 text-xs text-[var(--text-muted)]">{t("myTickets.scanUsedAt")}: {result.usedAt}</p>
+                                        ) : null}
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </div>
                 </div>
             ) : null}
         </PageShell>

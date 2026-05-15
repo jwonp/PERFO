@@ -1,6 +1,7 @@
 import type { TicketUsageStatus } from "@/components/tickets/TicketCard";
 
 export type TicketingStatus = "PENDING" | "PROCESSING" | "SUCCESS" | "FAILED" | "SOLD_OUT" | "DUPLICATE";
+export type ReservedTicketFilter = "ALL" | "USED";
 
 export interface Ticket {
     id: string;

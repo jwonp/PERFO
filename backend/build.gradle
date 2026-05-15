@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.perfo'
-version = '0.2.0-rc.2'
+version = '0.2.0-rc.3'
 
 springBoot {
     mainClass = 'com.perfo.backend.BackendApplicationKt'
@@ -35,6 +35,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

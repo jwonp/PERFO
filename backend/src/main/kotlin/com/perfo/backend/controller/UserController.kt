@@ -1,5 +1,6 @@
 package com.perfo.backend.controller
 
+import com.perfo.backend.config.InternalAuthenticatedUser
 import com.perfo.backend.dto.UserProfileDto
 import com.perfo.backend.service.ProfileImageContent
 import com.perfo.backend.service.UserService
@@ -30,12 +31,12 @@ class UserController(
 
     @GetMapping("/me")
     fun getMyProfile(authentication: Authentication): UserProfileDto.MyProfileResponse {
-        return userService.getMyProfile(authentication.name)
+        return userService.getMyProfile(resolveAuthenticatedEmail(authentication))
     }
 
     @GetMapping("/me/profile-image")
     fun getMyProfileImage(authentication: Authentication): ResponseEntity<ByteArray> {
-        val image = userService.getMyProfileImage(authentication.name)
+        val image = userService.getMyProfileImage(resolveAuthenticatedEmail(authentication))
 
         return ResponseEntity.ok()
             .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate().cachePrivate())
@@ -49,7 +50,7 @@ class UserController(
         authentication: Authentication,
         @Valid @RequestBody request: UserProfileDto.UpdateMyProfileRequest,
     ): UserProfileDto.MyProfileResponse {
-        return userService.updateMyProfile(authentication.name, request)
+        return userService.updateMyProfile(resolveAuthenticatedEmail(authentication), request)
     }
 
     @PostMapping("/me/profile-image")
@@ -57,7 +58,7 @@ class UserController(
         authentication: Authentication,
         @RequestParam("file") file: MultipartFile,
     ): UserProfileDto.MyProfileResponse {
-        return userService.uploadMyProfileImage(authentication.name, file)
+        return userService.uploadMyProfileImage(resolveAuthenticatedEmail(authentication), file)
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -70,5 +71,16 @@ class UserController(
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(exception: IllegalStateException): Map<String, String> {
         return mapOf("message" to (exception.message ?: "Storage unavailable"))
+    }
+
+    private fun resolveAuthenticatedEmail(authentication: Authentication): String {
+        val principal = authentication.principal
+        if (principal is InternalAuthenticatedUser && !principal.email.isNullOrBlank()) {
+            return principal.email
+        }
+
+        return authentication.name.ifBlank {
+            throw IllegalArgumentException("Authenticated email is missing")
+        }
     }
 }

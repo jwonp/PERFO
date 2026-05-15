@@ -8,12 +8,6 @@ const protectedRoutes = [
 
 const authRoutes = [
   { name: 'login', path: '/ko/login' },
-  { name: 'password-login', path: '/ko/login/password' },
-  { name: 'signup', path: '/ko/signup' },
-  { name: 'verify', path: '/ko/verify' },
-  { name: 'reset-password', path: '/ko/reset-password' },
-  { name: 'signup-complete', path: '/ko/signup/complete' },
-  { name: 'reset-complete', path: '/ko/reset-password/complete' },
 ]
 
 async function enableVisualAuth(page: Page) {

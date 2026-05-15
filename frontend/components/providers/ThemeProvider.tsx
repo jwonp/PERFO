@@ -19,24 +19,31 @@ import type {
   ThemeContextValue,
   ThemeProviderProps,
 } from "@/components/providers/theme-provider.types"
-import type { ResolvedTheme, ThemePreference } from "@/lib/theme/theme.types"
+import type { ThemePreference } from "@/lib/theme/theme.types"
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
+const getInitialThemePreference = (): ThemePreference => {
+  return getStoredThemePreference() ?? "system"
+}
+
+const getInitialThemeState = () => {
+  const initialPreference = getInitialThemePreference()
+  const initialResolvedTheme = resolveThemePreference(
+    initialPreference,
+    getInitialResolvedTheme()
+  )
+
+  return {
+    preference: initialPreference,
+    resolvedTheme: initialResolvedTheme,
+  }
+}
+
 const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [preference, setPreferenceState] = useState<ThemePreference>("system")
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light")
-
-  useEffect(() => {
-    const nextPreference = getStoredThemePreference() ?? "system"
-    const nextResolvedTheme = resolveThemePreference(
-      nextPreference,
-      getInitialResolvedTheme()
-    )
-
-    setPreferenceState(nextPreference)
-    setResolvedTheme(nextResolvedTheme)
-  }, [])
+  const [{ preference, resolvedTheme }, setThemeState] = useState(
+    getInitialThemeState
+  )
 
   useEffect(() => {
     applyResolvedTheme(resolvedTheme)
@@ -51,7 +58,10 @@ const ThemeProvider = ({ children }: ThemeProviderProps) => {
       const mediaQuery = window.matchMedia(THEME_MEDIA_QUERY)
       const handleChange = (event: MediaQueryListEvent) => {
         const nextResolvedTheme = event.matches ? "dark" : "light"
-        setResolvedTheme(nextResolvedTheme)
+        setThemeState((currentState) => ({
+          ...currentState,
+          resolvedTheme: nextResolvedTheme,
+        }))
         applyResolvedTheme(nextResolvedTheme)
       }
 
@@ -71,8 +81,10 @@ const ThemeProvider = ({ children }: ThemeProviderProps) => {
       getSystemTheme()
     )
 
-    setPreferenceState(nextPreference)
-    setResolvedTheme(nextResolvedTheme)
+    setThemeState({
+      preference: nextPreference,
+      resolvedTheme: nextResolvedTheme,
+    })
     persistThemePreference(nextPreference)
   }
 

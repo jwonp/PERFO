@@ -16,7 +16,7 @@ const PageFab = ({
     <Button
       size="icon-lg"
       className={cn(
-        "fixed bottom-24 z-30 size-14 rounded-full shadow-[var(--shadow-panel)]",
+        "fixed bottom-28 z-30 size-14 rounded-full shadow-[var(--shadow-panel)]",
         insetClass[inset],
         className
       )}
