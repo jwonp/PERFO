@@ -5,6 +5,7 @@
 
 ## 문서 구성
 
+- [../01_RELEASE_VERSIONING.md](../01_RELEASE_VERSIONING.md): release 브랜치 운영과 버전 관리 규칙
 - [01_FRONTEND_PLAN.md](./01_FRONTEND_PLAN.md): Next.js 프론트엔드 구현 계획
 - [02_BACKEND_PLAN.md](./02_BACKEND_PLAN.md): Spring 백엔드 구현 계획
 - [03_INFRA_PLAN.md](./03_INFRA_PLAN.md): 배포, 운영, 인프라 구축 계획

@@ -139,6 +139,13 @@ Troubleshoot failures: check test isolation → verify mocks → fix implementat
 
 **PR workflow:** Analyze full commit history → draft comprehensive summary → include test plan → push with `-u` flag.
 
+**Release workflow:**
+- Create release branches from `develop` using `release/<version>`.
+- Release branches may contain only stabilization work: version bumps, release docs, deployment config, and release-blocking fixes.
+- Keep `frontend/package.json` and `backend/build.gradle` on the exact same app version.
+- Use SemVer with prerelease tags for release preparation, such as `0.2.0-rc.1`.
+- Follow `docs/02_Development/01_RELEASE_VERSIONING.md` for branch naming, bump rules, and checklist.
+
 ## Architecture Patterns
 
 **API response format:** Consistent envelope with success indicator, data payload, error message, and pagination metadata.
