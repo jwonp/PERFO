@@ -3,14 +3,19 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5329/perfo_prod}
-    username: ${SPRING_DATASOURCE_USERNAME:perfo_prod}
-    password: ${SPRING_DATASOURCE_PASSWORD:CHANGE_ME_STRONG_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
 
   security:
     jwt:
-      secret: ${SPRING_SECURITY_JWT_SECRET:CHANGE_ME_MINIMUM_256_BIT_SECRET_KEY_FOR_JWT_SIGNING}
+      secret: ${SPRING_SECURITY_JWT_SECRET}
 
 app:
+  auth:
+    preview-code-enabled: ${APP_AUTH_PREVIEW_CODE_ENABLED:false}
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:https://your-domain.com}

@@ -178,11 +178,13 @@ gh secret set GHCR_TOKEN
 ```text
 DEPLOY_APP_DIR
   docker-compose.yml
+  docker-compose.bluegreen.yml
+  deploy/nginx/
   .env
   scripts/
-    deploy.sh
-    rollback.sh
-    health-check.sh
+    deploy-bluegreen.sh
+    switch-traffic.sh
+    rollback-bluegreen.sh
     backup-db.sh
   releases/
     current.env
@@ -290,28 +292,27 @@ ghcr.io/<owner>/perfo-backend:prod
 
 ## 7. Compose 운영 방식
 
-현재 `docker-compose.yml`은 `backend`, `frontend` 서비스가 `build` 기준이다.
+현재 기본 `docker-compose.yml`의 `backend`, `frontend` 서비스는 `build` 기준이고, Blue-Green 운영은 `docker-compose.bluegreen.yml`에서 GHCR `image` 기준으로 `backend_blue`, `backend_green`, `frontend_blue`, `frontend_green`을 기동한다.
 
-CI/CD를 붙일 때는 운영 서버에서 빌드하지 않도록 아래 중 하나를 선택한다.
+CI/CD를 붙일 때 운영 서버에서 빌드하지 않으려면 Blue-Green 구성을 기준으로 배포한다.
 
-### 7.1 권장: 운영 override 파일 추가
+### 7.1 권장: Blue-Green image 태그 배포
 
-운영 전용 파일을 추가해 `image`를 GHCR 이미지로 덮어쓴다.
+`docker-compose.bluegreen.yml`은 아래 이미지 변수를 사용한다.
 
 ```yaml
 services:
-  backend:
-    image: ghcr.io/<owner>/perfo-backend:${IMAGE_TAG}
+  backend_blue:
+    image: ${BACKEND_IMAGE_REPOSITORY}:${BACKEND_BLUE_IMAGE_TAG}
 
-  frontend:
-    image: ghcr.io/<owner>/perfo-frontend:${IMAGE_TAG}
+  frontend_blue:
+    image: ${FRONTEND_IMAGE_REPOSITORY}:${FRONTEND_BLUE_IMAGE_TAG}
 ```
 
 배포 명령:
 
 ```text
-docker compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml --profile full pull backend frontend
-docker compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml --profile full up -d --no-build
+bash ./scripts/deploy-bluegreen.sh --env-file .env --frontend-tag <git-sha> --backend-tag <git-sha>
 ```
 
 ### 7.2 대안: 서버에서 직접 빌드
@@ -329,51 +330,54 @@ docker compose --env-file .env --profile full up -d --build
 
 배포 워크플로우는 아래 순서를 따른다.
 
-1. 배포할 `IMAGE_TAG`를 commit SHA로 확정한다.
+1. 배포할 frontend/backend image tag를 commit SHA로 확정한다.
 2. GitHub Actions가 SSH로 서버에 접속한다.
 3. 서버에서 GHCR login 상태를 확인한다.
 4. 배포 전 DB 백업을 수행한다.
-5. 현재 운영 태그를 `releases/previous.env`에 저장한다.
-6. 새 태그를 `releases/current.env`에 기록한다.
-7. `docker compose pull backend frontend`를 수행한다.
-8. `docker compose up -d backend frontend`를 수행한다.
-9. backend health check를 통과해야 배포 성공으로 본다.
-10. 실패하면 `rollback.sh`로 직전 태그를 복구한다.
+5. 현재 active color를 확인한다.
+6. inactive color에 새 backend/frontend tag를 배포한다.
+7. inactive color의 backend와 frontend `/api/health`를 확인한다.
+8. Nginx upstream을 새 color로 전환하고 reload한다.
+9. Nginx `/healthz`와 사용자 핵심 흐름을 확인한다.
+10. 실패하면 `rollback-bluegreen.sh`로 직전 color를 복구한다.
 
-GitHub Actions SSH 실행은 서버에 긴 명령을 직접 박아 넣지 않고, 서버의 `scripts/deploy.sh`를 호출하는 형태로 둔다.
+GitHub Actions SSH 실행은 서버에 긴 명령을 직접 박아 넣지 않고, 서버의 `scripts/deploy-bluegreen.sh`를 호출하는 형태로 둔다.
 
 ```text
-ssh DEPLOY_USER@DEPLOY_HOST "cd DEPLOY_APP_DIR && IMAGE_TAG=<git-sha> scripts/deploy.sh"
+ssh DEPLOY_USER@DEPLOY_HOST "cd DEPLOY_APP_DIR && bash scripts/deploy-bluegreen.sh --env-file .env --frontend-tag <git-sha> --backend-tag <git-sha>"
 ```
 
 ## 9. 배포 스크립트 계약
 
-`scripts/deploy.sh`는 다음 입력을 받는다.
+`scripts/deploy-bluegreen.sh`는 다음 입력을 받는다.
 
 ```text
-IMAGE_TAG=<git-sha>
+--frontend-tag <git-sha>
+--backend-tag <git-sha>
+--target-color blue|green  # 선택
+--env-file .env            # 선택
 ```
 
 수행해야 할 일:
 
-- `IMAGE_TAG`가 비어 있으면 즉시 실패
+- frontend/backend tag가 비어 있으면 즉시 실패
 - `DEPLOY_APP_DIR`에서 실행되는지 확인
-- `releases/current.env`를 `releases/previous.env`로 복사
-- 새 `IMAGE_TAG`를 `releases/current.env`에 기록
 - `backup-db.sh` 실행
-- GHCR 이미지 pull
-- `docker compose up -d --no-build`
-- `health-check.sh` 실행
-- 실패 시 `rollback.sh` 실행
+- 현재 active color와 target color 확인
+- target color의 GHCR 이미지 pull
+- target color backend/frontend 기동
+- backend/frontend `/api/health` 확인
+- `switch-traffic.sh`로 Nginx upstream 전환
+- 실패 시 `rollback-bluegreen.sh` 실행
 
-`scripts/health-check.sh`는 최소 아래를 확인한다.
+현재 코드 기준 health check는 최소 아래를 확인한다.
 
 ```text
-curl -fsS http://localhost:<BACKEND_PORT>/api/auth/health
-curl -fsS http://localhost:<FRONTEND_PORT>
+curl -fsS http://localhost:<BACKEND_PORT>/api/health
+curl -fsS http://localhost:<FRONTEND_PORT>/api/health
 ```
 
-현재 backend health endpoint는 `/api/auth/health`다. `SecurityConfig`에는 `/api/health`도 permit 되어 있으므로, 장기적으로는 별도 `/api/health` endpoint를 추가해 운영 헬스체크 경로를 인증 도메인과 분리한다.
+현재 backend와 frontend 모두 `/api/health`를 제공한다. Spring Actuator `/actuator/health`는 관측용으로 남기고, 배포 성공 판단은 앱 health인 `/api/health`로 통일한다.
 
 ## 10. 롤백 기준
 
@@ -426,8 +430,8 @@ curl -fsS http://localhost:<FRONTEND_PORT>
 ## 13. 1차 구현 순서
 
 1. 서버에서 `DEPLOY_APP_DIR`의 현재 실행 방식을 확인한다.
-2. `docker-compose.prod.yml`을 추가해 GHCR image 기반 운영 구성을 만든다.
-3. `scripts/deploy.sh`, `scripts/rollback.sh`, `scripts/backup-db.sh`, `scripts/health-check.sh`를 추가한다.
+2. `docker-compose.bluegreen.yml`의 GHCR image 기반 운영 구성을 확인한다.
+3. `scripts/deploy-bluegreen.sh`, `scripts/switch-traffic.sh`, `scripts/rollback-bluegreen.sh`를 확인한다.
 4. GitHub Secrets를 등록한다.
 5. `.github/workflows/ci.yml`을 추가한다.
 6. `.github/workflows/deploy.yml`을 추가한다.

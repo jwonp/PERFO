@@ -1,0 +1,197 @@
+x-backend-environment: &backend-environment
+  SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+  SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+  SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+  SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+  SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
+  SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE}
+  SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+  SPRING_SECURITY_JWT_SECRET: ${JWT_SECRET}
+  INTERNAL_API_JWT_ISSUER: ${INTERNAL_API_JWT_ISSUER}
+  INTERNAL_API_JWT_AUDIENCE: ${INTERNAL_API_JWT_AUDIENCE}
+  INTERNAL_API_JWT_ACTIVE_KID: ${INTERNAL_API_JWT_ACTIVE_KID}
+  INTERNAL_API_JWT_ACTIVE_SECRET: ${INTERNAL_API_JWT_ACTIVE_SECRET}
+  INTERNAL_API_JWT_PREVIOUS_KEYS: ${INTERNAL_API_JWT_PREVIOUS_KEYS}
+  APP_SECURITY_QR_SECRET: ${APP_SECURITY_QR_SECRET}
+  APP_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+  MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+  MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+  MINIO_REGION: ${MINIO_REGION}
+  MINIO_BUCKET_PROFILE_IMAGES: ${MINIO_BUCKET_PROFILE_IMAGES}
+  MINIO_BUCKET_TICKET_IMAGES: ${MINIO_BUCKET_TICKET_IMAGES}
+  MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL}
+  MAIL_PROVIDER: ${MAIL_PROVIDER}
+  MAIL_FROM: ${MAIL_FROM}
+  MAIL_REPLY_TO: ${MAIL_REPLY_TO}
+  RESEND_API_URL: ${RESEND_API_URL:-https://api.resend.com}
+  RESEND_API_KEY: ${RESEND_API_KEY}
+
+x-frontend-environment: &frontend-environment
+  NODE_ENV: production
+  NEXTAUTH_URL: ${NEXTAUTH_URL}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+  DATABASE_URL: ${DATABASE_URL}
+  INTERNAL_API_JWT_ISSUER: ${INTERNAL_API_JWT_ISSUER}
+  INTERNAL_API_JWT_AUDIENCE: ${INTERNAL_API_JWT_AUDIENCE}
+  INTERNAL_API_JWT_ACTIVE_KID: ${INTERNAL_API_JWT_ACTIVE_KID}
+  INTERNAL_API_JWT_ACTIVE_SECRET: ${INTERNAL_API_JWT_ACTIVE_SECRET}
+  INTERNAL_API_JWT_PREVIOUS_KEYS: ${INTERNAL_API_JWT_PREVIOUS_KEYS}
+  INTERNAL_API_JWT_TTL_SECONDS: ${INTERNAL_API_JWT_TTL_SECONDS}
+  TICKETING_PROJECTION_READ_API_ENABLED: ${TICKETING_PROJECTION_READ_API_ENABLED:-false}
+  TICKETING_PROJECTION_ALLOWED_USER_IDS: ${TICKETING_PROJECTION_ALLOWED_USER_IDS:-}
+  GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+  GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+  NAVER_CLIENT_ID: ${NAVER_CLIENT_ID}
+  NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET}
+  LINE_CLIENT_ID: ${LINE_CLIENT_ID}
+  LINE_CLIENT_SECRET: ${LINE_CLIENT_SECRET}
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+  VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+  KAFKA_BROKERS: ${KAFKA_BROKERS}
+  REDIS_URL: ${REDIS_URL}
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    profiles:
+      - bluegreen
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8080}:8080"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/upstreams:/etc/nginx/upstreams:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:8080/healthz >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend_blue:
+    image: ${BACKEND_IMAGE_REPOSITORY:-perfo-backend}:${BACKEND_BLUE_IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    pull_policy: always
+    profiles:
+      - bluegreen
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - minio-init
+    ports:
+      - "${BACKEND_BLUE_HOST_PORT:-8274}:8080"
+    environment:
+      <<: *backend-environment
+      SERVER_PORT: 8080
+      APP_DEPLOYMENT_COLOR: blue
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8080/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  backend_green:
+    image: ${BACKEND_IMAGE_REPOSITORY:-perfo-backend}:${BACKEND_GREEN_IMAGE_TAG:-latest}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    pull_policy: always
+    profiles:
+      - bluegreen
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - minio-init
+    ports:
+      - "${BACKEND_GREEN_HOST_PORT:-8275}:8080"
+    environment:
+      <<: *backend-environment
+      SERVER_PORT: 8080
+      APP_DEPLOYMENT_COLOR: green
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:8080/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  frontend_blue:
+    image: ${FRONTEND_IMAGE_REPOSITORY:-perfo-frontend}:${FRONTEND_BLUE_IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    pull_policy: always
+    profiles:
+      - bluegreen
+    restart: unless-stopped
+    depends_on:
+      - backend_blue
+    ports:
+      - "${FRONTEND_BLUE_HOST_PORT:-4138}:3000"
+    environment:
+      <<: *frontend-environment
+      PORT: 3000
+      BACKEND_URL: http://backend_blue:8080
+      APP_DEPLOYMENT_COLOR: blue
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:3000/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  frontend_green:
+    image: ${FRONTEND_IMAGE_REPOSITORY:-perfo-frontend}:${FRONTEND_GREEN_IMAGE_TAG:-latest}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    pull_policy: always
+    profiles:
+      - bluegreen
+    restart: unless-stopped
+    depends_on:
+      - backend_green
+    ports:
+      - "${FRONTEND_GREEN_HOST_PORT:-4139}:3000"
+    environment:
+      <<: *frontend-environment
+      PORT: 3000
+      BACKEND_URL: http://backend_green:8080
+      APP_DEPLOYMENT_COLOR: green
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:3000/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
