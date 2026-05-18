@@ -13,14 +13,14 @@ TDD 사이클: **Red → Green → Refactor**
 ## 테스트 계층
 
 ```
-E2E 테스트 (향후)
+E2E 테스트 (Playwright, 핵심 사용자 흐름)
     ↑
 통합 테스트 (API 레벨 검증)
     ↑
-단위 테스트 (함수/컴포넌트 단위)  ← 주로 여기서 시작
+단위 테스트 (함수/컴포넌트 단위)
 ```
 
-**단위 테스트 위주로 작성**하고, 핵심 API 흐름은 통합 테스트로 보완합니다.
+**흐름은 E2E, 규칙은 단위 테스트, 서버 계약은 통합 테스트**로 분리합니다.
 
 ---
 
@@ -41,13 +41,16 @@ E2E 테스트 (향후)
 cd frontend
 
 # 전체 테스트 한 번 실행
-pnpm test
+pnpm test:unit
 
 # 파일 변경 감지 (watch mode) - 개발 중 사용
 pnpm test:watch
 
 # 커버리지 리포트 생성
 pnpm test:coverage
+
+# E2E 테스트 실행
+pnpm test:e2e
 ```
 
 ### Backend 테스트 실행
@@ -88,10 +91,10 @@ lib/
 
 ```
 src/
-├── main/java/com/perfo/backend/
-│   ├── service/AuthService.java
-│   └── controller/AuthController.java
-└── test/java/com/perfo/backend/
-    ├── service/AuthServiceTest.java      # 단위 테스트
-    └── controller/AuthControllerTest.java # 슬라이스 테스트
+├── main/kotlin/com/perfo/backend/
+│   ├── service/AuthService.kt
+│   └── controller/AuthController.kt
+└── test/kotlin/com/perfo/backend/
+    ├── service/AuthServiceTest.kt      # 단위 테스트
+    └── controller/AuthControllerTest.kt # 슬라이스 테스트
 ```

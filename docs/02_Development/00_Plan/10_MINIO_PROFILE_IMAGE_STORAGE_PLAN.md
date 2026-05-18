@@ -18,12 +18,12 @@
 
 ## 2. 현재 상태
 
-- `docker-compose.yml`에는 `postgres`, `redis`, `backend`, `frontend`, `kafka`, `zookeeper`가 있다.
-- MinIO 서비스는 아직 없다.
-- `backend/build.gradle`에는 MinIO Java SDK 의존성이 없다.
+- `docker-compose.yml`에는 `postgres`, `redis`, `kafka`, `zookeeper`, `minio`, `minio-init`, `backend`, `frontend`가 있다.
+- `backend/build.gradle`에는 MinIO Java SDK(`io.minio:minio:8.5.17`)가 추가되어 있다.
+- `application.yml`은 `MINIO_BUCKET_PROFILE_IMAGES`와 `MINIO_BUCKET_TICKET_IMAGES`를 읽는다.
 - `User` 엔티티에는 `profileImage` 필드가 있다.
-- 프로필 이미지 업로드 API는 아직 없다.
-- `07_USER_PROFILE_EDIT_PLAN.md`는 업로드 저장소를 S3 호환 object storage 전제로 두고 있다.
+- 프로필 이미지 업로드 API는 `POST /api/users/me/profile-image`, 조회 API는 `GET /api/users/me/profile-image`로 구현되어 있다.
+- 티켓 이미지 업로드/조회/삭제 API도 `POST|GET|DELETE /api/tickets/{ticketId}/image`로 구현되어 있다.
 
 ## 3. 도입 방향
 
@@ -104,6 +104,7 @@ MINIO_ACCESS_KEY=perfo_app
 MINIO_SECRET_KEY=strong-random-app-password
 MINIO_REGION=ap-northeast-2
 MINIO_BUCKET_PROFILE_IMAGES=profile-images
+MINIO_BUCKET_TICKET_IMAGES=ticket-images
 
 MINIO_BROWSER_REDIRECT_URL=https://minio-console.example.com
 MINIO_SERVER_URL=https://minio-api.example.com
