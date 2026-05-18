@@ -7,6 +7,7 @@ import com.perfo.backend.entity.VerificationRecord
 import com.perfo.backend.repository.EventRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -22,9 +23,15 @@ class TicketVerificationService(
 ) {
 
     @Transactional(readOnly = true)
-    fun issueReservationQrToken(reservationId: Long): TicketDto.TicketQrTokenResponse {
+    fun issueReservationQrToken(
+        reservationId: Long,
+        authenticatedUserId: Long,
+    ): TicketDto.TicketQrTokenResponse {
         val ticket = ticketRepository.findById(reservationId)
             .orElseThrow { IllegalArgumentException("Reservation not found") }
+        if (ticket.userId != authenticatedUserId) {
+            throw AccessDeniedException("Reservation owner mismatch")
+        }
 
         val (token, expiresAt) = qrSignatureService.issueToken(
             ticketId = ticket.id ?: throw IllegalArgumentException("Reservation not found"),

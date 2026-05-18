@@ -1,343 +1,197 @@
 # PERFO 윈도우 서버 배포 및 보안 가이드
 
-> 남는 윈도우 PC를 PERFO 티켓팅 서버로 활용하기 위한 종합 가이드
+> 남는 윈도우 PC 1대를 PERFO 단일 호스트로 쓰는 운영 가이드다. 현재 코드는 `frontend/` Next.js 앱과 `backend/` Spring Boot 앱이 분리되어 있고, 실행 기준은 `docker-compose.yml`이다.
 
-## 목차
+## 1. 전제
 
-1. [사전 준비](#1-사전-준비)
-2. [소프트웨어 설치](#2-소프트웨어-설치)
-3. [프로젝트 배포](#3-프로젝트-배포)
-4. [네트워크 설정](#4-네트워크-설정)
-5. [HTTPS 설정](#5-https-설정)
-6. [보안 체크리스트](#6-보안-체크리스트)
-7. [자동 시작 설정](#7-자동-시작-설정)
-8. [모니터링 및 유지보수](#8-모니터링-및-유지보수)
+- Docker Desktop + WSL2 기반 실행을 권장한다.
+- 운영용 값은 `.env`에 둔다. 로컬 개발용 `.env.dev`와 섞지 않는다.
+- 외부에는 HTTP/HTTPS 진입 포트만 공개하고, PostgreSQL/Redis/Kafka/MinIO는 직접 공개하지 않는다.
 
----
+## 2. 설치
 
-## 1. 사전 준비
-
-### 하드웨어 권장 사양
-
-| 항목 | 최소 | 권장 |
-|------|------|------|
-| CPU | 4코어 | 8코어 이상 |
-| RAM | 8GB | 16GB 이상 |
-| 저장소 | SSD 128GB | SSD 256GB 이상 |
-| 네트워크 | 유선 연결 필수 | 1Gbps |
-
-### 윈도우 설정
-
-1. **윈도우 업데이트** 모두 설치
-2. **절전 모드 끄기**: 설정 → 시스템 → 전원 → "절전 모드" 없음으로 설정
-3. **자동 재시작 끄기**: 설정 → Windows 업데이트 → 고급 옵션 → 활성 시간 설정
-
----
-
-## 2. 소프트웨어 설치
-
-### 2.1 필수 소프트웨어
-
-**PowerShell (관리자 권한)에서 실행:**
+관리자 PowerShell:
 
 ```powershell
-# Chocolatey 패키지 관리자 설치
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# 필수 패키지 설치
-choco install -y git nodejs-lts pnpm docker-desktop
+choco install -y git docker-desktop
 ```
 
-### 2.2 Docker Desktop 설정
+Docker Desktop에서 WSL Integration을 켠다.
 
-1. Docker Desktop 실행
-2. 설정 → General → "Start Docker Desktop when you log in" 체크
-3. 설정 → Resources → WSL Integration 활성화
-
----
-
-## 3. 프로젝트 배포
-
-### 3.1 코드 클론 및 설정
+## 3. 프로젝트 준비
 
 ```powershell
-# 프로젝트 디렉토리 생성
 mkdir C:\PERFO
 cd C:\PERFO
-
-# Git 클론 (본인 리포지토리 주소로 변경)
 git clone https://github.com/YOUR_USERNAME/PERFO.git .
-
-# 의존성 설치
-pnpm install
-
-# 환경변수 설정
-copy .env.example .env.local
-notepad .env.local  # 실제 값으로 수정
 ```
 
-### 3.2 환경변수 설정 (.env.local)
+운영 `.env`를 준비한다. 저장소에는 예시 파일이 따로 없으므로, 서버에서는 기존 `.env`를 기준으로 값을 채우되 실제 운영 secret으로 교체한다.
 
-```env
-# 프로덕션 URL (본인 도메인 또는 IP)
-NEXTAUTH_URL=https://your-domain.com
+필수로 점검할 항목:
 
-# 시크릿 (랜덤하게 생성)
-NEXTAUTH_SECRET=RANDOM_32_CHAR_STRING_HERE
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `JWT_SECRET`
+- `INTERNAL_API_JWT_*`
+- `APP_SECURITY_QR_SECRET`
+- `SPRING_DATASOURCE_*`
+- `DATABASE_URL`
+- `CORS_ALLOWED_ORIGINS`
+- `MINIO_*`
+- `MAIL_*`, `RESEND_API_KEY`
+- OAuth client id/secret
+- VAPID key
 
-# 데이터베이스 (Docker Compose 사용 시)
-DATABASE_URL=postgresql://perfo:STRONG_PASSWORD@localhost:5432/perfo
+## 4. 단일 호스트 실행
 
-# 소셜 로그인 키 (기존 값 유지)
-GOOGLE_CLIENT_ID=...
-# ...
-```
-
-### 3.3 인프라 시작
+운영형 전체 서비스:
 
 ```powershell
-# Docker 컨테이너 시작 (PostgreSQL, Redis, Kafka)
-docker-compose up -d
-
-# 데이터베이스 마이그레이션
-pnpm prisma db push
-
-# 프로덕션 빌드
-pnpm build
-
-# 서버 시작 (포트 3000)
-pnpm start
+docker compose --env-file .env --profile full up -d --build
 ```
 
----
-
-## 4. 네트워크 설정
-
-### 4.1 고정 IP 설정
-
-1. 제어판 → 네트워크 → 어댑터 설정 변경
-2. 이더넷 → 속성 → IPv4 → 속성
-3. 수동 IP 설정:
-   - IP: `192.168.0.100` (예시, 공유기 설정에 맞게)
-   - 서브넷: `255.255.255.0`
-   - 게이트웨이: `192.168.0.1` (공유기 IP)
-   - DNS: `8.8.8.8`, `8.8.4.4`
-
-### 4.2 포트 포워딩 (공유기)
-
-공유기 관리 페이지에서 설정 (보통 192.168.0.1):
-
-| 외부 포트 | 내부 IP | 내부 포트 | 프로토콜 |
-|----------|---------|----------|----------|
-| 80 | 192.168.0.100 | 80 | TCP |
-| 443 | 192.168.0.100 | 443 | TCP |
-
-### 4.3 윈도우 방화벽 설정
+상태 확인:
 
 ```powershell
-# 관리자 권한 PowerShell
+docker compose --env-file .env --profile full ps
+curl.exe -fsS http://127.0.0.1:4138/api/health
+curl.exe -fsS http://127.0.0.1:8274/api/health
+```
+
+현재 기본 포트:
+
+| 서비스 | 포트 |
+| ------ | ---- |
+| Frontend | `4138` |
+| Backend | `8274` |
+| PostgreSQL | `5329` |
+| Redis | `6192` |
+| Kafka | `9043` |
+| Zookeeper | `2815` |
+| MinIO API | `9000` |
+| MinIO Console | `9001` |
+
+## 5. Blue-Green 운영
+
+무중단 전환이 필요하면 루트의 `BLUE_GREEN_DEPLOYMENT_MANUAL.md`를 따른다. 현재 Blue-Green 구성은 다음 파일을 사용한다.
+
+- `docker-compose.bluegreen.yml`
+- `deploy/nginx/nginx.conf`
+- `deploy/nginx/upstreams/active/frontend-active.conf`
+- `scripts/deploy-bluegreen.sh`
+- `scripts/switch-traffic.sh`
+- `scripts/rollback-bluegreen.sh`
+
+초기 기동 예시:
+
+```powershell
+docker compose --env-file .env -f docker-compose.yml -f docker-compose.bluegreen.yml --profile bluegreen up -d nginx backend_blue frontend_blue
+```
+
+헬스체크:
+
+```powershell
+curl.exe -fsS http://127.0.0.1:8080/healthz
+curl.exe -fsS http://127.0.0.1:4138/api/health
+curl.exe -fsS http://127.0.0.1:8274/api/health
+```
+
+## 6. HTTPS
+
+Windows 단일 호스트에서는 Caddy를 앞단에 두는 방식이 단순하다.
+
+```powershell
+choco install -y caddy
+```
+
+`C:\PERFO\Caddyfile`:
+
+```text
+your-domain.com {
+    reverse_proxy 127.0.0.1:4138
+}
+```
+
+실행:
+
+```powershell
+caddy run --config C:\PERFO\Caddyfile
+```
+
+Blue-Green을 쓰는 경우 Caddy는 Nginx 포트로 보낸다.
+
+```text
+your-domain.com {
+    reverse_proxy 127.0.0.1:8080
+}
+```
+
+## 7. 방화벽과 포트 공개
+
+공유기/방화벽에서 외부 공개는 80, 443만 허용한다.
+
+```powershell
 netsh advfirewall firewall add rule name="PERFO HTTP" dir=in action=allow protocol=TCP localport=80
 netsh advfirewall firewall add rule name="PERFO HTTPS" dir=in action=allow protocol=TCP localport=443
 ```
 
-### 4.4 DDNS 설정 (선택)
+아래 포트는 외부 공개 금지:
 
-유동 IP인 경우 무료 DDNS 서비스 사용:
-- [DuckDNS](https://www.duckdns.org/) - 무료, 간단
-- [No-IP](https://www.noip.com/) - 무료 플랜 제공
+- `5329` PostgreSQL
+- `6192` Redis
+- `9043` Kafka
+- `2815` Zookeeper
+- `9000`, `9001` MinIO
+- `8274` Backend
 
----
+## 8. 자동 시작
 
-## 5. HTTPS 설정
+Docker Desktop 자동 시작을 켠 뒤 작업 스케줄러에서 compose를 실행한다.
 
-### 5.1 Caddy 사용 (권장 - 자동 HTTPS)
+작업:
 
-```powershell
-# Caddy 설치
-choco install -y caddy
-
-# Caddyfile 생성
-@"
-your-domain.com {
-    reverse_proxy localhost:3000
-}
-"@ | Out-File -FilePath C:\PERFO\Caddyfile -Encoding utf8
-
-# Caddy 시작
-caddy run --config C:\PERFO\Caddyfile
+```text
+docker compose --env-file C:\PERFO\.env --profile full -f C:\PERFO\docker-compose.yml up -d
 ```
 
-### 5.2 또는 자체 서명 인증서 (내부망 전용)
+Blue-Green 운영이면:
 
-```powershell
-# OpenSSL로 자체 서명 인증서 생성
-choco install -y openssl
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+```text
+docker compose --env-file C:\PERFO\.env -f C:\PERFO\docker-compose.yml -f C:\PERFO\docker-compose.bluegreen.yml --profile bluegreen up -d nginx backend_blue frontend_blue
 ```
 
----
+## 9. 유지보수
 
-## 6. 보안 체크리스트
-
-### 🔴 필수 (반드시 적용)
-
-- [ ] **강력한 비밀번호 사용**
-  - 윈도우 계정, 데이터베이스, 모든 서비스
-  - 최소 16자, 대소문자+숫자+특수문자
-
-- [ ] **환경변수 보호**
-  - `.env.local` 파일 권한 제한
-  - Git에 절대 커밋하지 않기 (`.gitignore` 확인)
-
-- [ ] **HTTPS 강제**
-  - HTTP 접속 시 HTTPS로 리다이렉트
-  - `NEXTAUTH_URL`을 `https://`로 설정
-
-- [ ] **불필요한 포트 차단**
-  - 외부에는 80, 443만 열기
-  - PostgreSQL(5432), Redis(6379), Kafka(9092)는 외부 차단
-
-- [ ] **윈도우 업데이트 자동화**
-  - 보안 패치 자동 설치 설정
-
-### 🟡 권장 (가능하면 적용)
-
-- [ ] **Rate Limiting 적용**
-  - API에 요청 제한 설정
-  - DDoS 공격 방지
-
-- [ ] **로그 모니터링**
-  - 접근 로그 정기 확인
-  - 의심스러운 IP 차단
-
-- [ ] **백업 자동화**
-  - 데이터베이스 일일 백업
-  - 외부 저장소(클라우드)에 저장
-
-- [ ] **원격 데스크톱 보안**
-  - 기본 포트(3389) 변경
-  - VPN 통해서만 접근 허용
-
-### 🟢 선택 (보안 강화)
-
-- [ ] **Fail2ban 대체 (Windows)**
-  - [wail2ban](https://github.com/glasnt/wail2ban) 설치
-  - 로그인 실패 시 IP 자동 차단
-
-- [ ] **VPN 서버 구축**
-  - 관리 기능은 VPN 접속 후에만 사용
-
----
-
-## 7. 자동 시작 설정
-
-### 7.1 PM2로 Next.js 관리 (권장)
+로그:
 
 ```powershell
-# PM2 설치
-pnpm add -g pm2
-pnpm add -g pm2-windows-startup
-
-# 서비스 등록
-cd C:\PERFO
-pm2 start pnpm --name "perfo" -- start
-pm2 save
-pm2-startup install
+docker compose --env-file .env --profile full logs -f backend frontend
 ```
 
-### 7.2 작업 스케줄러로 Docker 자동 시작
-
-1. `시작` → `작업 스케줄러` 검색
-2. 기본 작업 만들기:
-   - 이름: `Docker Compose PERFO`
-   - 트리거: 컴퓨터 시작 시
-   - 작업: `docker-compose -f C:\PERFO\docker-compose.yml up -d`
-
----
-
-## 8. 모니터링 및 유지보수
-
-### 8.1 상태 확인 스크립트
-
-`C:\PERFO\healthcheck.ps1`:
+재기동:
 
 ```powershell
-# 서비스 상태 확인
-$services = @(
-    @{Name="Next.js"; Url="http://localhost:3000"},
-    @{Name="PostgreSQL"; Port=5432},
-    @{Name="Redis"; Port=6379}
-)
-
-foreach ($svc in $services) {
-    if ($svc.Url) {
-        try {
-            $response = Invoke-WebRequest -Uri $svc.Url -TimeoutSec 5
-            Write-Host "✅ $($svc.Name): OK"
-        } catch {
-            Write-Host "❌ $($svc.Name): DOWN"
-        }
-    }
-}
+docker compose --env-file .env --profile full restart backend frontend
 ```
 
-### 8.2 데이터베이스 백업 (일일)
-
-`C:\PERFO\backup.ps1`:
+전체 중지:
 
 ```powershell
-$date = Get-Date -Format "yyyyMMdd"
-$backupDir = "C:\PERFO\backups"
-New-Item -ItemType Directory -Force -Path $backupDir
-
-docker exec perfo-postgres pg_dump -U perfo perfo > "$backupDir\perfo_$date.sql"
-
-# 7일 이상 된 백업 삭제
-Get-ChildItem $backupDir -Filter "*.sql" | 
-    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-7) } | 
-    Remove-Item
+docker compose --env-file .env --profile full down
 ```
 
-### 8.3 로그 확인
+볼륨 삭제는 데이터 삭제를 의미하므로 운영 서버에서 사용하지 않는다.
 
-```powershell
-# PM2 로그
-pm2 logs perfo
+## 10. 보안 체크리스트
 
-# Docker 로그
-docker-compose logs -f
-```
-
----
-
-## 부록: 문제 해결
-
-### 포트가 이미 사용 중
-
-```powershell
-# 포트 사용 프로세스 확인
-netstat -ano | findstr :3000
-
-# 프로세스 종료
-taskkill /PID <PID> /F
-```
-
-### Docker 컨테이너 재시작
-
-```powershell
-cd C:\PERFO
-docker-compose down
-docker-compose up -d
-```
-
-### 외부에서 접속 안 됨
-
-1. 방화벽 규칙 확인
-2. 공유기 포트 포워딩 확인
-3. ISP가 80/443 포트 차단하는지 확인 (일부 가정용 인터넷)
-
----
-
-**마지막 업데이트:** 2026-02-09
+- `.env`를 Git에 커밋하지 않는다.
+- 운영 secret은 개발 값에서 반드시 교체한다.
+- `NEXTAUTH_URL`과 `CORS_ALLOWED_ORIGINS`는 실제 도메인으로 맞춘다.
+- DB, Redis, Kafka, MinIO, Backend 포트는 외부에 직접 열지 않는다.
+- 정기적으로 DB와 MinIO volume을 백업한다.
+- 배포 후 `/api/health`, 로그인, 티켓 조회, 예약 QR, 검표 API를 확인한다.

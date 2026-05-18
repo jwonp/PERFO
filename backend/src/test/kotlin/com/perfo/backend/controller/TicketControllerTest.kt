@@ -225,7 +225,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("GET /api/reservations - userId의 예약 티켓 목록을 반환한다")
-    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
+    @WithMockUser(username = "5", roles = ["ORGANIZER"])
     fun listReservations_returnsUserReservations() {
         val response = TicketDto.ReservationResponse(
             id = 21L,
@@ -306,7 +306,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/reservations/{reservationId}/qr-token 요청 시 QR 토큰을 발급한다")
-    @WithMockUser(roles = ["ORGANIZER"])
+    @WithMockUser(username = "5", roles = ["ORGANIZER"])
     fun issueQrToken_returns200() {
         val response = TicketDto.TicketQrTokenResponse(
             token = buildString {
@@ -316,7 +316,7 @@ class TicketControllerTest {
             },
             expiresAt = "2026-04-28T12:00:30Z",
         )
-        given(ticketVerificationService.issueReservationQrToken(42L)).willReturn(response)
+        given(ticketVerificationService.issueReservationQrToken(42L, 5L)).willReturn(response)
 
         mockMvc.perform(
             post("/api/reservations/42/qr-token")

@@ -484,12 +484,21 @@ class TicketService(
             maxPerUser = maxPerUser,
             discoveryMode = discoveryMode,
             status = resolveEffectiveStatus(status, openAt, validDate, now),
-            issuedCount = issuedCount,
+            issuedCount = resolveIssuedCount(this),
             ownerUserId = ownerUserId,
             eventId = eventId,
             publicBookingPath = eventId?.let { "/events/$it" },
             publicBookingUrl = null,
         )
+    }
+
+    private fun resolveIssuedCount(ticket: IssuedTicket): Int {
+        val linkedEvent = ticket.eventId?.let { eventRepository.findById(it).orElse(null) }
+        if (linkedEvent != null) {
+            return (linkedEvent.totalQuantity - linkedEvent.remainingQuantity).coerceIn(0, ticket.totalCount)
+        }
+
+        return ticket.issuedCount.coerceIn(0, ticket.totalCount)
     }
 
     private data class DetectedTicketImage(
