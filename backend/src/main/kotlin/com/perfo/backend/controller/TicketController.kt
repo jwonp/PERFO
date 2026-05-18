@@ -97,16 +97,25 @@ class TicketController(
 
     @GetMapping("/reservations")
     fun listReservations(
-        @RequestParam userId: Long,
+        authentication: Authentication,
+        @RequestParam(required = false) userId: Long?,
     ): List<TicketDto.ReservationResponse> {
-        return reservationService.findAllByUserId(userId)
+        val authenticatedUserId = resolveAuthenticatedUserIdAsLong(authentication)
+        if (userId != null && userId != authenticatedUserId) {
+            throw AccessDeniedException("Reservation owner mismatch")
+        }
+        return reservationService.findAllByUserId(authenticatedUserId)
     }
 
     @PostMapping("/reservations/{reservationId}/qr-token")
     fun issueReservationQrToken(
         @PathVariable reservationId: Long,
+        authentication: Authentication,
     ): TicketDto.TicketQrTokenResponse {
-        return ticketVerificationService.issueReservationQrToken(reservationId)
+        return ticketVerificationService.issueReservationQrToken(
+            reservationId = reservationId,
+            authenticatedUserId = resolveAuthenticatedUserIdAsLong(authentication),
+        )
     }
 
     @PostMapping("/tickets/{ticketId}/validations")
@@ -169,5 +178,10 @@ class TicketController(
         return authentication.name.ifBlank {
             throw IllegalArgumentException("Authenticated user id is missing")
         }
+    }
+
+    private fun resolveAuthenticatedUserIdAsLong(authentication: Authentication): Long {
+        return resolveAuthenticatedUserId(authentication).toLongOrNull()
+            ?: throw IllegalArgumentException("Authenticated user id is missing")
     }
 }

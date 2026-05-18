@@ -5,6 +5,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import { NextAuthOptions } from "next-auth"
 import axios from "axios"
 import { BACKEND_URL } from "@/lib/auth/auth.constants"
+import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth"
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -61,9 +62,7 @@ export const authOptions: NextAuthOptions = {
     ],
     session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
     callbacks: {
-        signIn: async ({ user, account, profile }) => {
-            console.log("signIn", user, account, profile);
-
+        signIn: async ({ user, account }) => {
             if (!account) return false
             if (account.provider === "credentials") return true
 
@@ -76,11 +75,19 @@ export const authOptions: NextAuthOptions = {
                     profileImage: user.image,
                 }
 
-                console.log({ oauthPayload, BACKEND_URL })
-
                 const { data: backendUser } = await axios.post(
                     `${BACKEND_URL}/api/auth/oauth`,
-                    oauthPayload
+                    oauthPayload,
+                    {
+                        headers: createInternalProxyAuthHeaders(
+                            {
+                                id: "0",
+                                email: user.email,
+                                role: "SYSTEM",
+                            },
+                            ["auth:oauth"],
+                        ),
+                    },
                 )
                 // 백엔드에서 반환한 사용자 정보를 user 객체에 저장
                 user.id = String(backendUser.id)
@@ -92,7 +99,10 @@ export const authOptions: NextAuthOptions = {
 
                 return true
             } catch (error) {
-                console.error("OAuth backend sync failed:", error)
+                console.error(
+                    "OAuth backend sync failed:",
+                    error instanceof Error ? error.message : "Unknown error",
+                )
                 return false
             }
         },

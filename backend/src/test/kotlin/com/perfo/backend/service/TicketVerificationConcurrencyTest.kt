@@ -68,7 +68,7 @@ class TicketVerificationConcurrencyTest {
             ),
         )
 
-        val token = ticketVerificationService.issueReservationQrToken(ticket.id!!).token
+        val token = ticketVerificationService.issueReservationQrToken(ticket.id!!, 1L).token
         val request = TicketDto.TicketValidationRequest(qrToken = token)
 
         val threadCount = 8

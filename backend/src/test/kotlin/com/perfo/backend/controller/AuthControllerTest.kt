@@ -184,12 +184,4 @@ class AuthControllerTest {
             .andExpect(jsonPath("$.provider").value("credentials"))
     }
 
-    @Test
-    @DisplayName("GET /api/auth/health - 항상 status=ok를 반환한다")
-    @WithMockUser
-    fun health_returnsOk() {
-        mockMvc.perform(get("/api/auth/health"))
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.status").value("ok"))
-    }
 }

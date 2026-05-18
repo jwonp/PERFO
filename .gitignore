@@ -17,6 +17,7 @@ frontend/dist-electron/
 frontend/.env
 frontend/.env.local
 frontend/.env.production.local
+frontend/google_client_secret.json
 
 # Spring Boot
 backend/.gradle/**

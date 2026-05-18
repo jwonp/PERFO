@@ -81,7 +81,7 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.issueToken(100L, 10L, 1L, 60))
             .willReturn(Pair("opaque-token", Instant.parse("2026-04-28T03:00:30Z")))
 
-        val response = ticketVerificationService.issueReservationQrToken(100L)
+        val response = ticketVerificationService.issueReservationQrToken(100L, 1L)
 
         assertThat(response.token).isEqualTo("opaque-token")
         assertThat(response.expiresAt).isEqualTo("2026-04-28T03:00:30Z")

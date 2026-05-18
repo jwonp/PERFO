@@ -36,10 +36,10 @@ class SecurityConfig(
                 }
             }
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/api/auth/oauth")
+                    .authenticated()
                 auth.requestMatchers(
                     "/api/auth/**",
-                    "/api/reservations/**",
-                    "/api/tickets/*/validations",
                     "/api/health",
                     "/swagger-ui/**",
                     "/v3/api-docs/**"
