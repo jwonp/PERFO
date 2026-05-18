@@ -1,11 +1,13 @@
 package com.perfo.backend.controller
 
 import com.perfo.backend.config.InternalApiJwtService
+import com.perfo.backend.config.SecurityConfig
 import com.perfo.backend.observability.InternalProxyAuthObservability
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -13,6 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @WebMvcTest(HealthController::class)
+@Import(SecurityConfig::class)
 class HealthControllerTest {
 
     @Autowired
