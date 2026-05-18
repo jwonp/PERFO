@@ -29,6 +29,8 @@ spring:
       expiration: 86400000 # 24 hours
 
 app:
+  auth:
+    preview-code-enabled: ${APP_AUTH_PREVIEW_CODE_ENABLED:false}
   security:
     internal-jwt:
       # Backend internal proxy auth for protected server-to-server API calls.

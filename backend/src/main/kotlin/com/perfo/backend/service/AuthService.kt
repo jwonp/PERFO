@@ -23,7 +23,7 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val profileImageStorageService: ProfileImageStorageService,
     private val mailSender: MailSender,
-    @Value("\${app.auth.preview-code-enabled:true}")
+    @Value("\${app.auth.preview-code-enabled:false}")
     private val previewCodeEnabled: Boolean,
 ) {
     companion object {
