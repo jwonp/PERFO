@@ -22,11 +22,11 @@
         "termsLink": "Terms of Service"
     },
     "landing": {
-        "title": "Stop making your customers wait in line",
-        "description": "We help you manage ticket & flow & data analytics, offering a premium ticketing solution.",
-        "cta": "Start for free",
+        "title": "Make online ticketing simple for everyone",
+        "description": "Bring tickets and queue numbers online instead of managing them offline.",
+        "cta": "Get started for free",
         "login": "Log in",
-        "trust": "No credit card required · Free to get started",
+        "trust": "Start for free",
         "copyright": "© 2026 PERFO. All rights reserved."
     },
     "login": {
@@ -119,8 +119,8 @@
         "profile": "Profile"
     },
     "events": {
-        "title": "Bookable Tickets",
-        "empty": "No tickets are currently listed",
+        "title": "Public Tickets",
+        "empty": "There are no tickets currently available for booking",
         "loadError": "Failed to load tickets.",
         "bookNow": "Book now",
         "booking": "Booking...",
