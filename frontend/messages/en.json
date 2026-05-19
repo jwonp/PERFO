@@ -32,6 +32,10 @@
     "login": {
         "welcome": "Log in to PERFO",
         "subtitle": "Continue with email or a social account.",
+        "entryLabel": "Access flow",
+        "helper": "Enter your email first and PERFO will route you to the right sign-in or sign-up step.",
+        "callbackNotice": "After signing in, you will return to the page you were trying to open.",
+        "errorTitle": "We could not continue the sign-in flow.",
         "google": "Continue with Google",
         "naver": "Continue with Naver",
         "line": "Continue with LINE",
@@ -111,6 +115,34 @@
         "panelLabel": "Flow Note",
         "panelTitle": "One screen, one step, one decision",
         "panelDescription": "Each auth screen emphasizes a single action while secondary information stays quieter, so the next step is always obvious."
+    },
+    "errors": {
+        "actions": {
+            "goHome": "Go home",
+            "goToLogin": "Go to login",
+            "browseTickets": "Browse tickets",
+            "retry": "Try again"
+        },
+        "badRequest": {
+            "title": "Review the request and try again",
+            "description": "The link or request format is not valid, so PERFO could not open this screen. Return home and re-enter through a normal product flow."
+        },
+        "unauthorized": {
+            "title": "This screen requires sign-in",
+            "description": "You need an authenticated session to continue here. Sign in first and you can return to the flow you were on."
+        },
+        "forbidden": {
+            "title": "This account cannot access the page",
+            "description": "Your current account does not have permission for this area. Try another account if you manage this resource through a different workspace."
+        },
+        "notFound": {
+            "title": "We could not find that screen",
+            "description": "The address may have changed or the page is no longer available. Return to PERFO and continue from the current ticket flow."
+        },
+        "server": {
+            "title": "Something went wrong while loading the screen",
+            "description": "PERFO could not complete this request because of a temporary issue. Try again shortly or return home."
+        }
     },
     "nav": {
         "events": "Tickets",
