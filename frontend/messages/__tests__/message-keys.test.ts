@@ -15,6 +15,11 @@ const REQUIRED_KEYS = [
   'myTickets.scanDescription',
   'reserved.qrShow',
   'reserved.qrTitle',
+  'errors.notFound.title',
+  'errors.unauthorized.title',
+  'errors.forbidden.title',
+  'errors.server.title',
+  'errors.badRequest.title',
 ]
 
 const getValueByPath = (obj: MessageTree, path: string): unknown => {
