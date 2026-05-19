@@ -506,5 +506,6 @@ flowchart LR
 
 - [요청 처리 전략](./04_REQUEST_PROCESSING_STRATEGY.md)
   - 티켓팅, QR 발급, QR 검증 부하 대응 기준은 `17. 부하 대응 아키텍처 기준`을 우선 참조한다.
+- [Kafka 인수인계 가이드](./05_KAFKA_HANDOFF.md)
 - [PWA 푸시 알림 가이드](../06_PWA_PUSH_GUIDE.md)
 - [윈도우 서버 배포 가이드](../07_WINDOWS_SERVER_GUIDE.md)
