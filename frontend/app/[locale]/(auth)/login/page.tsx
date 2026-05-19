@@ -22,7 +22,9 @@ const LoginPage = () => {
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/reserved";
+  const requestedCallbackUrl = searchParams.get("callbackUrl");
+  const callbackUrl = requestedCallbackUrl || "/reserved";
+  const hasCallbackUrl = Boolean(requestedCallbackUrl);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +102,20 @@ const LoginPage = () => {
       </CardHeader>
 
       <CardContent className="space-y-4 px-0">
+        <div className="rounded-2xl border border-border bg-[var(--surface-muted)]/55 px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
+            {t("login.entryLabel")}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">
+            {t("login.helper")}
+          </p>
+          {hasCallbackUrl ? (
+            <p className="mt-2 text-sm text-[var(--info)]">
+              {t("login.callbackNotice")}
+            </p>
+          ) : null}
+        </div>
+
         <form
           action={`/${locale}/login/password`}
           className="space-y-4"
@@ -122,7 +138,15 @@ const LoginPage = () => {
           </div>
 
           {error ? (
-            <p className="text-sm text-[var(--danger)]">{error}</p>
+            <div
+              role="alert"
+              className="rounded-xl border border-[color:color-mix(in_srgb,var(--danger)_22%,white)] bg-[color:color-mix(in_srgb,var(--danger)_10%,white)] px-4 py-3"
+            >
+              <p className="text-sm font-semibold text-[var(--danger)]">
+                {t("login.errorTitle")}
+              </p>
+              <p className="mt-1 text-sm text-[var(--danger)]">{error}</p>
+            </div>
           ) : null}
 
           <Button type="submit" className="h-12 w-full" disabled={submitting}>

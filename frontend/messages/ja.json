@@ -32,6 +32,10 @@
     "login": {
         "welcome": "PERFOにログイン",
         "subtitle": "メールまたはソーシャルアカウントで続行できます。",
+        "entryLabel": "ログイン案内",
+        "helper": "最初にメールアドレスを確認し、その結果に応じてログインまたはサインアップの次の手順へ進みます。",
+        "callbackNotice": "ログイン後、元の画面に戻ります。",
+        "errorTitle": "ログインを続行できませんでした。",
         "google": "Googleで続行",
         "naver": "Naverで続行",
         "line": "LINEで続行",

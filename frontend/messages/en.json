@@ -32,6 +32,10 @@
     "login": {
         "welcome": "Log in to PERFO",
         "subtitle": "Continue with email or a social account.",
+        "entryLabel": "Access flow",
+        "helper": "Enter your email first and PERFO will route you to the right sign-in or sign-up step.",
+        "callbackNotice": "After signing in, you will return to the page you were trying to open.",
+        "errorTitle": "We could not continue the sign-in flow.",
         "google": "Continue with Google",
         "naver": "Continue with Naver",
         "line": "Continue with LINE",
