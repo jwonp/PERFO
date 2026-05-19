@@ -1,13 +1,18 @@
 ALTER TABLE users
     ADD COLUMN IF NOT EXISTS role VARCHAR(32) NOT NULL DEFAULT 'USER';
 
-UPDATE users
-SET role = 'ORGANIZER'
-WHERE id IN (
-    SELECT DISTINCT CAST(owner_user_id AS BIGINT)
-    FROM issued_tickets
-    WHERE owner_user_id ~ '^[0-9]+$'
-);
+DO $$
+BEGIN
+    IF to_regclass('public.issued_tickets') IS NOT NULL THEN
+        UPDATE users
+        SET role = 'ORGANIZER'
+        WHERE id IN (
+            SELECT DISTINCT CAST(owner_user_id AS BIGINT)
+            FROM issued_tickets
+            WHERE owner_user_id ~ '^[0-9]+$'
+        );
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS auth_verification_codes (
     id BIGSERIAL PRIMARY KEY,
