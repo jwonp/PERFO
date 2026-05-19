@@ -15,6 +15,7 @@ const REQUIRED_KEYS = [
   'myTickets.scanDescription',
   'reserved.qrShow',
   'reserved.qrTitle',
+  'login.callbackNotice',
 ]
 
 const getValueByPath = (obj: MessageTree, path: string): unknown => {

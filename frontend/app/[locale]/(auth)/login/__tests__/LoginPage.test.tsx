@@ -17,6 +17,10 @@ vi.mock('next-intl', () => ({
     const messages: Record<string, string> = {
       'login.welcome': 'PERFO에 로그인하세요',
       'login.subtitle': '이메일 또는 소셜 계정으로 계속할 수 있습니다.',
+      'login.entryLabel': '로그인 안내',
+      'login.helper': '이메일을 입력하면 계정 상태를 확인한 뒤 다음 로그인 단계를 이어갑니다.',
+      'login.callbackNotice': '로그인 후 원래 보려던 화면으로 돌아갑니다.',
+      'login.errorTitle': '로그인을 계속할 수 없습니다.',
       'login.google': 'Google로 계속하기',
       'login.naver': '네이버로 계속하기',
       'login.line': 'LINE으로 계속하기',
@@ -81,5 +85,13 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: '네이버로 계속하기' }))
 
     expect(signIn).toHaveBeenCalledWith('naver', { callbackUrl: '/reserved' })
+  })
+
+  it('shows a callback notice when callbackUrl is provided', () => {
+    searchParams = new URLSearchParams('callbackUrl=%2Fmy-tickets%3Ftab%3Dactive')
+
+    render(<LoginPage />)
+
+    expect(screen.getByText('로그인 후 원래 보려던 화면으로 돌아갑니다.')).toBeInTheDocument()
   })
 })
