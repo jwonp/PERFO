@@ -5,7 +5,10 @@
 
 ## 문서 구성
 
+- [../04_ACTIVE_WORK_TRACKER.md](../04_ACTIVE_WORK_TRACKER.md): 지금 진행 중인 작업을 `끝난 것 / 안 끝난 것 / 다음 액션`으로 다시 묶은 현재 작업 정리 문서
 - [../01_RELEASE_VERSIONING.md](../01_RELEASE_VERSIONING.md): release 브랜치 운영과 버전 관리 규칙
+- [../02_PORTFOLIO_DEMO_PLAN.md](../02_PORTFOLIO_DEMO_PLAN.md): 포트폴리오 데모 운영 방향과 사용자 체험 전략
+- [../03_PORTFOLIO_DEMO_IMPLEMENTATION_SPEC.md](../03_PORTFOLIO_DEMO_IMPLEMENTATION_SPEC.md): 포트폴리오 데모 구현 범위, 파일 단위 작업, 시드/배포 스펙
 - [01_FRONTEND_PLAN.md](./01_FRONTEND_PLAN.md): Next.js 프론트엔드 구현 계획
 - [02_BACKEND_PLAN.md](./02_BACKEND_PLAN.md): Spring 백엔드 구현 계획
 - [03_INFRA_PLAN.md](./03_INFRA_PLAN.md): 배포, 운영, 인프라 구축 계획
