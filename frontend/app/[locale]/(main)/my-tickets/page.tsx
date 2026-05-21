@@ -225,8 +225,12 @@ const TicketFormSheet = ({
                                 }))
                             }
                             placeholder={t("myTickets.fieldVenuePlaceholder")}
+                            loadingLabel={t("myTickets.placeAutocompleteLoading")}
+                            readyLabel={t("myTickets.placeAutocompleteReady")}
                             unavailableLabel={t("myTickets.placeAutocompleteUnavailable")}
+                            errorLabel={t("myTickets.placeAutocompleteError")}
                             selectedLabel={t("myTickets.placeAutocompleteSelected")}
+                            emptyLabel={t("myTickets.placeAutocompleteEmpty")}
                         />
                     </FormField>
 
