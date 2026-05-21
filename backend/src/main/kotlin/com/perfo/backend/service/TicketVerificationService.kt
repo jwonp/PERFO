@@ -5,6 +5,7 @@ import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.VerificationRecord
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.IssuedTicketRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.springframework.security.access.AccessDeniedException
@@ -17,6 +18,7 @@ import java.time.ZoneOffset
 class TicketVerificationService(
     private val ticketRepository: TicketRepository,
     private val eventRepository: EventRepository,
+    private val issuedTicketRepository: IssuedTicketRepository,
     private val verificationRecordRepository: VerificationRecordRepository,
     private val qrSignatureService: QrSignatureService,
     private val notificationBridgeService: NotificationBridgeService,
@@ -47,7 +49,11 @@ class TicketVerificationService(
     }
 
     @Transactional
-    fun validateTicketByQr(ticketId: Long, request: TicketDto.TicketValidationRequest): TicketDto.TicketValidationResponse {
+    fun validateTicketByQr(
+        ticketId: Long,
+        authenticatedOwnerUserId: Long,
+        request: TicketDto.TicketValidationRequest,
+    ): TicketDto.TicketValidationResponse {
         val payload = qrSignatureService.verifyToken(request.qrToken)
             ?: return TicketDto.TicketValidationResponse(
                 result = TicketDto.TicketValidationResult.INVALID,
@@ -79,6 +85,7 @@ class TicketVerificationService(
                 result = TicketDto.TicketValidationResult.INVALID,
                 message = "Event not found",
             )
+        validateIssuedTicketOwner(event, authenticatedOwnerUserId)
         val effectiveUsageStatus = resolveUsageStatus(reservation.usageStatus, event)
 
         when (effectiveUsageStatus) {
@@ -151,6 +158,17 @@ class TicketVerificationService(
             usageStatus = TicketUsageStatus.USED,
             message = "Ticket verified",
         )
+    }
+
+    private fun validateIssuedTicketOwner(event: Event, authenticatedOwnerUserId: Long) {
+        val issuedTicketId = event.issuedTicketId ?: throw AccessDeniedException("Ticket validation forbidden")
+        val issuedTicket = issuedTicketRepository.findById(issuedTicketId).orElseThrow {
+            AccessDeniedException("Ticket validation forbidden")
+        }
+
+        if (issuedTicket.ownerUserId != authenticatedOwnerUserId.toString()) {
+            throw AccessDeniedException("Ticket validation forbidden")
+        }
     }
 
     private fun resolveUsageStatus(

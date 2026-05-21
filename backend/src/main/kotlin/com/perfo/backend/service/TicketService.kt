@@ -74,9 +74,16 @@ class TicketService(
     ): List<TicketDto.TicketResponse> {
         validateOwner(ownerUserId, authenticatedOwnerUserId)
         val now = resolveCurrentTime()
+        val tickets = issuedTicketRepository.findByOwnerUserIdOrderByIdDesc(ownerUserId)
+        val eventsById = eventRepository.findAllById(tickets.mapNotNull { it.eventId }.distinct())
+            .associateBy { requireNotNull(it.id) }
 
-        return issuedTicketRepository.findByOwnerUserIdOrderByIdDesc(ownerUserId)
-            .map { it.toResponse(now) }
+        return tickets.map { ticket ->
+            ticket.toResponse(
+                now = now,
+                linkedEvent = ticket.eventId?.let(eventsById::get),
+            )
+        }
     }
 
     @Transactional
@@ -467,7 +474,10 @@ class TicketService(
         return ticket.validDate.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)
     }
 
-    private fun IssuedTicket.toResponse(now: OffsetDateTime = resolveCurrentTime()): TicketDto.TicketResponse {
+    private fun IssuedTicket.toResponse(
+        now: OffsetDateTime = resolveCurrentTime(),
+        linkedEvent: Event? = null,
+    ): TicketDto.TicketResponse {
         val ticketId = requireNotNull(id) { "Ticket id is missing" }
         return TicketDto.TicketResponse(
             id = ticketId,
@@ -484,7 +494,7 @@ class TicketService(
             maxPerUser = maxPerUser,
             discoveryMode = discoveryMode,
             status = resolveEffectiveStatus(status, openAt, validDate, now),
-            issuedCount = resolveIssuedCount(this),
+            issuedCount = resolveIssuedCount(this, linkedEvent),
             ownerUserId = ownerUserId,
             eventId = eventId,
             publicBookingPath = eventId?.let { "/events/$it" },
@@ -492,10 +502,10 @@ class TicketService(
         )
     }
 
-    private fun resolveIssuedCount(ticket: IssuedTicket): Int {
-        val linkedEvent = ticket.eventId?.let { eventRepository.findById(it).orElse(null) }
-        if (linkedEvent != null) {
-            return (linkedEvent.totalQuantity - linkedEvent.remainingQuantity).coerceIn(0, ticket.totalCount)
+    private fun resolveIssuedCount(ticket: IssuedTicket, linkedEvent: Event? = null): Int {
+        val resolvedEvent = linkedEvent ?: ticket.eventId?.let { eventRepository.findById(it).orElse(null) }
+        if (resolvedEvent != null) {
+            return (resolvedEvent.totalQuantity - resolvedEvent.remainingQuantity).coerceIn(0, ticket.totalCount)
         }
 
         return ticket.issuedCount.coerceIn(0, ticket.totalCount)

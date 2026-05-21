@@ -84,6 +84,7 @@ cd backend
 
 운영 Blue-Green 준비:
 
+- `bash ./deploy.prod.sh`
 - `docker compose --env-file .env -f docker-compose.yml -f docker-compose.bluegreen.yml --profile bluegreen up -d nginx backend_blue frontend_blue`
 - 자세한 운영 절차는 `docs/02_Development/00_Plan/21_BLUE_GREEN_DEPLOYMENT_PLAN.md`를 참고합니다.
 

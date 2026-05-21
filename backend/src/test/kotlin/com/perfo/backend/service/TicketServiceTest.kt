@@ -105,6 +105,7 @@ class TicketServiceTest {
         val latest = issuedTicket(id = 2L, ownerUserId = "owner-1", name = "Latest Ticket")
         val first = issuedTicket(id = 1L, ownerUserId = "owner-1", name = "First Ticket")
         given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(latest, first))
+        given(eventRepository.findAllById(emptyList<Long>())).willReturn(emptyList())
 
         val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
 
@@ -123,6 +124,7 @@ class TicketServiceTest {
             openAt = OffsetDateTime.now(ZoneOffset.UTC).minusSeconds(1),
         )
         given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(ticket))
+        given(eventRepository.findAllById(emptyList<Long>())).willReturn(emptyList())
 
         val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
 
@@ -140,10 +142,31 @@ class TicketServiceTest {
             openAt = OffsetDateTime.now(ZoneOffset.UTC).minusHours(1),
         )
         given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(ticket))
+        given(eventRepository.findAllById(emptyList<Long>())).willReturn(emptyList())
 
         val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
 
         assertThat(tickets.single().status).isEqualTo(IssuedTicketStatus.EXPIRED)
+    }
+
+    @Test
+    @DisplayName("소유자별 티켓 조회 - 연결 이벤트는 batch 조회로 issuedCount를 계산한다")
+    fun findAllByOwnerUserId_resolvesIssuedCountWithoutNPlusOne() {
+        val latest = issuedTicket(id = 2L, ownerUserId = "owner-1", eventId = 12L, totalCount = 100)
+        val first = issuedTicket(id = 1L, ownerUserId = "owner-1", eventId = 11L, totalCount = 50)
+        given(issuedTicketRepository.findByOwnerUserIdOrderByIdDesc("owner-1")).willReturn(listOf(latest, first))
+        given(eventRepository.findAllById(listOf(12L, 11L))).willReturn(
+            listOf(
+                event(id = 12L, totalQuantity = 100, remainingQuantity = 60),
+                event(id = 11L, totalQuantity = 50, remainingQuantity = 10),
+            ),
+        )
+
+        val tickets = ticketService.findAllByOwnerUserId("owner-1", "owner-1")
+
+        assertThat(tickets).extracting<Int> { it.issuedCount }.containsExactly(40, 40)
+        then(eventRepository).should().findAllById(listOf(12L, 11L))
+        then(eventRepository).should(never()).findById(any())
     }
 
     @Test
@@ -518,6 +541,8 @@ class TicketServiceTest {
         name: String = "PERFO Test Ticket",
         status: IssuedTicketStatus = IssuedTicketStatus.INACTIVE,
         imageKey: String? = null,
+        eventId: Long? = null,
+        totalCount: Int = 100,
         validDate: LocalDate = LocalDate.parse("2026-08-15"),
         openAt: OffsetDateTime = OffsetDateTime.parse("2026-08-15T08:00:00Z"),
     ) = IssuedTicket(
@@ -530,11 +555,28 @@ class TicketServiceTest {
         validDate = validDate,
         openAt = openAt,
         imageKey = imageKey,
-        totalCount = 100,
+        totalCount = totalCount,
         allowDuplicate = false,
         maxPerUser = 1,
         discoveryMode = TicketDiscoveryMode.LISTED,
+        eventId = eventId,
         status = status,
         issuedCount = 0,
+    )
+
+    private fun event(
+        id: Long,
+        totalQuantity: Int,
+        remainingQuantity: Int,
+    ) = Event(
+        id = id,
+        name = "PERFO Test Ticket",
+        venue = "올림픽공원 체조경기장",
+        validFrom = LocalDate.parse("2026-08-15").atStartOfDay(),
+        validUntil = LocalDate.parse("2026-08-15").plusDays(1).atStartOfDay().minusSeconds(1),
+        totalQuantity = totalQuantity,
+        remainingQuantity = remainingQuantity,
+        maxPerUser = 1,
+        active = true,
     )
 }

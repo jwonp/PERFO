@@ -121,9 +121,14 @@ class TicketController(
     @PostMapping("/tickets/{ticketId}/validations")
     fun validateTicketByQr(
         @PathVariable ticketId: Long,
+        authentication: Authentication,
         @Valid @RequestBody request: TicketDto.TicketValidationRequest,
     ): TicketDto.TicketValidationResponse {
-        return ticketVerificationService.validateTicketByQr(ticketId, request)
+        return ticketVerificationService.validateTicketByQr(
+            ticketId = ticketId,
+            authenticatedOwnerUserId = resolveAuthenticatedUserIdAsLong(authentication),
+            request = request,
+        )
     }
 
     @PatchMapping("/internal/tickets/{ticketId}/ticketing-status")
