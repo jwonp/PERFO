@@ -8,9 +8,11 @@ import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.entity.VerificationRecord
 import com.perfo.backend.entity.Event
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.IssuedTicketRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -22,6 +24,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.security.access.AccessDeniedException
 import java.time.LocalDateTime
 import java.time.Instant
 import java.util.Optional
@@ -37,6 +40,9 @@ class TicketVerificationServiceTest {
 
     @Mock
     private lateinit var eventRepository: EventRepository
+
+    @Mock
+    private lateinit var issuedTicketRepository: IssuedTicketRepository
 
     @Mock
     private lateinit var qrSignatureService: QrSignatureService
@@ -71,6 +77,7 @@ class TicketVerificationServiceTest {
             remainingQuantity = 10,
             maxPerUser = 1,
             active = true,
+            issuedTicketId = 55L,
         )
     }
 
@@ -96,11 +103,13 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
         given(eventRepository.findById(10L)).willReturn(Optional.of(event))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
         given(ticketRepository.markUsedIfNotUsed(100L, TicketUsageStatus.USED)).willReturn(1)
         given(verificationRecordRepository.save(org.mockito.ArgumentMatchers.any(VerificationRecord::class.java)))
             .willReturn(VerificationRecord(id = 1L, ticketId = 100L, eventId = 10L, userId = 1L))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.SUCCESS)
         assertThat(response.ticketNumber).isEqualTo(98)
@@ -119,7 +128,7 @@ class TicketVerificationServiceTest {
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.WRONG_TICKET)
         then(ticketRepository).should(never()).findById(100L)
@@ -135,8 +144,10 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(usedTicket))
         given(eventRepository.findById(10L)).willReturn(Optional.of(event))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.ALREADY_USED)
         then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
@@ -152,8 +163,10 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(beforeServingTicket))
         given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2))))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
         then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
@@ -169,8 +182,10 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(waitingTicket))
         given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2))))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
         then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
@@ -185,8 +200,10 @@ class TicketVerificationServiceTest {
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
         given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
         given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().minusHours(2), LocalDateTime.now().minusMinutes(1))))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.EXPIRED)
         then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
@@ -198,9 +215,28 @@ class TicketVerificationServiceTest {
         val request = TicketDto.TicketValidationRequest(qrToken = "bad-token")
         given(qrSignatureService.verifyToken("bad-token")).willReturn(null)
 
-        val response = ticketVerificationService.validateTicketByQr(10L, request)
+        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.INVALID)
+    }
+
+    @Test
+    @DisplayName("QR 검표 실패 시 발급 티켓 owner가 아니면 접근을 거부한다")
+    fun validateQr_forbiddenForNonOwner() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+
+        given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
+        given(issuedTicketRepository.findById(55L))
+            .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "9")))
+
+        assertThatThrownBy { ticketVerificationService.validateTicketByQr(10L, 7L, request) }
+            .isInstanceOf(AccessDeniedException::class.java)
+            .hasMessage("Ticket validation forbidden")
+
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
     }
 
     private fun Event.copyWithWindow(validFrom: LocalDateTime, validUntil: LocalDateTime): Event {
@@ -214,6 +250,7 @@ class TicketVerificationServiceTest {
             remainingQuantity = remainingQuantity,
             maxPerUser = maxPerUser,
             active = active,
+            issuedTicketId = issuedTicketId,
         )
     }
 }

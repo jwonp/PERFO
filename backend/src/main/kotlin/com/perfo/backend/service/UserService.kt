@@ -34,7 +34,7 @@ class UserService(
     @Transactional
     fun updateMyProfile(email: String, request: UserProfileDto.UpdateMyProfileRequest): UserProfileDto.MyProfileResponse {
         val normalizedDisplayName = normalizeDisplayName(request.displayName)
-        val normalizedImage = normalizeProfileImage(request.profileImageType, request.profileImageValue)
+        val normalizedImage = normalizeProfileImageForProfileUpdate(request.profileImageType, request.profileImageValue)
         val user = findUser(email)
         val previousUploadedKey = user.profileImageValue.takeIf { user.profileImageType == UserProfilePreset.UPLOADED }
 
@@ -97,6 +97,13 @@ class UserService(
             "Display name contains unsupported characters"
         }
         return trimmed
+    }
+
+    private fun normalizeProfileImageForProfileUpdate(type: String, value: String?): Pair<String, String?> {
+        require(type != UserProfilePreset.UPLOADED) {
+            "Uploaded profile image must be set via upload endpoint"
+        }
+        return normalizeProfileImage(type, value)
     }
 
     private fun normalizeProfileImage(type: String, value: String?): Pair<String, String?> {

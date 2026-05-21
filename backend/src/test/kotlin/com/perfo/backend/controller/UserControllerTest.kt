@@ -137,6 +137,28 @@ class UserControllerTest {
     }
 
     @Test
+    @DisplayName("PATCH /api/users/me/profile - 업로드 이미지 타입을 직접 보내면 400을 반환한다")
+    fun updateMyProfile_uploadedType_returns400() {
+        val request = UserProfileDto.UpdateMyProfileRequest(
+            displayName = "새 닉네임",
+            profileImageType = "UPLOADED",
+            profileImageValue = "1/foreign.png",
+        )
+        whenever(userService.updateMyProfile("hong@example.com", request))
+            .thenThrow(IllegalArgumentException("Uploaded profile image must be set via upload endpoint"))
+
+        mockMvc.perform(
+            patch("/api/users/me/profile")
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(1L, "hong@example.com", "users")}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Uploaded profile image must be set via upload endpoint"))
+    }
+
+    @Test
     @DisplayName("POST /api/users/me/profile-image - multipart 업로드 성공 시 업데이트된 프로필을 반환한다")
     fun uploadMyProfileImage_returns200() {
         val file = MockMultipartFile("file", "avatar.png", "image/png", "png".toByteArray())
