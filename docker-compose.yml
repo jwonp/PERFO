@@ -179,6 +179,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: dev
+      args:
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     volumes:
@@ -225,6 +227,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: prod
+      args:
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:

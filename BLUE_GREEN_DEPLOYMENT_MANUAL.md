@@ -32,6 +32,7 @@ Client
 - `docker-compose.bluegreen.yml`
 - `deploy/nginx/nginx.conf`
 - `deploy/nginx/upstreams/active/frontend-active.conf`
+- `deploy.prod.sh`
 - `scripts/deploy-bluegreen.sh`
 - `scripts/switch-traffic.sh`
 - `scripts/rollback-bluegreen.sh`
@@ -43,7 +44,7 @@ Client
 운영 서버 `.env`에는 기존 변수 외에 아래 항목이 있어야 한다.
 
 ```env
-NGINX_PORT=8080
+NGINX_PORT=4137
 
 FRONTEND_IMAGE_REPOSITORY=ghcr.io/<owner>/perfo-frontend
 BACKEND_IMAGE_REPOSITORY=ghcr.io/<owner>/perfo-backend
@@ -121,7 +122,7 @@ docker compose \
 ```bash
 curl -fsS http://127.0.0.1:8274/api/health
 curl -fsS http://127.0.0.1:4138/api/health
-curl -fsS http://127.0.0.1:8080/healthz
+curl -fsS http://127.0.0.1:4137/healthz
 ```
 
 현재 앱 헬스 응답은 최소 응답만 제공한다.
@@ -136,7 +137,25 @@ curl -fsS http://127.0.0.1:8080/healthz
 - frontend tag: `abc1234`
 - backend tag: `abc1234`
 
-자동으로 반대 color에 배포:
+운영 기본 진입점:
+
+```bash
+bash ./deploy.prod.sh
+```
+
+기본값:
+
+- `.env` 사용
+- frontend/backend 모두 `prod` 태그 사용
+- 현재 active의 반대 color로 자동 배포
+
+자동으로 반대 color에 특정 태그 배포:
+
+```bash
+bash ./deploy.prod.sh --tag abc1234
+```
+
+기존 저수준 스크립트를 직접 써도 된다:
 
 ```bash
 bash ./scripts/deploy-bluegreen.sh \
@@ -146,6 +165,12 @@ bash ./scripts/deploy-bluegreen.sh \
 ```
 
 특정 color 강제 배포:
+
+```bash
+bash ./deploy.prod.sh --tag abc1234 --target-color green
+```
+
+또는:
 
 ```bash
 bash ./scripts/deploy-bluegreen.sh \
@@ -177,7 +202,7 @@ bash ./scripts/switch-traffic.sh green --env-file .env
 
 ```bash
 cat deploy/nginx/upstreams/active/frontend-active.conf
-curl -fsS http://127.0.0.1:8080/healthz
+curl -fsS http://127.0.0.1:4137/healthz
 ```
 
 ## 롤백 절차

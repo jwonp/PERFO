@@ -60,7 +60,7 @@ services:
       - bluegreen
     restart: unless-stopped
     ports:
-      - "${NGINX_PORT:-8080}:8080"
+      - "${NGINX_PORT:-4137}:8080"
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./deploy/nginx/upstreams:/etc/nginx/upstreams:ro
@@ -142,6 +142,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: prod
+      args:
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
     pull_policy: always
     profiles:
       - bluegreen
@@ -172,6 +174,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: prod
+      args:
+        NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
     pull_policy: always
     profiles:
       - bluegreen

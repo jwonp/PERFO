@@ -24,6 +24,8 @@ CMD ["pnpm", "dev"]
 
 # --- Production build ---
 FROM base AS build
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
 RUN pnpm build
 
 FROM node:20-alpine AS prod
