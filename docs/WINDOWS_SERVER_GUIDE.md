@@ -96,7 +96,7 @@ docker compose --env-file .env -f docker-compose.yml -f docker-compose.bluegreen
 헬스체크:
 
 ```powershell
-curl.exe -fsS http://127.0.0.1:8080/healthz
+curl.exe -fsS http://127.0.0.1:4137/healthz
 curl.exe -fsS http://127.0.0.1:4138/api/health
 curl.exe -fsS http://127.0.0.1:8274/api/health
 ```
@@ -127,7 +127,7 @@ Blue-Green을 쓰는 경우 Caddy는 Nginx 포트로 보낸다.
 
 ```text
 your-domain.com {
-    reverse_proxy 127.0.0.1:8080
+    reverse_proxy 127.0.0.1:4137
 }
 ```
 
