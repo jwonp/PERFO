@@ -191,6 +191,23 @@ class UserServiceTest {
             .hasMessage("Unsupported profile image preset")
     }
 
+    @Test
+    @DisplayName("내 프로필 수정 - 업로드 이미지 타입은 업로드 endpoint로만 변경할 수 있다")
+    fun updateMyProfile_rejectsUploadedType() {
+        assertThatThrownBy {
+            userService.updateMyProfile(
+                "hong@example.com",
+                UserProfileDto.UpdateMyProfileRequest(
+                    displayName = "홍길동",
+                    profileImageType = "UPLOADED",
+                    profileImageValue = "1/foreign.png",
+                ),
+            )
+        }
+            .isInstanceOf(IllegalArgumentException::class.java)
+            .hasMessage("Uploaded profile image must be set via upload endpoint")
+    }
+
     private fun user(
         name: String? = "홍길동",
         profileImageType: String? = null,

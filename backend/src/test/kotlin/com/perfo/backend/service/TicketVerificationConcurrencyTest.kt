@@ -2,11 +2,14 @@ package com.perfo.backend.service
 
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.entity.Event
+import com.perfo.backend.entity.IssuedTicket
+import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.dto.TicketDto.TicketValidationResult
 import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.IssuedTicketRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.VerificationRecordRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -17,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -32,6 +36,9 @@ class TicketVerificationConcurrencyTest {
     private lateinit var eventRepository: EventRepository
 
     @Autowired
+    private lateinit var issuedTicketRepository: IssuedTicketRepository
+
+    @Autowired
     private lateinit var verificationRecordRepository: VerificationRecordRepository
 
     @Autowired
@@ -40,6 +47,20 @@ class TicketVerificationConcurrencyTest {
     @Test
     @DisplayName("동일 QR 동시 검표 시 한 요청만 성공하고 나머지는 이미 사용 결과를 반환한다")
     fun validateTicket_concurrentRequests_onlyOneSuccess() {
+        val issuedTicket = issuedTicketRepository.save(
+            IssuedTicket(
+                ownerUserId = "7",
+                name = "Verification Event",
+                venue = "Olympic Park",
+                googlePlaceId = "ChIJVERIFY123",
+                validDate = LocalDate.now().plusDays(1),
+                totalCount = 1,
+                allowDuplicate = false,
+                maxPerUser = 1,
+                discoveryMode = TicketDiscoveryMode.LISTED,
+            ),
+        )
+
         val event = eventRepository.save(
             Event(
                 name = "Verification Event",
@@ -54,8 +75,11 @@ class TicketVerificationConcurrencyTest {
                 allowDuplicate = false,
                 nextTicketNumber = 1,
                 active = true,
+                issuedTicketId = issuedTicket.id,
             ),
         )
+        issuedTicket.eventId = event.id
+        issuedTicketRepository.save(issuedTicket)
 
         val ticket = ticketRepository.save(
             Ticket(
@@ -81,7 +105,7 @@ class TicketVerificationConcurrencyTest {
             executor.submit {
                 try {
                     start.await(3, TimeUnit.SECONDS)
-                    val response = ticketVerificationService.validateTicketByQr(ticket.eventId, request)
+                    val response = ticketVerificationService.validateTicketByQr(ticket.eventId, 7L, request)
                     synchronized(results) {
                         results.add(response.result)
                     }

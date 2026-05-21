@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
                     "OAuth backend sync failed:",
                     error instanceof Error ? error.message : "Unknown error",
                 )
-                return false
+                return "/unauthorized"
             }
         },
 
