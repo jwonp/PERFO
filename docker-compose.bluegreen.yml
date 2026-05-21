@@ -94,6 +94,10 @@ services:
       <<: *backend-environment
       SERVER_PORT: 8080
       APP_DEPLOYMENT_COLOR: blue
+    networks:
+      default:
+        aliases:
+          - backend-blue
     healthcheck:
       test:
         [
@@ -125,6 +129,10 @@ services:
       <<: *backend-environment
       SERVER_PORT: 8080
       APP_DEPLOYMENT_COLOR: green
+    networks:
+      default:
+        aliases:
+          - backend-green
     healthcheck:
       test:
         [
@@ -155,7 +163,7 @@ services:
     environment:
       <<: *frontend-environment
       PORT: 3000
-      BACKEND_URL: http://backend_blue:8080
+      BACKEND_URL: http://backend-blue:8080
       APP_DEPLOYMENT_COLOR: blue
     healthcheck:
       test:
@@ -187,7 +195,7 @@ services:
     environment:
       <<: *frontend-environment
       PORT: 3000
-      BACKEND_URL: http://backend_green:8080
+      BACKEND_URL: http://backend-green:8080
       APP_DEPLOYMENT_COLOR: green
     healthcheck:
       test:
