@@ -73,7 +73,6 @@ fi
 mkdir -p "${ACTIVE_DIR}"
 cp "${SOURCE_FILE}" "${ACTIVE_FILE}"
 
-compose up -d nginx
-compose exec -T nginx nginx -s reload
+compose up -d --force-recreate nginx
 
 echo "Traffic switched to ${TARGET_COLOR}."
