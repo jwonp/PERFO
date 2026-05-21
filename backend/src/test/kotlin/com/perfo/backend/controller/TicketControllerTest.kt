@@ -328,7 +328,7 @@ class TicketControllerTest {
 
     @Test
     @DisplayName("POST /api/tickets/{ticketId}/validations 요청 시 검표 결과를 반환한다")
-    @WithMockUser(roles = ["ORGANIZER"])
+    @WithMockUser(username = "5", roles = ["ORGANIZER"])
     fun validateTicket_returns200() {
         val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
         val response = TicketDto.TicketValidationResponse(
@@ -336,7 +336,7 @@ class TicketControllerTest {
             ticketNumber = 121,
             usageStatus = TicketUsageStatus.USED,
         )
-        given(ticketVerificationService.validateTicketByQr(10L, request)).willReturn(response)
+        given(ticketVerificationService.validateTicketByQr(10L, 5L, request)).willReturn(response)
 
         mockMvc.perform(
             post("/api/tickets/10/validations")
@@ -347,6 +347,24 @@ class TicketControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.result").value("SUCCESS"))
             .andExpect(jsonPath("$.ticketNumber").value(121))
+    }
+
+    @Test
+    @DisplayName("POST /api/tickets/{ticketId}/validations 요청 시 owner가 아니면 403을 반환한다")
+    @WithMockUser(username = "5", roles = ["ORGANIZER"])
+    fun validateTicket_forbidden_returns403() {
+        val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
+        given(ticketVerificationService.validateTicketByQr(10L, 5L, request))
+            .willThrow(AccessDeniedException("Ticket validation forbidden"))
+
+        mockMvc.perform(
+            post("/api/tickets/10/validations")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)),
+        )
+            .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.message").value("Ticket validation forbidden"))
     }
 
     @Test
