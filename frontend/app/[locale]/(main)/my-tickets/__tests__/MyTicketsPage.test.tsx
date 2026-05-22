@@ -3,6 +3,18 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MyTicketsPage from '../page'
 
+vi.mock('next/dynamic', async () => {
+  const { default: React } = await import('react')
+  return {
+    default: (fn: () => Promise<{ default: React.ComponentType }>) => {
+      const LazyComp = React.lazy(fn)
+      return function Dynamic(props: Record<string, unknown>) {
+        return React.createElement(React.Suspense, { fallback: null }, React.createElement(LazyComp, props))
+      }
+    },
+  }
+})
+
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: vi.fn(),
@@ -185,7 +197,7 @@ describe('MyTicketsPage', () => {
 
     await user.click(screen.getByRole('button', { name: '티켓 발급' }))
 
-    expect(screen.getByLabelText('사용 장소')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByLabelText('사용 장소')).toBeInTheDocument())
     expect(screen.getByLabelText('세부 주소')).toBeInTheDocument()
     expect(screen.getByLabelText('검표 오픈 시각')).toBeInTheDocument()
     expect(screen.getByLabelText('대표 이미지')).toBeInTheDocument()

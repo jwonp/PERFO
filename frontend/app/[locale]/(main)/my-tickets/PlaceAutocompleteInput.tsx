@@ -11,6 +11,7 @@ interface PlaceAutocompleteInputProps {
   required?: boolean;
   value: string;
   placeId?: string;
+  apiKey?: string;
   placeholder: string;
   onChange: (value: string) => void;
   onPlaceSelect: (place: { name: string; placeId?: string }) => void;
@@ -63,7 +64,6 @@ interface GoogleMapsWindow extends Window {
   };
 }
 
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const GOOGLE_PLACE_ID_PATTERN = /^[A-Za-z0-9_-]{3,256}$/;
 const MIN_QUERY_LENGTH = 2;
 const MAX_PREDICTIONS = 6;
@@ -147,34 +147,12 @@ const renderHighlightedText = (prediction: GoogleAutocompletePrediction) => {
   );
 };
 
-export const googleMapsSearchUrl = (
-  venue: string,
-  placeId?: string,
-): string => {
-  const normalizedVenue = venue.trim();
-  const normalizedPlaceId = normalizePlaceId(placeId);
-
-  if (!normalizedVenue) {
-    return "";
-  }
-
-  const params = new URLSearchParams({
-    api: "1",
-    query: normalizedVenue,
-  });
-
-  if (normalizedPlaceId) {
-    params.set("query_place_id", normalizedPlaceId);
-  }
-
-  return `https://www.google.com/maps/search/?${params.toString()}`;
-};
-
 export const PlaceAutocompleteInput = ({
   id,
   required,
   value,
   placeId,
+  apiKey,
   placeholder,
   onChange,
   onPlaceSelect,
@@ -185,6 +163,7 @@ export const PlaceAutocompleteInput = ({
   selectedLabel,
   emptyLabel,
 }: PlaceAutocompleteInputProps) => {
+  const googleMapsApiKey = apiKey ?? process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const locale = useLocale();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -192,7 +171,6 @@ export const PlaceAutocompleteInput = ({
   const requestIdRef = useRef(0);
   const suppressNextSearchRef = useRef(false);
 
-  const [scriptLoaded, setScriptLoaded] = useState(false);
   const [status, setStatus] = useState<AutocompleteStatus>(
     googleMapsApiKey ? "loading" : "unavailable",
   );
@@ -208,13 +186,9 @@ export const PlaceAutocompleteInput = ({
   const listboxId = useId();
   const selectedPlaceId = normalizePlaceId(placeId);
 
-  useEffect(() => {
-    if (!googleMapsApiKey) {
-      setStatus("unavailable");
-      return;
-    }
-
-    if (!scriptLoaded || autocompleteServiceRef.current) {
+  const initializeAutocomplete = () => {
+    if (autocompleteServiceRef.current) {
+      setStatus("ready");
       return;
     }
 
@@ -222,13 +196,26 @@ export const PlaceAutocompleteInput = ({
       ?.AutocompleteService;
 
     if (!AutocompleteService) {
-      setStatus("error");
       return;
     }
 
     autocompleteServiceRef.current = new AutocompleteService();
     setStatus("ready");
-  }, [scriptLoaded]);
+  };
+
+  useEffect(() => {
+    if (!googleMapsApiKey) {
+      setStatus("unavailable");
+      return;
+    }
+
+    if (autocompleteServiceRef.current) {
+      setStatus("ready");
+      return;
+    }
+
+    initializeAutocomplete();
+  }, []);
 
   useEffect(() => {
     const service = autocompleteServiceRef.current;
@@ -414,7 +401,7 @@ export const PlaceAutocompleteInput = ({
           id="google-maps-places"
           src={`https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&language=${locale}`}
           strategy="afterInteractive"
-          onLoad={() => setScriptLoaded(true)}
+          onReady={initializeAutocomplete}
           onError={() => setStatus("error")}
         />
       ) : null}
@@ -490,6 +477,9 @@ export const PlaceAutocompleteInput = ({
                     >
                       <button
                         type="button"
+                        onPointerDown={(event) => {
+                          event.preventDefault();
+                        }}
                         onMouseDown={(event) => {
                           event.preventDefault();
                         }}
