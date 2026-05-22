@@ -19,7 +19,12 @@ import { FormField, FormFieldLabel } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsButton } from "@/components/ui/tabs";
 import { ToggleRow } from "@/components/ui/toggle-row";
-import { PlaceAutocompleteInput, googleMapsSearchUrl } from "./PlaceAutocompleteInput";
+import dynamic from "next/dynamic";
+import { googleMapsSearchUrl } from "./place-utils";
+
+const PlaceAutocompleteInput = dynamic(
+    () => import("./PlaceAutocompleteInput").then((m) => ({ default: m.PlaceAutocompleteInput })),
+);
 import { EMPTY_FORM, STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type { DiscoveryMode, DuplicatePurchaseFilter, IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
