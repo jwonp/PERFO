@@ -433,6 +433,7 @@ class TicketService(
 
         val ticketId = requireNotNull(ticket.id) { "Ticket id is missing" }
         val now = resolveCurrentTime()
+        val effectiveStatus = resolveEffectiveStatus(ticket.status, ticket.openAt, ticket.validDate, now)
         val persistedTotalQuantity = event.totalQuantity
         val soldCount = (persistedTotalQuantity - event.remainingQuantity).coerceAtLeast(0)
         val nextRemainingQuantity = (ticket.totalCount - soldCount).coerceAtLeast(0)
@@ -447,7 +448,7 @@ class TicketService(
         event.saleCloseAt = resolveSaleCloseAt(ticket)
         event.maxPerUser = ticket.maxPerUser
         event.allowDuplicate = ticket.allowDuplicate
-        event.active = ticket.status == IssuedTicketStatus.ISSUING || ticket.status == IssuedTicketStatus.VERIFYING
+        event.active = effectiveStatus == IssuedTicketStatus.ISSUING || effectiveStatus == IssuedTicketStatus.VERIFYING
         event.discoveryMode = ticket.discoveryMode
         event.issuedTicketId = ticketId
         event.nextTicketNumber = event.nextTicketNumber.coerceAtLeast(1)
@@ -467,7 +468,7 @@ class TicketService(
     }
 
     private fun resolveSaleOpenAt(ticket: IssuedTicket, now: OffsetDateTime): Instant {
-        return now.toInstant()
+        return ticket.openAt?.toInstant() ?: now.toInstant()
     }
 
     private fun resolveSaleCloseAt(ticket: IssuedTicket): Instant {

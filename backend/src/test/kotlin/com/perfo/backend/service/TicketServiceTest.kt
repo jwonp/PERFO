@@ -22,6 +22,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.access.AccessDeniedException
+import java.time.Instant
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -79,6 +80,32 @@ class TicketServiceTest {
         assertThat(created.discoveryMode).isEqualTo(TicketDiscoveryMode.LISTED)
         assertThat(created.eventId).isEqualTo(11L)
         assertThat(created.publicBookingPath).isEqualTo("/events/11")
+    }
+
+    @Test
+    @DisplayName("티켓 생성 시 연결 이벤트의 saleOpenAt은 ticket.openAt 기준으로 동기화한다")
+    fun create_syncsLinkedEventSaleOpenAtFromTicketOpenAt() {
+        val request = createRequest(
+            ownerUserId = "owner-1",
+            openAt = "2026-08-15T08:00:00Z",
+        )
+        var syncedEvent: Event? = null
+        given(issuedTicketRepository.save(any())).willAnswer {
+            val ticket = it.arguments[0] as IssuedTicket
+            ticket.id = ticket.id ?: 1L
+            ticket
+        }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 11L
+            syncedEvent = event
+            event
+        }
+
+        ticketService.create(request, "owner-1")
+
+        assertThat(syncedEvent).isNotNull
+        assertThat(syncedEvent?.saleOpenAt).isEqualTo(Instant.parse("2026-08-15T08:00:00Z"))
     }
 
     @Test
