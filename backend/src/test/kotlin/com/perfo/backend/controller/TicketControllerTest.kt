@@ -113,6 +113,44 @@ class TicketControllerTest {
     }
 
     @Test
+    @DisplayName("POST /api/tickets multipart - 이미지와 함께 티켓 생성 결과를 반환한다")
+    @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
+    fun createTicketWithImage_returns200() {
+        val request = TicketDto.CreateTicketRequest(
+            name = "PERFO Multipart Ticket",
+            venue = "올림픽공원 체조경기장",
+            googlePlaceId = "ChIJPLACE",
+            detailAddress = "2층 A게이트 앞",
+            validDate = "2026-08-15",
+            openAt = "2026-08-15T08:00:00Z",
+            totalCount = 100,
+            allowDuplicate = false,
+            maxPerUser = 1,
+        )
+        val payload = MockMultipartFile(
+            "payload",
+            "payload.json",
+            MediaType.APPLICATION_JSON_VALUE,
+            objectMapper.writeValueAsBytes(request),
+        )
+        val file = MockMultipartFile("file", "cover.png", "image/png", "png".toByteArray())
+        val response = ticketResponse(imageKey = "owner-1/1/generated.png")
+
+        given(ticketService.create(eq(request), eq("owner-1"), any())).willReturn(response)
+
+        mockMvc.perform(
+            multipart("/api/tickets")
+                .file(payload)
+                .file(file)
+                .with(csrf()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.imageKey").value("owner-1/1/generated.png"))
+            .andExpect(jsonPath("$.imageUrl").value("/api/tickets/1/image"))
+    }
+
+    @Test
     @DisplayName("GET /api/tickets - ownerUserId의 발행 티켓 목록을 반환한다")
     @WithMockUser(username = "owner-1", roles = ["ORGANIZER"])
     fun listIssuedTickets_returnsOwnerTickets() {
