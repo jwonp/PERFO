@@ -60,13 +60,6 @@ class TicketVerificationService(
                 message = "Invalid or expired QR token",
             )
 
-        if (payload.eventId != ticketId) {
-            return TicketDto.TicketValidationResponse(
-                result = TicketDto.TicketValidationResult.WRONG_TICKET,
-                message = "QR is for a different ticket",
-            )
-        }
-
         val reservation = ticketRepository.findById(payload.ticketId).orElse(null)
             ?: return TicketDto.TicketValidationResponse(
                 result = TicketDto.TicketValidationResult.INVALID,
@@ -85,6 +78,14 @@ class TicketVerificationService(
                 result = TicketDto.TicketValidationResult.INVALID,
                 message = "Event not found",
             )
+
+        if (event.issuedTicketId != ticketId) {
+            return TicketDto.TicketValidationResponse(
+                result = TicketDto.TicketValidationResult.WRONG_TICKET,
+                message = "QR is for a different ticket",
+            )
+        }
+
         validateIssuedTicketOwner(event, authenticatedOwnerUserId)
         val effectiveUsageStatus = resolveUsageStatus(reservation.usageStatus, event)
 
