@@ -56,6 +56,22 @@ const ReservedQrPage = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [params.reservationId]);
 
+    useEffect(() => {
+        if (!data?.expiresAt) return;
+
+        const expiresAtMs = new Date(data.expiresAt).getTime();
+        const delayMs = expiresAtMs - Date.now() - 10_000;
+
+        if (delayMs <= 0) {
+            void loadToken();
+            return;
+        }
+
+        const timer = setTimeout(() => void loadToken(), delayMs);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data?.expiresAt]);
+
     return (
         <div className="space-y-4 px-5 pt-8 pb-10">
             <h1 className="text-lg font-extrabold text-primary">{t("reserved.qrTitle")}</h1>

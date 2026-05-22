@@ -66,8 +66,6 @@ class HeaderAuthenticationFilter(
             path.matches(Regex("^/api/ticketing/events/[^/]+/projection/?$")) -> "ticketing:projection"
             path.startsWith("/api/ticketing/") -> "ticketing"
             path.startsWith("/api/users/") -> "users"
-            path == "/api/events" -> "tickets"
-            path.startsWith("/api/events/") -> "tickets"
             path == "/api/tickets" -> "tickets"
             path.startsWith("/api/tickets/") -> "tickets"
             else -> null
