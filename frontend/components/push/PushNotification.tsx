@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import type { PushNotificationProps } from '@/components/push/push-notification.types';
 
 interface PushPublicKeyResponse {
@@ -141,7 +140,11 @@ const PushNotification = ({
             });
 
             // 서버에 구독 정보 저장
-            await axios.post('/api/push/subscribe', subscription.toJSON());
+            await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription.toJSON()),
+            });
         } catch (err) {
             setIsSubscribed(previousSubscribed);
             console.error('구독 실패:', err);
@@ -165,8 +168,10 @@ const PushNotification = ({
             if (subscription) {
                 await subscription.unsubscribe();
 
-                await axios.delete('/api/push/subscribe', {
-                    data: { endpoint: subscription.endpoint },
+                await fetch('/api/push/subscribe', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ endpoint: subscription.endpoint }),
                 });
             }
 

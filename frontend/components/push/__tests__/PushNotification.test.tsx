@@ -4,14 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PushNotification } from "../PushNotification";
 
 const {
-    postMock,
     fetchMock,
     requestPermissionMock,
     registerMock,
     getSubscriptionMock,
     subscribeMock,
 } = vi.hoisted(() => ({
-    postMock: vi.fn(),
     fetchMock: vi.fn(),
     requestPermissionMock: vi.fn(),
     registerMock: vi.fn(),
@@ -19,23 +17,16 @@ const {
     subscribeMock: vi.fn(),
 }));
 
-vi.mock("axios", () => ({
-    default: {
-        post: postMock,
-        delete: vi.fn(),
-    },
-}));
-
 describe("PushNotification", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.stubGlobal("fetch", fetchMock);
-        fetchMock.mockResolvedValue({
-            ok: true,
-            json: async () => ({ publicKey: "BKQxVwVQJ3K1x0Kx0M2vVdWfYlS2YI9x3Wv4xq4xM9m8kN7p7H6h5G4f3E2d1C0b9A8z7Y6x5W4v3U2t1S0" }),
+        fetchMock.mockImplementation(async (url: string) => {
+            if (String(url) === "/api/push/public-key") {
+                return { ok: true, json: async () => ({ publicKey: "BKQxVwVQJ3K1x0Kx0M2vVdWfYlS2YI9x3Wv4xq4xM9m8kN7p7H6h5G4f3E2d1C0b9A8z7Y6x5W4v3U2t1S0" }) };
+            }
+            return { ok: true, json: async () => ({}) };
         });
-
-        postMock.mockResolvedValue({ data: { success: true } });
         requestPermissionMock.mockResolvedValue("granted");
         getSubscriptionMock.mockResolvedValue(null);
         subscribeMock.mockResolvedValue({
@@ -104,10 +95,11 @@ describe("PushNotification", () => {
         await user.click(screen.getByRole("button", { name: "subscribe" }));
 
         await waitFor(() => expect(subscribeMock).toHaveBeenCalledTimes(1));
-        expect(postMock).toHaveBeenCalledWith(
+        expect(fetchMock).toHaveBeenCalledWith(
             "/api/push/subscribe",
             expect.objectContaining({
-                endpoint: "https://push.example.test/subscriptions/1",
+                method: "POST",
+                body: expect.stringContaining("https://push.example.test/subscriptions/1"),
             }),
         );
         expect(screen.queryByText("VAPID 공개키가 설정되지 않았습니다")).not.toBeInTheDocument();
