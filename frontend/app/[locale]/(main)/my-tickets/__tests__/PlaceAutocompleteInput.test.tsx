@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -34,6 +34,7 @@ const TEST_LABELS = {
 
 const baseProps = {
   id: "ticket-venue",
+  apiKey: "test-key",
   placeholder: TEST_LABELS.placeholder,
   loadingLabel: TEST_LABELS.loadingLabel,
   readyLabel: TEST_LABELS.readyLabel,
@@ -52,9 +53,11 @@ const loadComponent = async ({
   vi.resetModules();
 
   if (apiKey) {
+    vi.stubEnv("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY", apiKey);
     process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = apiKey;
   } else {
-    delete process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    vi.unstubAllEnvs();
+    Reflect.deleteProperty(process.env, "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY");
   }
 
   vi.doMock("next-intl", () => ({
@@ -66,20 +69,20 @@ const loadComponent = async ({
 
     return {
       default: ({
-        onLoad,
+        onReady,
         onError,
       }: {
-        onLoad?: () => void;
+        onReady?: () => void;
         onError?: () => void;
       }) => {
         React.useEffect(() => {
           if (scriptMode === "load") {
-            onLoad?.();
+            onReady?.();
             return;
           }
 
           onError?.();
-        }, [onError, onLoad]);
+        }, [onError, onReady]);
 
         return React.createElement("div", { "data-testid": "google-maps-script" });
       },
@@ -125,7 +128,8 @@ describe("PlaceAutocompleteInput", () => {
     vi.resetModules();
     vi.unmock("next-intl");
     vi.unmock("next/script");
-    delete process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    vi.unstubAllEnvs();
+    Reflect.deleteProperty(process.env, "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY");
     Reflect.deleteProperty(window, "google");
   });
 
@@ -135,6 +139,7 @@ describe("PlaceAutocompleteInput", () => {
     render(
       <PlaceAutocompleteInput
         {...baseProps}
+        apiKey={undefined}
         value=""
         onChange={() => undefined}
         onPlaceSelect={() => undefined}
@@ -191,6 +196,61 @@ describe("PlaceAutocompleteInput", () => {
     );
     expect(screen.getByRole("listbox")).toBeInTheDocument();
     expect(screen.getByText("서울 송파구")).toBeInTheDocument();
+  });
+
+  it("unmount 후 remount 되어도 기존 window.google로 다시 초기화한다", async () => {
+    const user = userEvent.setup();
+    const predictionsByInput = {
+      올림: [
+        {
+          description: "올림픽공원 체조경기장, 서울 송파구",
+          place_id: "place-1",
+          structured_formatting: {
+            main_text: "올림픽공원 체조경기장",
+            secondary_text: "서울 송파구",
+          },
+        },
+      ],
+    };
+    const { PlaceAutocompleteInput } = await loadComponent({
+      scriptMode: "load",
+      withGoogleService: true,
+      predictionsByInput,
+    });
+
+    const Wrapper = () => {
+      const [value, setValue] = useState("");
+
+      return (
+        <PlaceAutocompleteInput
+          {...baseProps}
+          value={value}
+          onChange={setValue}
+          onPlaceSelect={() => undefined}
+        />
+      );
+    };
+
+    const firstRender = render(<Wrapper />);
+    await waitFor(() =>
+      expect(screen.getByText(TEST_LABELS.readyLabel)).toBeInTheDocument(),
+    );
+
+    firstRender.unmount();
+
+    render(<Wrapper />);
+
+    await waitFor(() =>
+      expect(screen.getByText(TEST_LABELS.readyLabel)).toBeInTheDocument(),
+    );
+
+    await user.type(screen.getByRole("combobox"), "올림");
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("option", { name: /올림픽공원 체조경기장/ }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it("키보드로 항목을 이동하고 Enter로 선택할 수 있다", async () => {
@@ -291,6 +351,7 @@ describe("PlaceAutocompleteInput", () => {
 
   it("script load 실패나 service unavailable이면 error fallback을 표시한다", async () => {
     const { PlaceAutocompleteInput } = await loadComponent({
+      apiKey: "test-key",
       scriptMode: "error",
       withGoogleService: false,
     });
@@ -356,6 +417,61 @@ describe("PlaceAutocompleteInput", () => {
 
     const option = await screen.findByRole("button", { name: /KSPO DOME/ });
     await user.click(option);
+
+    await waitFor(() =>
+      expect(screen.getByDisplayValue("KSPO DOME")).toBeInTheDocument(),
+    );
+    expect(screen.getByText(TEST_LABELS.selectedLabel)).toBeInTheDocument();
+  });
+
+  it("포인터 선택 경로에서도 항목을 선택할 수 있다", async () => {
+    const user = userEvent.setup();
+    const predictionsByInput = {
+      kspo: [
+        {
+          description: "KSPO DOME, 서울 송파구",
+          place_id: "ChIJPLACE123",
+          structured_formatting: {
+            main_text: "KSPO DOME",
+            secondary_text: "서울 송파구",
+          },
+        },
+      ],
+    };
+    const { PlaceAutocompleteInput } = await loadComponent({
+      scriptMode: "load",
+      withGoogleService: true,
+      predictionsByInput,
+    });
+
+    const Wrapper = () => {
+      const [value, setValue] = useState("");
+      const [placeId, setPlaceId] = useState("");
+
+      return (
+        <PlaceAutocompleteInput
+          {...baseProps}
+          value={value}
+          placeId={placeId}
+          onChange={(nextValue) => {
+            setValue(nextValue);
+            setPlaceId("");
+          }}
+          onPlaceSelect={(place) => {
+            setValue(place.name);
+            setPlaceId(place.placeId ?? "");
+          }}
+        />
+      );
+    };
+
+    render(<Wrapper />);
+
+    await user.type(screen.getByRole("combobox"), "kspo");
+
+    const option = await screen.findByRole("button", { name: /KSPO DOME/ });
+    fireEvent.pointerDown(option);
+    fireEvent.click(option);
 
     await waitFor(() =>
       expect(screen.getByDisplayValue("KSPO DOME")).toBeInTheDocument(),

@@ -53,9 +53,8 @@ frontend/tsconfig.tsbuildinfo
 
 # Misc
 *.pem
-.claude/settings.local.json
+.claude
 backend/.kotlin
-docs/00_Study
 
 # Local infra notes and secret-bearing runbooks
 infra.local.md
@@ -72,3 +71,5 @@ docs/**/.env*
 frontend/.pnpm-store
 
 docs
+.github/workflows/ci.yml
+frontend/next-env.d.ts

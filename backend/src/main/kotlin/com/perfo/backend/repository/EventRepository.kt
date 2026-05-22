@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param
 
 interface EventRepository : JpaRepository<Event, Long> {
     fun findByActiveTrueAndDiscoveryModeOrderBySaleOpenAtAscIdAsc(discoveryMode: TicketDiscoveryMode): List<Event>
+    fun findByIssuedTicketIdIn(issuedTicketIds: Collection<Long>): List<Event>
 
     @Query(
         value = """
