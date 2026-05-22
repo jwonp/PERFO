@@ -82,6 +82,40 @@ class TicketServiceTest {
     }
 
     @Test
+    @DisplayName("티켓 생성 성공 - 대표 이미지를 함께 업로드하면 한 트랜잭션에서 imageKey를 저장한다")
+    fun create_withImage_success() {
+        val request = createRequest(ownerUserId = "owner-1")
+        val file = MockMultipartFile(
+            "file",
+            "cover.png",
+            "image/png",
+            byteArrayOf(
+                0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+                0x00, 0x00, 0x00, 0x0D,
+            ),
+        )
+        given(issuedTicketRepository.save(any())).willAnswer {
+            val ticket = it.arguments[0] as IssuedTicket
+            ticket.id = ticket.id ?: 1L
+            ticket
+        }
+        given(eventRepository.save(any())).willAnswer {
+            val event = it.arguments[0] as Event
+            event.id = event.id ?: 11L
+            event
+        }
+        whenever(ticketImageStorageService.uploadTicketImage(any(), eq(file.bytes), eq("image/png")))
+            .thenReturn("owner-1/1/generated.png")
+        given(ticketImageStorageService.buildTicketImageUrl(1L)).willReturn("/api/tickets/1/image")
+
+        val created = ticketService.create(request, "owner-1", file)
+
+        assertThat(created.id).isEqualTo(1L)
+        assertThat(created.imageKey).isEqualTo("owner-1/1/generated.png")
+        assertThat(created.imageUrl).isEqualTo("/api/tickets/1/image")
+    }
+
+    @Test
     @DisplayName("티켓 생성 실패 - 소유자 헤더와 payload가 다르면 거부한다")
     fun create_ownerMismatch_throwsException() {
         assertThatThrownBy { ticketService.create(createRequest(ownerUserId = "owner-2"), "owner-1") }

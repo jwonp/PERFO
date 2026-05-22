@@ -91,18 +91,67 @@ export const POST = async (request: Request) => {
         );
     }
 
-    const payload = await request.json();
-    const response = await fetch(`${backendUrl}/api/tickets`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...authHeaders,
-        },
-        body: JSON.stringify({
-            ...payload,
-            ownerUserId: session.user.id,
-        }),
-    });
+    const contentType = request.headers.get("content-type") ?? "";
+
+    let response: Response;
+    if (!contentType.includes("application/json")) {
+        const formData = await request.formData();
+        const payloadPart = formData.get("payload");
+        if (payloadPart == null) {
+            return NextResponse.json(
+                { message: "payload is required" },
+                { status: 400 }
+            );
+        }
+
+        const payloadText = typeof payloadPart === "string" ? payloadPart : await payloadPart.text();
+
+        let payload: Record<string, unknown>;
+        try {
+            payload = JSON.parse(payloadText) as Record<string, unknown>;
+        } catch {
+            return NextResponse.json(
+                { message: "Invalid payload" },
+                { status: 400 }
+            );
+        }
+
+        const backendFormData = new FormData();
+        backendFormData.set(
+            "payload",
+            new Blob([
+                JSON.stringify({
+                    ...payload,
+                    ownerUserId: session.user.id,
+                }),
+            ], { type: "application/json" }),
+            "payload.json",
+        );
+
+        const file = formData.get("file");
+        if (file instanceof File && file.size > 0) {
+            backendFormData.set("file", file, file.name);
+        }
+
+        response = await fetch(`${backendUrl}/api/tickets`, {
+            method: "POST",
+            headers: authHeaders,
+            body: backendFormData,
+        });
+    } else {
+        const payload = await request.json();
+        response = await fetch(`${backendUrl}/api/tickets`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                ...authHeaders,
+            },
+            body: JSON.stringify({
+                ...payload,
+                ownerUserId: session.user.id,
+            }),
+        });
+    }
 
     const text = await response.text();
     const body = text

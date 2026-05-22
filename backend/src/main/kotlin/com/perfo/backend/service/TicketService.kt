@@ -37,9 +37,22 @@ class TicketService(
         request: TicketDto.CreateTicketRequest,
         authenticatedOwnerUserId: String,
     ): TicketDto.TicketResponse {
+        return create(request, authenticatedOwnerUserId, null)
+    }
+
+    @Transactional
+    fun create(
+        request: TicketDto.CreateTicketRequest,
+        authenticatedOwnerUserId: String,
+        file: MultipartFile?,
+    ): TicketDto.TicketResponse {
         validateOwner(request.ownerUserId, authenticatedOwnerUserId)
         validatePlaceId(request.googlePlaceId)
-        val normalizedImageKey = normalizeImageKey(request.imageKey, "$authenticatedOwnerUserId/")
+        val normalizedImageKey = if (file == null) {
+            normalizeImageKey(request.imageKey, "$authenticatedOwnerUserId/")
+        } else {
+            null
+        }
 
         val saved = issuedTicketRepository.save(
             IssuedTicket(
@@ -62,9 +75,23 @@ class TicketService(
 
         val linkedEvent = syncLinkedEvent(saved)
         saved.eventId = linkedEvent.id
-        val savedWithEvent = issuedTicketRepository.save(saved)
 
-        return savedWithEvent.toResponse(resolveCurrentTime())
+        if (file == null) {
+            val savedWithEvent = issuedTicketRepository.save(saved)
+            return savedWithEvent.toResponse(resolveCurrentTime())
+        }
+
+        val storedImageKey = uploadImageForCreatedTicket(saved, file)
+        saved.imageKey = storedImageKey
+
+        val savedWithImage = try {
+            issuedTicketRepository.save(saved)
+        } catch (exception: Exception) {
+            ticketImageStorageService.deleteTicketImage(storedImageKey)
+            throw exception
+        }
+
+        return savedWithImage.toResponse(resolveCurrentTime())
     }
 
     @Transactional(readOnly = true)
@@ -372,6 +399,21 @@ class TicketService(
             "Unsupported ticket image format"
         }
     }
+
+    private fun uploadImageForCreatedTicket(ticket: IssuedTicket, file: MultipartFile): String {
+        validateUploadFile(file)
+        val imageBytes = file.bytes
+        val detectedImage = detectSupportedImage(imageBytes)
+        val ticketId = requireNotNull(ticket.id) { "Ticket id is missing" }
+        val objectKey = "${ticket.ownerUserId}/${ticketId}/${UUID.randomUUID()}.${detectedImage.extension}"
+
+        return ticketImageStorageService.uploadTicketImage(
+            objectKey = objectKey,
+            bytes = imageBytes,
+            contentType = detectedImage.contentType,
+        )
+    }
+
 
     private fun detectSupportedImage(bytes: ByteArray): DetectedTicketImage {
         require(bytes.isNotEmpty()) { "Ticket image file is required" }

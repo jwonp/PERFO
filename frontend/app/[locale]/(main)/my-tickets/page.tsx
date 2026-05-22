@@ -516,53 +516,42 @@ const MyTicketsPage = () => {
             return;
         }
 
-        const created = await fetchJson("/api/tickets", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                name: form.name,
-                venue: form.venue,
-                googlePlaceId: form.googlePlaceId,
-                detailAddress: form.detailAddress,
-                validDate: form.validDate,
-                openAt: toIsoDateTime(form.openAt),
-                totalCount: Number(form.totalCount),
-                allowDuplicate: form.allowDuplicate,
-                maxPerUser: Number(form.maxPerUser),
-                discoveryMode: form.discoveryMode,
-            }),
-        });
+        const createPayload = {
+            name: form.name,
+            venue: form.venue,
+            googlePlaceId: form.googlePlaceId,
+            detailAddress: form.detailAddress,
+            validDate: form.validDate,
+            openAt: toIsoDateTime(form.openAt),
+            totalCount: Number(form.totalCount),
+            allowDuplicate: form.allowDuplicate,
+            maxPerUser: Number(form.maxPerUser),
+            discoveryMode: form.discoveryMode,
+        };
 
-        let finalTicket = created;
-        if (form.imageFile && created.id) {
-            const ticketId = String(created.id);
-            const imageResponse = await uploadImage(ticketId, form.imageFile);
-            try {
-                finalTicket = await fetchJson(`/api/tickets/${ticketId}`, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        ...buildPayload(
-                            {
-                                ...form,
-                                status: "INACTIVE",
-                            },
-                            String(imageResponse.imageKey),
-                        ),
-                        status: "INACTIVE",
-                    }),
-                });
-            } catch (error) {
-                await cleanupImage(ticketId, String(imageResponse.imageKey));
-                throw error;
-            }
-        }
+        const created = form.imageFile
+            ? await (() => {
+                  const formData = new FormData();
+                  formData.set(
+                      "payload",
+                      new Blob([JSON.stringify(createPayload)], { type: "application/json" }),
+                      "payload.json",
+                  );
+                  formData.set("file", form.imageFile);
+                  return fetchJson("/api/tickets", {
+                      method: "POST",
+                      body: formData,
+                  });
+              })()
+            : await fetchJson("/api/tickets", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(createPayload),
+              });
 
-        const nextTicket = mapTicket(finalTicket);
+        const nextTicket = mapTicket(created);
         setTickets((currentTickets) => [nextTicket, ...currentTickets.filter((ticket) => ticket.id !== nextTicket.id)]);
     };
 

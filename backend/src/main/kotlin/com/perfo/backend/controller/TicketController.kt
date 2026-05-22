@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -43,6 +44,15 @@ class TicketController(
         @Valid @RequestBody request: TicketDto.CreateTicketRequest,
     ): TicketDto.TicketResponse {
         return ticketService.create(request, resolveAuthenticatedUserId(authentication))
+    }
+
+    @PostMapping("/tickets", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun createTicketWithImage(
+        authentication: Authentication,
+        @RequestPart("payload") @Valid request: TicketDto.CreateTicketRequest,
+        @RequestPart("file", required = false) file: MultipartFile?,
+    ): TicketDto.TicketResponse {
+        return ticketService.create(request, resolveAuthenticatedUserId(authentication), file)
     }
 
     @GetMapping("/tickets")

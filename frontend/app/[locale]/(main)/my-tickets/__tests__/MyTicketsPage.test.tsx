@@ -92,7 +92,13 @@ describe('MyTicketsPage', () => {
       }
 
       if (url === '/api/tickets' && init?.method === 'POST') {
-        const body = JSON.parse(String(init.body))
+        let body: Record<string, unknown>
+        if (init?.body instanceof FormData) {
+          const payload = init.body.get('payload')
+          body = JSON.parse(await (payload as File).text())
+        } else {
+          body = JSON.parse(String(init.body))
+        }
         return {
           ok: true,
           json: async () => ({
@@ -101,7 +107,8 @@ describe('MyTicketsPage', () => {
             status: 'INACTIVE',
             issuedCount: 0,
             ownerUserId: 'user-1',
-            imageUrl: null,
+            imageKey: init?.body instanceof FormData ? 'owner-1/999/cover.png' : null,
+            imageUrl: init?.body instanceof FormData ? '/api/tickets/999/image' : null,
             discoveryMode: body.discoveryMode ?? 'LISTED',
             eventId: 999,
             publicBookingPath: '/events/999',
@@ -234,6 +241,37 @@ describe('MyTicketsPage', () => {
     expect(ticket).not.toBeNull()
     expect(within(ticket as HTMLElement).getByText('올림픽공원 체조경기장')).toBeInTheDocument()
     expect(within(ticket as HTMLElement).getByText('2층 A게이트 앞')).toBeInTheDocument()
+  })
+
+  it('대표 이미지를 함께 선택하면 티켓 생성 시 multipart 요청 한 번으로 업로드한다', async () => {
+    const user = userEvent.setup()
+    render(<MyTicketsPage />)
+
+    await user.click(screen.getByRole('button', { name: '티켓 발급' }))
+    await user.type(screen.getByLabelText('티켓 이름'), 'Multipart Ticket')
+    await user.type(screen.getByLabelText('사용 장소'), '올림픽공원 체조경기장')
+    await user.type(screen.getByLabelText('유효 날짜'), '2026-08-15')
+    await user.type(screen.getByLabelText('총 티켓 수'), '100')
+    await user.upload(screen.getByLabelText('대표 이미지'), new File(['png'], 'cover.png', { type: 'image/png' }))
+    await user.click(screen.getByRole('button', { name: '발급하기' }))
+
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+
+    const [, createRequest] = vi.mocked(fetch).mock.calls[1]
+    expect(createRequest).toMatchObject({
+      method: 'POST',
+    })
+    expect(createRequest?.body).toBeInstanceOf(FormData)
+    const createBody = createRequest?.body as FormData
+    const payload = createBody.get('payload')
+    expect(payload).toBeInstanceOf(File)
+    await expect((payload as File).text()).resolves.toContain('"name":"Multipart Ticket"')
+    expect(createBody.get('file')).toBeInstanceOf(File)
+    expect(vi.mocked(fetch)).not.toHaveBeenCalledWith('/api/tickets/999/image', expect.anything())
+    expect(vi.mocked(fetch)).not.toHaveBeenCalledWith('/api/tickets/999', expect.objectContaining({ method: 'PATCH' }))
+
+    const ticket = screen.getByText('Multipart Ticket').closest('article')
+    expect(ticket).not.toBeNull()
   })
 
   it('티켓 발급 API가 실패하면 불완전한 티켓을 추가하지 않는다', async () => {
