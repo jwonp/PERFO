@@ -9,7 +9,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         neutral: "bg-[var(--surface-muted)] text-[var(--text)]",
-        info: "bg-[color:color-mix(in_srgb,var(--primary)_14%,white)] text-primary",
+        info: "bg-[color:color-mix(in_srgb,var(--primary)_14%,white)] text-[#103783]",
         success: "bg-[color:color-mix(in_srgb,var(--success)_14%,white)] text-[var(--success)]",
         warning: "bg-[color:color-mix(in_srgb,var(--warning)_16%,white)] text-[var(--warning)]",
         danger: "bg-[color:color-mix(in_srgb,var(--danger)_14%,white)] text-[var(--danger)]",

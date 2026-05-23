@@ -91,25 +91,25 @@ const ProfilePage = () => {
 
     return (
         <PageShell className="ds-shell">
-            <div className="px-5 pt-8 pb-40">
+            <div className="px-5 pt-8 pb-32">
                 <PageHeader
                     title={t("title")}
-                    leading={<ArrowLeft className="mb-3 h-8 w-8 text-[var(--text)]" />}
+                    leading={<ArrowLeft className="mb-2 h-5 w-5 text-[var(--text)]" />}
                     trailing={<NotificationButton />}
-                    titleClassName="text-4xl leading-none"
                 />
 
-                <PageSection spacing="lg" className="pt-12 text-center">
-                    <div className="relative mx-auto h-32 w-32">
+                <PageSection spacing="md" className="pt-8 text-center">
+                    <div className="relative mx-auto h-24 w-24">
                         <ProfileAvatar
                             displayName={displayName}
                             profileImageType={profile.profileImageType}
                             profileImageValue={profile.profileImageValue}
                             profileImageUrl={profile.profileImageUrl}
+                            size="hero"
                         />
                         <Button
                             size="icon-sm"
-                            className="absolute right-0 bottom-1 rounded-full"
+                            className="absolute right-0 bottom-0 rounded-full"
                             aria-label={t("editProfile")}
                             onClick={() => setSheetOpen(true)}
                         >
@@ -117,15 +117,15 @@ const ProfilePage = () => {
                         </Button>
                     </div>
 
-                    <h2 className="mt-6 text-3xl font-extrabold text-[var(--text)]">{displayName}</h2>
-                    <p className="mt-3 text-2xl font-medium text-[var(--text-subtle)]">ID: {userId}</p>
+                    <h2 className="mt-4 text-2xl font-bold tracking-tight text-[var(--text)]">{displayName}</h2>
+                    <p className="mt-1.5 text-sm font-medium text-[var(--text-muted)]">ID: {userId}</p>
                     {feedbackMessage && (
                         <p className="mt-4 text-sm font-medium text-primary">{feedbackMessage}</p>
                     )}
                 </PageSection>
 
                 <PageSection className="space-y-4">
-                    <h3 className="px-2 text-xl font-extrabold uppercase tracking-wide text-[var(--text-subtle)]">{t("appSettings")}</h3>
+                    <h3 className="px-2 text-sm font-semibold text-[var(--text-muted)]">{t("appSettings")}</h3>
                     <div className="app-card overflow-hidden">
                         <div className="divide-y divide-border">
                             <ToggleRow
@@ -134,7 +134,6 @@ const ProfilePage = () => {
                                 icon={<Moon className="h-5 w-5" />}
                                 onToggle={() => setPreference(darkMode ? "light" : "dark")}
                                 className="min-h-16 px-5"
-                                labelClassName="text-xl font-bold"
                             />
 
                             <PushNotification>
@@ -159,7 +158,6 @@ const ProfilePage = () => {
                                                 void (isSubscribed ? unsubscribe() : subscribe());
                                             }}
                                             className="min-h-16 px-5"
-                                            labelClassName="text-xl font-bold"
                                         />
                                         {!isSupported && (
                                             <div className="px-5 pb-4 text-sm text-[var(--text-muted)]">
@@ -179,22 +177,22 @@ const ProfilePage = () => {
                 </PageSection>
 
                 <PageSection className="space-y-4">
-                    <h3 className="px-2 text-xl font-extrabold uppercase tracking-wide text-[var(--text-subtle)]">{t("support")}</h3>
+                    <h3 className="px-2 text-sm font-semibold text-[var(--text-muted)]">{t("support")}</h3>
                     <div className="app-card overflow-hidden">
                         <button className="flex h-16 w-full items-center justify-between border-b border-border px-5 text-left">
-                            <span className="flex items-center gap-5 text-xl font-bold text-[var(--text)]">
-                                <Headphones className="h-7 w-7 text-[var(--text-subtle)]" />
+                            <span className="flex items-center gap-4 text-base font-medium text-[var(--text)]">
+                                <Headphones className="h-5 w-5 text-[var(--text-subtle)]" />
                                 {t("customerSupport")}
                             </span>
-                            <ChevronRight className="h-8 w-8 text-[var(--text)]" />
+                            <ChevronRight className="h-5 w-5 text-[var(--text-muted)]" />
                         </button>
 
                         <button className="flex h-16 w-full items-center justify-between px-5 text-left">
-                            <span className="flex items-center gap-5 text-xl font-bold text-[var(--text)]">
-                                <Shield className="h-7 w-7 text-[var(--text-subtle)]" />
+                            <span className="flex items-center gap-4 text-base font-medium text-[var(--text)]">
+                                <Shield className="h-5 w-5 text-[var(--text-subtle)]" />
                                 {t("privacyPolicy")}
                             </span>
-                            <ChevronRight className="h-8 w-8 text-[var(--text)]" />
+                            <ChevronRight className="h-5 w-5 text-[var(--text-muted)]" />
                         </button>
                     </div>
                 </PageSection>
@@ -202,7 +200,7 @@ const ProfilePage = () => {
                 <Button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     variant="ghost"
-                    className="mt-10 h-12 w-full text-3xl font-medium text-[var(--text)] hover:text-[var(--danger)]"
+                    className="mt-8 h-11 w-full text-base font-medium text-[var(--text)] hover:text-[var(--danger)]"
                 >
                     {t("logout")}
                 </Button>

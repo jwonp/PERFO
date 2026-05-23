@@ -19,6 +19,7 @@ export interface IssuedTicketCardData {
 export interface IssuedTicketCardProps {
     ticket: IssuedTicketCardData;
     statusLabel: string;
+    isLCP?: boolean;
     badgeVariant: TicketBadgeVariant;
     issuedCountLabel: string;
     editLabel: string;

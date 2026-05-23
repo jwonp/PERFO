@@ -178,6 +178,10 @@
   html {
     background: var(--background);
   }
+
+  input, select, textarea {
+    font-size: max(16px, 1rem);
+  }
 }
 
 @layer utilities {

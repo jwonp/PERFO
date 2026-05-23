@@ -11,17 +11,19 @@ interface ProfileAvatarProps {
     profileImageType: ProfileImageType;
     profileImageValue: string | null;
     profileImageUrl?: string | null;
-    size?: "lg" | "md" | "sm";
+    size?: "hero" | "lg" | "md" | "sm";
     className?: string;
 }
 
 const sizeMap = {
+    hero: "h-24 w-24",
     lg: "h-32 w-32",
     md: "h-16 w-16",
     sm: "h-12 w-12",
 } as const;
 
 const iconSizeMap = {
+    hero: "h-12 w-12",
     lg: "h-16 w-16",
     md: "h-8 w-8",
     sm: "h-6 w-6",
