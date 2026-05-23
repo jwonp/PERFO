@@ -44,6 +44,24 @@ export interface TicketForm {
     imageFile?: File | null;
 }
 
+export interface TicketBasePayload {
+    name: string;
+    venue: string;
+    googlePlaceId: string;
+    detailAddress: string;
+    validDate: string;
+    openAt: string | null;
+    totalCount: number;
+    allowDuplicate: boolean;
+    maxPerUser: number;
+    discoveryMode: DiscoveryMode;
+}
+
+export interface TicketUpdatePayload extends TicketBasePayload {
+    status: IssueStatus;
+    imageKey: string | null;
+}
+
 export interface TicketFormSheetProps {
     open: boolean;
     editTarget: IssuedTicket | null;
@@ -53,3 +71,7 @@ export interface TicketFormSheetProps {
 }
 
 export type IssueStatusBadgeMap = Record<IssueStatus, TicketBadgeVariant>;
+export type IssueStatusOption = {
+    value: IssueStatus;
+    labelKey: string;
+};

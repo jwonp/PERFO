@@ -29,6 +29,8 @@
 - [18_TICKETING_OBSERVABILITY_ALERTS.md](./18_TICKETING_OBSERVABILITY_ALERTS.md): 티켓팅 관측성과 알림 기준 정리
 - [19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md](./19_EVENT_DISCOVERY_BOOKING_FLOW_PLAN.md): 사용자가 이벤트를 발견하고 상세를 거쳐 예매까지 진입하는 플로우 구현 계획
 - [20_MVP_OPEN_READINESS_PLAN.md](./20_MVP_OPEN_READINESS_PLAN.md): 현재 구현 상태를 기준으로 MVP 오픈 차단 이슈와 우선 개발 계획을 정리한 문서
+- [26_CODE_SPLIT_REFACTORING_PLAN.md](./26_CODE_SPLIT_REFACTORING_PLAN.md): 큰 파일을 `*.types.ts`, `*.constants.ts`, `*.func.ts`, `*.api.ts`, `*.hooks.ts`, 컴포넌트 파일로 나누는 코드 분리 리팩토링 계획
+- [27_CODE_SPLIT_REFACTORING_WORK_PROMPTS.md](./27_CODE_SPLIT_REFACTORING_WORK_PROMPTS.md): 코드 분리 리팩토링을 순서대로 실행하기 위한 작업 프롬프트 모음
 
 ## 개발 원칙
 
