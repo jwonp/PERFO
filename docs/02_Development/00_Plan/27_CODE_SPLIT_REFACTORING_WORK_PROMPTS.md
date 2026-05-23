@@ -155,6 +155,12 @@ PERFO 코드 분리 리팩토링을 진행한다.
 
 ## 3. `my-tickets` API client 분리
 
+- [x] `page.tsx` 내부 fetch 호출 위치를 확인했다.
+- [x] `my-tickets.api.ts`에 API 함수를 만들었다.
+- [x] API 함수가 response parsing과 에러 message 처리를 담당하게 했다.
+- [x] `page.tsx`가 API 함수만 호출하게 정리했다.
+- [x] API 테스트와 기존 페이지 테스트를 통과시켰다.
+
 ```txt
 `my-tickets` 화면의 fetch 호출을 `my-tickets.api.ts`로 분리해줘.
 
@@ -186,7 +192,39 @@ PERFO 코드 분리 리팩토링을 진행한다.
 - `page.tsx`에 직접 `fetch(` 호출이 남아 있지 않거나 최소화되어 있다.
 - API 에러 처리 동작이 기존과 동일하다.
 
+### 작업 메모
+
+- 분리 내용:
+  - `fetchIssuedTickets`
+  - `createIssuedTicket`
+  - `updateIssuedTicket`
+  - `uploadTicketImage`
+  - `cleanupTicketImage`
+  를 `my-tickets.api.ts`로 이동했다.
+- 공통 응답 처리:
+  - `parseJsonBody` helper를 추가해 JSON 파싱 실패 시 fallback 메시지를 사용하고, `response.ok === false`일 때 서버 `message` 또는 기본 메시지로 `Error`를 던지게 했다.
+- `page.tsx` 정리:
+  - 기존 `fetchJson`, `uploadImage`, `cleanupImage`, 목록 로딩용 직접 `fetch("/api/tickets")` 호출을 제거했다.
+  - `handleSubmit`과 초기 목록 로딩은 이제 API 함수만 호출한다.
+  - `page.tsx`에는 직접 `fetch(` 호출이 남아 있지 않다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(main)/my-tickets/my-tickets.api.test.ts' 'app/[locale]/(main)/my-tickets/__tests__/MyTicketsPage.test.tsx'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+- 결과:
+  - `my-tickets.api.test.ts`: 6개 테스트 통과
+  - `MyTicketsPage.test.tsx`: 16개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+
 ## 4. `my-tickets` hook 분리
+
+- [x] 티켓 목록 로딩 useEffect를 hook으로 이동했다.
+- [x] 생성/수정 submit orchestration을 hook으로 이동했다.
+- [x] duplicateFilter, copiedTicketId, sheetOpen, editTarget 상태를 hook에서 관리하게 했다.
+- [x] 알림 snapshot bootstrap 입력을 hook과 selector 함수로 정리했다.
+- [x] `page.tsx`가 hook 결과와 handler를 전달만 하도록 줄였다.
 
 ```txt
 `my-tickets`의 상태와 side-effect를 hook으로 분리해줘.
@@ -214,7 +252,38 @@ PERFO 코드 분리 리팩토링을 진행한다.
 - `page.tsx`의 state/effect가 크게 줄어든다.
 - hook은 UI className이나 JSX를 반환하지 않는다.
 
+### 작업 메모
+
+- 분리 내용:
+  - `useMyTicketsController`를 `use-my-tickets.hooks.ts`에 추가했다.
+  - 티켓 목록 로딩, 생성/수정 submit, 복사/공유, duplicate filter, sheet open/edit target, 첫 이미지 preload effect를 hook으로 이동했다.
+- selector 정리:
+  - `filterTicketsByDuplicatePurchase`
+  - `emptyStateTitleKey`
+  - `buildNotificationSnapshotTickets`
+  를 `my-tickets.func.ts`에 추가해 hook이 순수 계산 함수를 조합만 하게 정리했다.
+- `page.tsx` 정리:
+  - `MyTicketsPage` 내부의 `useState`, `useEffect`, `useMemo` 기반 화면 상태/side-effect를 제거했다.
+  - 페이지는 `useMyTicketsController({ locale, t })` 결과를 받아 필터 탭, 카드 목록, 폼 sheet에 전달만 한다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(main)/my-tickets/my-tickets.func.test.ts' 'app/[locale]/(main)/my-tickets/my-tickets.api.test.ts' 'app/[locale]/(main)/my-tickets/__tests__/MyTicketsPage.test.tsx'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+- 결과:
+  - `my-tickets.func.test.ts`: 10개 테스트 통과
+  - `my-tickets.api.test.ts`: 6개 테스트 통과
+  - `MyTicketsPage.test.tsx`: 16개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+
 ## 5. `my-tickets` UI 컴포넌트 분리
+
+- [x] 기존 page.tsx 내부 `TicketFormSheet`를 별도 파일로 이동했다.
+- [x] 목록 렌더링을 `TicketList.tsx`로 이동했다.
+- [x] 필터 탭을 `TicketFilterTabs.tsx`로 이동했다.
+- [x] `page.tsx`는 `MyTicketsScreen` 조립만 담당하게 줄였다.
+- [x] props 타입을 `my-tickets.types.ts`에 정리했다.
 
 ```txt
 `my-tickets` 화면의 JSX를 컴포넌트로 분리해줘.
@@ -243,7 +312,42 @@ PERFO 코드 분리 리팩토링을 진행한다.
 - `page.tsx`가 100줄 이하에 가깝게 줄어든다.
 - 각 컴포넌트는 props 기반 렌더링만 담당한다.
 
+### 작업 메모
+
+- 분리 파일:
+  - `TicketFormSheet.tsx`
+  - `TicketList.tsx`
+  - `TicketFilterTabs.tsx`
+  - `MyTicketsScreen.tsx`
+- `page.tsx` 정리:
+  - `useTranslations`, `useLocale`, `useMyTicketsController` 호출 후 `MyTicketsScreen`에 props를 전달하는 조립 전용 파일로 축소했다.
+  - `TicketFormSheet` 내부 로컬 폼 상태를 제외한 화면 JSX는 모두 분리했다.
+- 타입 정리:
+  - `TicketFilterTabsProps`
+  - `TicketListProps`
+  - `MyTicketsScreenProps`
+  를 `my-tickets.types.ts`에 추가했다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(main)/my-tickets/__tests__/MyTicketsPage.test.tsx' 'app/[locale]/(main)/my-tickets/my-tickets.func.test.ts' 'app/[locale]/(main)/my-tickets/my-tickets.api.test.ts'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+  - `cd frontend && pnpm exec playwright test e2e/my-tickets.spec.ts`
+- 결과:
+  - `MyTicketsPage.test.tsx`: 16개 테스트 통과
+  - `my-tickets.func.test.ts`: 10개 테스트 통과
+  - `my-tickets.api.test.ts`: 6개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+  - `playwright test e2e/my-tickets.spec.ts`: 실행은 시도했지만 출력 없이 장시간 대기해 완료 결과를 확인하지 못했다. 이번 턴에서는 E2E 통과로 기록하지 않는다.
+
 ## 6. QR scanner 순수 함수/API 분리
+
+- [x] 타입을 `scan.types.ts`로 이동했다.
+- [x] 상수를 `scan.constants.ts`로 이동했다.
+- [x] 순수 함수를 `scan.func.ts`로 이동했다.
+- [x] 검표 fetch를 `scan.api.ts`의 `validateTicketQr`로 이동했다.
+- [x] 순수 함수 unit test를 추가했다.
 
 ```txt
 QR scanner 페이지에서 순수 함수, 타입, 상수, API 호출을 먼저 분리해줘.
@@ -276,7 +380,40 @@ QR scanner 페이지에서 순수 함수, 타입, 상수, API 호출을 먼저 �
 - scanner page에서 순수 함수와 API fetch가 분리되어 있다.
 - `scan.func.ts`에는 React/브라우저 API 접근이 없다.
 
+### 작업 메모
+
+- 분리 파일:
+  - `scan.types.ts`
+  - `scan.constants.ts`
+  - `scan.func.ts`
+  - `scan.api.ts`
+- 분리 내용:
+  - `ValidationResponse`, `ScannerStatus`, `VisualState`, `SubmissionSource`, `RecentScanRecord`, `ResultMeta`를 `scan.types.ts`로 이동했다.
+  - `SCAN_COOLDOWN_MS`, `RESULT_BANNER_MS`, `VISUAL_FEEDBACK_MS`를 `scan.constants.ts`로 이동했다.
+  - `resultLabelKey`, `resultMeta`, `formatUsedAt`, `shouldIgnoreDuplicateScan`을 `scan.func.ts`로 이동했다.
+  - 검표 API POST 호출은 `scan.api.ts`의 `validateTicketQr`로 이동했다.
+- `page.tsx` 정리:
+  - 중복 스캔 cooldown 비교를 `shouldIgnoreDuplicateScan` 호출로 대체했다.
+  - 직접 `fetch(`/api/tickets/${ticketId}/validations`)` 호출을 제거했다.
+  - page는 스캐너 orchestration과 UI만 유지하고, 타입/상수/순수 함수/API는 분리된 파일에서 가져온다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/__tests__/TicketScanPage.test.tsx' 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/scan.func.test.ts'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+- 결과:
+  - `TicketScanPage.test.tsx`: 2개 테스트 통과
+  - `scan.func.test.ts`: 4개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+
 ## 7. QR scanner hook 분리
+
+- [x] `BrowserMultiFormatReader` 초기화/정지를 `useQrScanner`로 이동했다.
+- [x] AudioContext와 tone 재생을 `useScanAudio`로 이동했다.
+- [x] submit/result/banner/manual focus 로직을 `useTicketValidation`으로 이동했다.
+- [x] cooldown 처리는 pure function과 hook 조합으로 유지했다.
+- [x] `page.tsx`는 hook을 조합해 UI에 전달하게 정리했다.
 
 ```txt
 QR scanner의 카메라, 사운드, 검표 submit 로직을 hook으로 분리해줘.
@@ -304,7 +441,38 @@ QR scanner의 카메라, 사운드, 검표 submit 로직을 hook으로 분리해
 - page.tsx에서 camera/audio 세부 구현이 사라진다.
 - hook cleanup이 유지된다.
 
+### 작업 메모
+
+- 분리 파일:
+  - `use-qr-scanner.hooks.ts`
+  - `use-scan-audio.hooks.ts`
+  - `use-ticket-validation.hooks.ts`
+- hook 역할:
+  - `useQrScanner`: `BrowserMultiFormatReader` 초기화, decode callback 연결, scanner status 관리, cleanup 시 `stop()` 호출
+  - `useScanAudio`: `AudioContext` 초기화/resume, 성공/실패 tone 재생, sound toggle, unmount 시 `close()` cleanup
+  - `useTicketValidation`: submit, result, banner, visual state, manual entry, manual input focus, duplicate scan cooldown orchestration
+- `page.tsx` 정리:
+  - camera/audio/validation 세부 구현은 page에서 제거했다.
+  - page는 세 hook 결과와 UI 렌더링만 담당한다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/__tests__/TicketScanPage.test.tsx' 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/scan.func.test.ts'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+  - `cd frontend && pnpm exec playwright test e2e/ticket-qr-flow.spec.ts`
+- 결과:
+  - `TicketScanPage.test.tsx`: 2개 테스트 통과
+  - `scan.func.test.ts`: 4개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+  - `playwright test e2e/ticket-qr-flow.spec.ts`: 실행은 시도했지만 출력 없이 장시간 대기해 완료 결과를 확인하지 못했다. 이번 턴에서는 E2E 통과로 기록하지 않는다.
+
 ## 8. QR scanner UI 컴포넌트 분리
+
+- [x] video viewport와 overlay를 `ScannerViewport`로 이동했다.
+- [x] 최근 결과 영역을 `ScanResultPanel`로 이동했다.
+- [x] 수동 입력 영역을 `ManualTokenEntry`로 이동했다.
+- [x] `page.tsx`는 layout과 hook 조합만 담당하게 정리했다.
 
 ```txt
 QR scanner JSX를 작은 UI 컴포넌트로 분리해줘.
@@ -331,7 +499,44 @@ QR scanner JSX를 작은 UI 컴포넌트로 분리해줘.
 - scanner page가 조립 컴포넌트 수준으로 줄어든다.
 - UI 컴포넌트는 QR decode 구현을 모른다.
 
+### 작업 메모
+
+- 분리 파일:
+  - `ScannerViewport.tsx`
+  - `ScanResultPanel.tsx`
+  - `ManualTokenEntry.tsx`
+- `page.tsx` 정리:
+  - viewport, 결과 패널, 수동 입력 JSX를 page에서 제거했다.
+  - page는 header/layout과 `useQrScanner`, `useScanAudio`, `useTicketValidation` 조합만 담당한다.
+- 타입 정리:
+  - `ScannerViewportProps`
+  - `ScanResultPanelProps`
+  - `ManualTokenEntryProps`
+  를 `scan.types.ts`에 추가했다.
+- 구현 경계:
+  - UI 컴포넌트에는 `BrowserMultiFormatReader`, QR decode callback, `AudioContext`, `validateTicketQr`, cooldown 로직이 없다.
+  - 현재 scanner `page.tsx`는 126줄이며 조립 컴포넌트 수준으로 축소됐다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/__tests__/TicketScanPage.test.tsx' 'app/[locale]/(scanner)/my-tickets/[ticketId]/scan/scan.func.test.ts'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+  - `cd frontend && pnpm exec playwright test e2e/ticket-qr-flow.spec.ts`
+- 결과:
+  - `TicketScanPage.test.tsx`: 2개 테스트 통과
+  - `scan.func.test.ts`: 4개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
+  - 모바일 viewport 겹침 확인은 `ticket-qr-flow` E2E로 시도했지만 출력 없이 장시간 대기해 완료 결과를 확인하지 못했다. 이번 턴에서는 E2E 통과로 기록하지 않는다.
+
 ## 9. BFF backend proxy helper 도입
+
+- [x] 현재 route handler 반복 패턴을 다시 확인했다.
+- [x] `requireSessionUser`를 만들었다.
+- [x] `parseBackendResponse`와 `jsonFromBackendResponse`를 만들었다.
+- [x] `createBackendAuthHeaders`와 backend proxy client wrapper를 만들었다.
+- [x] `/api/tickets`, `/api/tickets/[ticketId]`, `/api/reservations`에만 먼저 적용했다.
+- [x] 공통 helper 테스트를 추가했다.
 
 ```txt
 frontend app/api route handler의 반복 backend proxy 코드를 공통 helper로 분리해줘.
@@ -363,6 +568,29 @@ frontend app/api route handler의 반복 backend proxy 코드를 공통 helper�
 
 - route handler 중복 제거 패턴이 검증된다.
 - 한 번에 29개 전체를 바꾸지 않는다.
+
+### 작업 메모
+
+- helper 추가:
+  - `backend-proxy.types.ts`에 `BackendProxyUser`, `BackendProxyAuthHeaders`, `BackendProxyResult`를 추가했다.
+  - `backend-proxy-session.ts`에 `requireSessionUser`를 추가해 `next-auth` 세션 확인과 401 응답 생성을 공통화했다.
+  - `backend-proxy-client.ts`에 `createBackendAuthHeaders`, `requireBackendProxyClient`를 추가해 `BACKEND_URL` 확인과 내부 JWT 헤더 생성을 공통화했다.
+  - `backend-proxy-response.ts`에 `parseBackendResponse`, `jsonFromBackendResponse`를 추가해 빈 응답 fallback, JSON 파싱, 텍스트 message 변환, backend status 전달을 공통화했다.
+- route 적용 범위:
+  - 이번 섹션에서는 `frontend/app/api/tickets/route.ts`, `frontend/app/api/tickets/[ticketId]/route.ts`, `frontend/app/api/reservations/route.ts` 세 곳만 적용했다.
+  - `/api/tickets` POST의 multipart `payload` 검증, 성공 시 status `200` 고정, 실패 시 `"Ticket creation failed"` fallback은 route에 남겨 기존 동작을 유지했다.
+  - 나머지 `app/api/**` route에는 아직 적용하지 않았다.
+
+### 검증 기록
+
+- 실행 명령:
+  - `cd frontend && pnpm exec vitest run 'lib/server/backend-proxy/__tests__/backend-proxy.test.ts' 'app/api/tickets/__tests__/route.test.ts' 'app/api/tickets/[ticketId]/__tests__/route.test.ts' 'app/api/reservations/__tests__/route.test.ts'`
+  - `cd frontend && pnpm exec tsc --noEmit`
+- 결과:
+  - `backend-proxy.test.ts`: 5개 테스트 통과
+  - `tickets/reservations` 대상 route test: 7개 테스트 통과
+  - 합계: 4개 테스트 파일, 12개 테스트 통과
+  - `tsc --noEmit`: 성공, 타입 오류 없음
 
 ## 10. BFF route handler 단계적 적용
 
