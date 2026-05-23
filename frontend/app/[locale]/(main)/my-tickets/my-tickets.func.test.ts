@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+    buildNotificationSnapshotTickets,
     buildCreateTicketPayload,
     buildPublicBookingUrl,
     buildTicketPayload,
+    emptyStateTitleKey,
+    filterTicketsByDuplicatePurchase,
     isFutureVerifyingRequest,
     mapTicket,
     statusBadgeStyle,
@@ -150,5 +153,79 @@ describe("my-tickets.func", () => {
         expect(buildPublicBookingUrl(ticket, "ko", "https://perfo.kr")).toBe("https://perfo.kr/ko/events/42");
         expect(buildPublicBookingUrl({ ...ticket, publicBookingPath: undefined }, "ko", "https://perfo.kr")).toBeNull();
         expect(buildPublicBookingUrl(ticket, "ko", null)).toBeNull();
+    });
+
+    it("중복 구매 필터에 따라 티켓 목록을 걸러낸다", () => {
+        const tickets: IssuedTicket[] = [
+            {
+                id: "1",
+                name: "Duplicate Allowed",
+                venue: "A",
+                detailAddress: "",
+                validDate: "2026-08-15",
+                openAt: "",
+                status: "ISSUING",
+                issuedCount: 0,
+                totalCount: 100,
+                allowDuplicate: true,
+                maxPerUser: 2,
+                discoveryMode: "LISTED",
+            },
+            {
+                id: "2",
+                name: "No Duplicate",
+                venue: "B",
+                detailAddress: "",
+                validDate: "2026-08-15",
+                openAt: "",
+                status: "INACTIVE",
+                issuedCount: 0,
+                totalCount: 100,
+                allowDuplicate: false,
+                maxPerUser: 1,
+                discoveryMode: "LISTED",
+            },
+        ];
+
+        expect(filterTicketsByDuplicatePurchase(tickets, "ALL")).toHaveLength(2);
+        expect(filterTicketsByDuplicatePurchase(tickets, "ALLOW_DUPLICATE").map((ticket) => ticket.id)).toEqual(["1"]);
+        expect(filterTicketsByDuplicatePurchase(tickets, "NO_DUPLICATE").map((ticket) => ticket.id)).toEqual(["2"]);
+    });
+
+    it("필터별 빈 상태 title key와 알림 bootstrap 입력을 만든다", () => {
+        const ticket: IssuedTicket = {
+            id: "42",
+            eventId: "42",
+            name: "PERFO Summer Festival",
+            venue: "올림픽공원 체조경기장",
+            detailAddress: "2층 A게이트 앞",
+            validDate: "2026-08-15",
+            openAt: "2026-08-15T08:00:00.000Z",
+            status: "VERIFYING",
+            issuedCount: 25,
+            totalCount: 100,
+            allowDuplicate: true,
+            maxPerUser: 2,
+            discoveryMode: "LINK_ONLY",
+            publicBookingPath: "/events/42",
+        };
+
+        expect(emptyStateTitleKey("ALL")).toBe("myTickets.empty");
+        expect(emptyStateTitleKey("ALLOW_DUPLICATE")).toBe("myTickets.emptyAllowDuplicate");
+        expect(emptyStateTitleKey("NO_DUPLICATE")).toBe("myTickets.emptyNoDuplicate");
+        expect(buildNotificationSnapshotTickets([ticket], "ko")).toEqual([
+            {
+                scope: "issued",
+                ticketId: "42",
+                ticketName: "PERFO Summer Festival",
+                targetUrl: "/ko/my-tickets/42/scan",
+                statuses: [
+                    {
+                        statusKey: "issueStatus",
+                        statusValue: "VERIFYING",
+                    },
+                ],
+            },
+        ]);
     });
 });

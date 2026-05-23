@@ -2,8 +2,10 @@ import { googleMapsSearchUrl } from "./place-utils";
 import { STATUS_BADGE_STYLE } from "./my-tickets.constants";
 import type {
     DiscoveryMode,
+    DuplicatePurchaseFilter,
     IssuedTicket,
     IssueStatus,
+    MyTicketsNotificationSnapshot,
     TicketBasePayload,
     TicketForm,
     TicketUpdatePayload,
@@ -110,3 +112,44 @@ export const buildPublicBookingUrl = (
 
     return `${origin}/${locale}${ticket.publicBookingPath}`;
 };
+
+export const filterTicketsByDuplicatePurchase = (
+    tickets: IssuedTicket[],
+    duplicateFilter: DuplicatePurchaseFilter,
+): IssuedTicket[] => tickets.filter((ticket) => {
+    switch (duplicateFilter) {
+        case "ALLOW_DUPLICATE":
+            return ticket.allowDuplicate;
+        case "NO_DUPLICATE":
+            return !ticket.allowDuplicate;
+        default:
+            return true;
+    }
+});
+
+export const emptyStateTitleKey = (duplicateFilter: DuplicatePurchaseFilter): string => {
+    switch (duplicateFilter) {
+        case "ALLOW_DUPLICATE":
+            return "myTickets.emptyAllowDuplicate";
+        case "NO_DUPLICATE":
+            return "myTickets.emptyNoDuplicate";
+        default:
+            return "myTickets.empty";
+    }
+};
+
+export const buildNotificationSnapshotTickets = (
+    tickets: IssuedTicket[],
+    locale: string,
+): MyTicketsNotificationSnapshot[] => tickets.map((ticket) => ({
+    scope: "issued",
+    ticketId: ticket.id,
+    ticketName: ticket.name,
+    targetUrl: `/${locale}/my-tickets/${ticket.id}/scan`,
+    statuses: [
+        {
+            statusKey: "issueStatus",
+            statusValue: ticket.status,
+        },
+    ],
+}));
