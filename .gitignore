@@ -71,5 +71,10 @@ docs/**/.env*
 frontend/.pnpm-store
 
 docs
+!docs/
+!docs/02_Development/
+!docs/02_Development/00_Plan/
+!docs/02_Development/00_Plan/26_CODE_SPLIT_REFACTORING_PLAN.md
+!docs/02_Development/00_Plan/27_CODE_SPLIT_REFACTORING_WORK_PROMPTS.md
 .github/workflows/ci.yml
 frontend/next-env.d.ts

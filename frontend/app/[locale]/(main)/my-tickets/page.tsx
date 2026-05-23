@@ -20,13 +20,21 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsButton } from "@/components/ui/tabs";
 import { ToggleRow } from "@/components/ui/toggle-row";
 import dynamic from "next/dynamic";
-import { googleMapsSearchUrl } from "./place-utils";
 
 const PlaceAutocompleteInput = dynamic(
     () => import("./PlaceAutocompleteInput").then((m) => ({ default: m.PlaceAutocompleteInput })),
 );
-import { EMPTY_FORM, STATUS_BADGE_STYLE } from "./my-tickets.constants";
-import type { DiscoveryMode, DuplicatePurchaseFilter, IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
+import { EMPTY_FORM, ISSUE_STATUS_OPTIONS } from "./my-tickets.constants";
+import {
+    buildCreateTicketPayload,
+    buildPublicBookingUrl,
+    buildTicketPayload,
+    isFutureVerifyingRequest,
+    mapTicket,
+    statusBadgeStyle,
+    toDateTimeLocalValue,
+} from "./my-tickets.func";
+import type { DuplicatePurchaseFilter, IssuedTicket, IssueStatus, TicketForm, TicketFormSheetProps } from "./my-tickets.types";
 
 const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>): string => {
     const map: Record<IssueStatus, string> = {
@@ -37,67 +45,6 @@ const statusLabel = (status: IssueStatus, t: ReturnType<typeof useTranslations>)
     };
     return map[status];
 };
-
-const statusBadgeStyle = (status: IssueStatus) => STATUS_BADGE_STYLE[status];
-
-const toDateTimeLocalValue = (isoValue?: string): string => {
-    if (!isoValue) {
-        return "";
-    }
-
-    const date = new Date(isoValue);
-    if (Number.isNaN(date.getTime())) {
-        return "";
-    }
-
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60_000);
-    return localDate.toISOString().slice(0, 16);
-};
-
-const toIsoDateTime = (localValue: string): string | null => {
-    if (!localValue) {
-        return null;
-    }
-
-    const date = new Date(localValue);
-    if (Number.isNaN(date.getTime())) {
-        return null;
-    }
-
-    return date.toISOString();
-};
-
-const isFutureVerifyingRequest = (status: IssueStatus, openAt: string): boolean => {
-    const openAtIso = toIsoDateTime(openAt);
-    if (status !== "VERIFYING" || !openAtIso) {
-        return false;
-    }
-
-    return new Date(openAtIso).getTime() > Date.now();
-};
-
-const mapTicket = (item: Record<string, unknown>): IssuedTicket => ({
-    id: String(item.id),
-    name: String(item.name),
-    venue: String(item.venue),
-    detailAddress: String(item.detailAddress ?? ""),
-    googleMapsUrl: googleMapsSearchUrl(String(item.venue), String(item.googlePlaceId)),
-    googlePlaceId: String(item.googlePlaceId),
-    validDate: String(item.validDate),
-    openAt: String(item.openAt ?? ""),
-    imageKey: item.imageKey ? String(item.imageKey) : undefined,
-    imageUrl: item.imageUrl ? String(item.imageUrl) : undefined,
-    status: item.status as IssueStatus,
-    issuedCount: Number(item.issuedCount ?? 0),
-    totalCount: Number(item.totalCount),
-    allowDuplicate: Boolean(item.allowDuplicate),
-    maxPerUser: Number(item.maxPerUser),
-    discoveryMode: String(item.discoveryMode ?? "LISTED") as DiscoveryMode,
-    eventId: item.eventId ? String(item.eventId) : undefined,
-    publicBookingPath: item.publicBookingPath ? String(item.publicBookingPath) : undefined,
-    publicBookingUrl: item.publicBookingUrl ? String(item.publicBookingUrl) : undefined,
-});
 
 const TicketFormSheet = ({
     open,
@@ -289,10 +236,11 @@ const TicketFormSheet = ({
                                 }
                                 className="flex h-11 w-full rounded-xl border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
                             >
-                                <option value="INACTIVE">{t("myTickets.statusInactive")}</option>
-                                <option value="ISSUING">{t("myTickets.statusIssuing")}</option>
-                                <option value="VERIFYING">{t("myTickets.statusVerifying")}</option>
-                                <option value="EXPIRED">{t("myTickets.statusExpired")}</option>
+                                {ISSUE_STATUS_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {t(option.labelKey)}
+                                    </option>
+                                ))}
                             </select>
                         </FormField>
                     ) : null}
@@ -458,21 +406,6 @@ const MyTicketsPage = () => {
         return body as Record<string, unknown>;
     };
 
-    const buildPayload = (form: TicketForm, imageKey?: string | null) => ({
-        name: form.name,
-        venue: form.venue,
-        googlePlaceId: form.googlePlaceId,
-        detailAddress: form.detailAddress,
-        validDate: form.validDate,
-        openAt: toIsoDateTime(form.openAt),
-        totalCount: Number(form.totalCount),
-        allowDuplicate: form.allowDuplicate,
-        maxPerUser: Number(form.maxPerUser),
-        discoveryMode: form.discoveryMode,
-        status: form.status,
-        imageKey: imageKey ?? form.imageKey ?? null,
-    });
-
     const uploadImage = async (ticketId: string, file: File) => {
         const formData = new FormData();
         formData.set("file", file);
@@ -505,7 +438,7 @@ const MyTicketsPage = () => {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(buildPayload(form, imageKey)),
+                    body: JSON.stringify(buildTicketPayload(form, imageKey)),
                 });
             } catch (error) {
                 if (form.imageFile && imageKey) {
@@ -521,18 +454,7 @@ const MyTicketsPage = () => {
             return;
         }
 
-        const createPayload = {
-            name: form.name,
-            venue: form.venue,
-            googlePlaceId: form.googlePlaceId,
-            detailAddress: form.detailAddress,
-            validDate: form.validDate,
-            openAt: toIsoDateTime(form.openAt),
-            totalCount: Number(form.totalCount),
-            allowDuplicate: form.allowDuplicate,
-            maxPerUser: Number(form.maxPerUser),
-            discoveryMode: form.discoveryMode,
-        };
+        const createPayload = buildCreateTicketPayload(form);
 
         const created = form.imageFile
             ? await (() => {
@@ -560,20 +482,12 @@ const MyTicketsPage = () => {
         setTickets((currentTickets) => [nextTicket, ...currentTickets.filter((ticket) => ticket.id !== nextTicket.id)]);
     };
 
-    const buildPublicBookingUrl = (ticket: IssuedTicket) => {
-        if (ticket.publicBookingUrl) {
-            return ticket.publicBookingUrl;
-        }
-
-        if (typeof window === "undefined" || !ticket.publicBookingPath) {
-            return null;
-        }
-
-        return `${window.location.origin}/${locale}${ticket.publicBookingPath}`;
-    };
-
     const handleCopyBookingUrl = async (ticket: IssuedTicket) => {
-        const publicUrl = buildPublicBookingUrl(ticket);
+        const publicUrl = buildPublicBookingUrl(
+            ticket,
+            locale,
+            typeof window === "undefined" ? null : window.location.origin,
+        );
         if (!publicUrl || !navigator.clipboard?.writeText) {
             return;
         }
@@ -583,7 +497,11 @@ const MyTicketsPage = () => {
     };
 
     const handleShareBookingUrl = async (ticket: IssuedTicket) => {
-        const publicUrl = buildPublicBookingUrl(ticket);
+        const publicUrl = buildPublicBookingUrl(
+            ticket,
+            locale,
+            typeof window === "undefined" ? null : window.location.origin,
+        );
         if (!publicUrl || !navigator.share) {
             return;
         }
@@ -625,6 +543,18 @@ const MyTicketsPage = () => {
             active = false;
         };
     }, []);
+
+    useEffect(() => {
+        const firstImageUrl = tickets[0]?.imageUrl;
+        if (!firstImageUrl) return;
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "image";
+        link.href = firstImageUrl;
+        link.fetchPriority = "high";
+        document.head.appendChild(link);
+        return () => { document.head.removeChild(link); };
+    }, [tickets]);
 
     useNotificationSnapshotBootstrap(
         tickets.map((ticket) => ({
@@ -708,10 +638,11 @@ const MyTicketsPage = () => {
                     />
                 ) : (
                     <div className="grid grid-cols-1 gap-5">
-                        {filteredTickets.map((ticket) => (
+                        {filteredTickets.map((ticket, index) => (
                             <IssuedTicketCard
                                 key={ticket.id}
                                 ticket={ticket}
+                                isLCP={index === 0}
                                 statusLabel={statusLabel(ticket.status, t)}
                                 badgeVariant={statusBadgeStyle(ticket.status)}
                                 issuedCountLabel={t("myTickets.issuedCount")}
