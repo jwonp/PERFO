@@ -1,62 +1,26 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth.config";
-import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth";
-
-const backendUrl = process.env.BACKEND_URL;
+import { requireBackendProxyClient } from "@/lib/server/backend-proxy/backend-proxy-client";
+import { jsonFromBackendResponse } from "@/lib/server/backend-proxy/backend-proxy-response";
+import { requireSessionUser } from "@/lib/server/backend-proxy/backend-proxy-session";
 
 export const GET = async () => {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-        return NextResponse.json(
-            { message: "Unauthorized" },
-            { status: 401 },
-        );
+    const sessionUser = await requireSessionUser();
+    if (!sessionUser.ok) {
+        return sessionUser.response;
     }
 
-    if (!backendUrl) {
-        return NextResponse.json(
-            { message: "BACKEND_URL is not configured" },
-            { status: 500 },
-        );
-    }
-
-    let authHeaders: { Authorization: string };
-    try {
-        authHeaders = createInternalProxyAuthHeaders(
-            {
-                id: session.user.id,
-                email: session.user.email,
-                role: session.user.role,
-            },
-            ["tickets"],
-        );
-    } catch {
-        return NextResponse.json(
-            { message: "Internal API JWT signing is not configured" },
-            { status: 500 },
-        );
+    const proxyClient = requireBackendProxyClient(sessionUser.value, ["tickets"]);
+    if (!proxyClient.ok) {
+        return proxyClient.response;
     }
 
     const response = await fetch(
-        `${backendUrl}/api/reservations?userId=${encodeURIComponent(session.user.id)}`,
+        `${proxyClient.value.backendUrl}/api/reservations?userId=${encodeURIComponent(sessionUser.value.id)}`,
         {
             method: "GET",
-            headers: authHeaders,
+            headers: proxyClient.value.authHeaders,
             cache: "no-store",
         },
     );
 
-    const text = await response.text();
-    const body = text
-        ? (() => {
-              try {
-                  return JSON.parse(text);
-              } catch {
-                  return { message: text };
-              }
-          })()
-        : [];
-
-    return NextResponse.json(body, { status: response.status });
+    return jsonFromBackendResponse(response, []);
 };
