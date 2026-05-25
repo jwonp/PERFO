@@ -102,7 +102,7 @@ class IssuedTicketQueryService(
     }
 
     private fun buildTicketImageUrl(ticketId: Long, imageKey: String?): String? {
-        return imageKey?.let { ticketImageStorageService.buildTicketImageUrl(ticketId) }
+        return imageKey?.let { ticketImageStorageService.buildPublicTicketImageUrl(ticketId) }
     }
 
     private fun resolveIssuedCount(ticket: IssuedTicket, linkedEvent: Event? = null): Int {
