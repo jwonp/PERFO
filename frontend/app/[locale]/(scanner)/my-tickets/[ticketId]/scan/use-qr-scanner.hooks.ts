@@ -47,6 +47,7 @@ export const useQrScanner = ({
                     }
 
                     if (error && !isRecoverableScannerError(error)) {
+                        console.error("[QRScanner] Non-recoverable decode error:", error instanceof Error ? `${error.name}: ${error.message}` : error);
                         setScannerStatus("error");
                     }
                 });
@@ -60,6 +61,7 @@ export const useQrScanner = ({
                 controlsRef.current = controls;
                 setScannerStatus("ready");
             } catch (error) {
+                console.error("[QRScanner] Camera start error:", error instanceof Error ? `${error.name}: ${error.message}` : error);
                 if (!cancelled) {
                     setScannerStatus(resolveScannerFailureStatus(error));
                 }
