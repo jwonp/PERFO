@@ -1,35 +1,26 @@
 import { NextResponse } from "next/server";
-import { requireBackendProxyClient } from "@/lib/server/backend-proxy/backend-proxy-client";
-import { jsonFromBackendResponse, parseBackendResponse } from "@/lib/server/backend-proxy/backend-proxy-response";
-import { requireSessionUser } from "@/lib/server/backend-proxy/backend-proxy-session";
+import { parseBackendResponse } from "@/lib/server/backend-proxy/backend-proxy-response";
+import { fetchBackendRoute, proxyBackendJsonRoute, requireBackendRouteClient } from "@/lib/server/backend-proxy/backend-proxy-route";
 
 export const GET = async () => {
-    const sessionUser = await requireSessionUser();
-    if (!sessionUser.ok) {
-        return sessionUser.response;
-    }
-
-    const proxyClient = requireBackendProxyClient(sessionUser.value, ["tickets"]);
+    const proxyClient = await requireBackendRouteClient(["tickets"]);
     if (!proxyClient.ok) {
         return proxyClient.response;
     }
 
-    const response = await fetch(`${proxyClient.value.backendUrl}/api/tickets?ownerUserId=${encodeURIComponent(sessionUser.value.id)}`, {
-        method: "GET",
-        headers: proxyClient.value.authHeaders,
-        cache: "no-store",
-    });
-
-    return jsonFromBackendResponse(response, []);
+    return proxyBackendJsonRoute(
+        proxyClient.value,
+        `/api/tickets?ownerUserId=${encodeURIComponent(proxyClient.value.sessionUser.id)}`,
+        {
+            method: "GET",
+            cache: "no-store",
+        },
+        [],
+    );
 };
 
 export const POST = async (request: Request) => {
-    const sessionUser = await requireSessionUser();
-    if (!sessionUser.ok) {
-        return sessionUser.response;
-    }
-
-    const proxyClient = requireBackendProxyClient(sessionUser.value, ["tickets"]);
+    const proxyClient = await requireBackendRouteClient(["tickets"]);
     if (!proxyClient.ok) {
         return proxyClient.response;
     }
@@ -65,7 +56,7 @@ export const POST = async (request: Request) => {
             new Blob([
                 JSON.stringify({
                     ...payload,
-                    ownerUserId: sessionUser.value.id,
+                    ownerUserId: proxyClient.value.sessionUser.id,
                 }),
             ], { type: "application/json" }),
             "payload.json",
@@ -76,22 +67,20 @@ export const POST = async (request: Request) => {
             backendFormData.set("file", file, file.name);
         }
 
-        response = await fetch(`${proxyClient.value.backendUrl}/api/tickets`, {
+        response = await fetchBackendRoute(proxyClient.value, "/api/tickets", {
             method: "POST",
-            headers: proxyClient.value.authHeaders,
             body: backendFormData,
         });
     } else {
         const payload = await request.json();
-        response = await fetch(`${proxyClient.value.backendUrl}/api/tickets`, {
+        response = await fetchBackendRoute(proxyClient.value, "/api/tickets", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                ...proxyClient.value.authHeaders,
             },
             body: JSON.stringify({
                 ...payload,
-                ownerUserId: sessionUser.value.id,
+                ownerUserId: proxyClient.value.sessionUser.id,
             }),
         });
     }

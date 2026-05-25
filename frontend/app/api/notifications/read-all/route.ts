@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { markAllNotificationsRead } from "@/lib/notifications/notification-service";
-import { getRequiredSessionUser } from "@/lib/server/session";
+import { withRequiredSessionRoute } from "@/lib/server/session-route";
 
-export const PATCH = async () => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
-    const updatedCount = await markAllNotificationsRead(user.id);
-    return NextResponse.json({ updatedCount });
-};
+export const PATCH = async () => withRequiredSessionRoute(
+    () => NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
+    async (user) => {
+        const updatedCount = await markAllNotificationsRead(user.id);
+        return NextResponse.json({ updatedCount });
+    },
+);
