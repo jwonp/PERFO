@@ -66,6 +66,7 @@ const ReservedPage = () => {
                     validDate: String(item.validDate),
                     ticketingStatus: String(item.ticketingStatus) as Ticket["ticketingStatus"],
                     usageStatus: String(item.usageStatus) as Ticket["usageStatus"],
+                    imageUrl: typeof item.imageUrl === "string" ? item.imageUrl : undefined,
                 })));
                 setHasLoadedTickets(true);
             })
