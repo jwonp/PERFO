@@ -55,6 +55,13 @@ export const useTicketValidation = ({
         }, RESULT_BANNER_MS);
     }, [clearFeedbackTimeout]);
 
+    const resetManualInput = useCallback(() => {
+        setQrToken("");
+        setTimeout(() => {
+            manualInputRef.current?.focus();
+        }, 0);
+    }, []);
+
     const submit = useCallback(async (tokenFromScanner?: string, source: "scanner" | "manual" = "manual") => {
         const token = (tokenFromScanner ?? qrToken).trim();
         if (!token) {
@@ -63,6 +70,9 @@ export const useTicketValidation = ({
             showBannerFeedback(invalidResult);
             triggerVisualState("error");
             void playResultTone("INVALID");
+            if (source === "manual") {
+                resetManualInput();
+            }
             return;
         }
 
@@ -73,9 +83,6 @@ export const useTicketValidation = ({
             showBannerFeedback(data);
             triggerVisualState(data.result === "SUCCESS" ? "success" : "error");
             void playResultTone(data.result);
-            if (data.result === "SUCCESS") {
-                setQrToken("");
-            }
         } catch {
             const networkErrorResult = { result: "INVALID", message: t("myTickets.scanNetworkError") };
             setResult(networkErrorResult);
@@ -85,12 +92,10 @@ export const useTicketValidation = ({
         } finally {
             setSubmitting(false);
             if (source === "manual") {
-                requestAnimationFrame(() => {
-                    manualInputRef.current?.focus();
-                });
+                resetManualInput();
             }
         }
-    }, [playResultTone, qrToken, showBannerFeedback, t, ticketId, triggerVisualState]);
+    }, [playResultTone, qrToken, resetManualInput, showBannerFeedback, t, ticketId, triggerVisualState]);
 
     const handleDecodedText = useCallback((decoded: string) => {
         const trimmed = decoded.trim();

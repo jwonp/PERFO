@@ -1,5 +1,5 @@
 import { CheckCircle2, XCircle } from "lucide-react";
-import type { RecentScanRecord, ResultMeta } from "./scan.types";
+import type { RecentScanRecord, ResultMeta, ScannerStatus } from "./scan.types";
 
 export const resultLabelKey = (status: string): string | null => {
     switch (status) {
@@ -27,7 +27,7 @@ export const resultMeta = (status: string): ResultMeta => {
         return {
             badgeVariant: "success",
             icon: CheckCircle2,
-            panelClassName: "border-[color:color-mix(in_srgb,var(--success)_18%,white)] bg-[color:color-mix(in_srgb,var(--success)_10%,white)]",
+            panelClassName: "border-border bg-[var(--surface-raised)]",
             bodyClassName: "text-[var(--success)]",
         };
     }
@@ -35,9 +35,33 @@ export const resultMeta = (status: string): ResultMeta => {
     return {
         badgeVariant: "danger",
         icon: XCircle,
-        panelClassName: "border-[color:color-mix(in_srgb,var(--danger)_22%,white)] bg-[color:color-mix(in_srgb,var(--danger)_8%,white)]",
+        panelClassName: "border-border bg-[var(--surface-raised)]",
         bodyClassName: "text-[var(--danger)]",
     };
+};
+
+export const isRecoverableScannerError = (error: unknown): boolean => {
+    const name = error instanceof Error
+        ? error.name
+        : typeof error === "object" && error !== null && "name" in error
+            ? String((error as { name?: unknown }).name ?? "")
+            : "";
+
+    return name === "NotFoundException" || name === "ChecksumException" || name === "FormatException";
+};
+
+export const resolveScannerFailureStatus = (error: unknown): ScannerStatus => {
+    const name = error instanceof Error
+        ? error.name
+        : typeof error === "object" && error !== null && "name" in error
+            ? String((error as { name?: unknown }).name ?? "")
+            : "";
+
+    if (name === "NotAllowedError" || name === "NotFoundError" || name === "SecurityError") {
+        return "blocked";
+    }
+
+    return "error";
 };
 
 export const formatUsedAt = (value?: string): string | null => {

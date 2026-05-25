@@ -8,6 +8,7 @@ export interface TicketShellProps {
     title: React.ReactNode;
     venue: React.ReactNode;
     validDate: React.ReactNode;
+    showValidDateRow?: boolean;
     topActions?: React.ReactNode;
     footer?: React.ReactNode;
     media?: React.ReactNode;

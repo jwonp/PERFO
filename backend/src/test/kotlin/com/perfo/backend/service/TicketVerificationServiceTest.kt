@@ -85,6 +85,7 @@ class TicketVerificationServiceTest {
     @DisplayName("QR 토큰을 발급할 수 있다")
     fun issueQrToken_success() {
         given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
         given(qrSignatureService.issueToken(100L, 10L, 1L, 60))
             .willReturn(Pair("opaque-token", Instant.parse("2026-04-28T03:00:30Z")))
 
@@ -92,6 +93,45 @@ class TicketVerificationServiceTest {
 
         assertThat(response.token).isEqualTo("opaque-token")
         assertThat(response.expiresAt).isEqualTo("2026-04-28T03:00:30Z")
+    }
+
+    @Test
+    @DisplayName("QR 토큰 발급 실패 - 이미 사용된 티켓이면 재발급을 거부한다")
+    fun issueQrToken_alreadyUsed() {
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket.copyWithUsageStatus(TicketUsageStatus.USED)))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
+
+        assertThatThrownBy { ticketVerificationService.issueReservationQrToken(100L, 1L) }
+            .isInstanceOfSatisfying(ReservationQrTokenUnavailableException::class.java) { exception ->
+                assertThat(exception.code).isEqualTo("ALREADY_USED")
+                assertThat(exception.status.value()).isEqualTo(409)
+            }
+    }
+
+    @Test
+    @DisplayName("QR 토큰 발급 실패 - 검표 시작 전이면 재발급을 거부한다")
+    fun issueQrToken_notOpen() {
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket.copyWithUsageStatus(TicketUsageStatus.BEFORE_SERVING)))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(2))))
+
+        assertThatThrownBy { ticketVerificationService.issueReservationQrToken(100L, 1L) }
+            .isInstanceOfSatisfying(ReservationQrTokenUnavailableException::class.java) { exception ->
+                assertThat(exception.code).isEqualTo("NOT_OPEN")
+                assertThat(exception.status.value()).isEqualTo(409)
+            }
+    }
+
+    @Test
+    @DisplayName("QR 토큰 발급 실패 - 유효 기간이 끝났으면 재발급을 거부한다")
+    fun issueQrToken_expired() {
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event.copyWithWindow(LocalDateTime.now().minusHours(2), LocalDateTime.now().minusMinutes(1))))
+
+        assertThatThrownBy { ticketVerificationService.issueReservationQrToken(100L, 1L) }
+            .isInstanceOfSatisfying(ReservationQrTokenUnavailableException::class.java) { exception ->
+                assertThat(exception.code).isEqualTo("EXPIRED")
+                assertThat(exception.status.value()).isEqualTo(410)
+            }
     }
 
     @Test
@@ -105,16 +145,16 @@ class TicketVerificationServiceTest {
         given(eventRepository.findById(10L)).willReturn(Optional.of(event))
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
-        given(ticketRepository.markUsedIfNotUsed(100L, TicketUsageStatus.USED)).willReturn(1)
+        given(ticketRepository.markUsedIfNotUsed(100L)).willReturn(1)
         given(verificationRecordRepository.save(org.mockito.ArgumentMatchers.any(VerificationRecord::class.java)))
             .willReturn(VerificationRecord(id = 1L, ticketId = 100L, eventId = 10L, userId = 1L))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
+        val response = ticketVerificationService.validateTicketByQr(55L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.SUCCESS)
         assertThat(response.ticketNumber).isEqualTo(98)
 
-        then(ticketRepository).should().markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should().markUsedIfNotUsed(100L)
         val recordCaptor = ArgumentCaptor.forClass(VerificationRecord::class.java)
         then(verificationRecordRepository).should().save(recordCaptor.capture())
         assertThat(recordCaptor.value.ticketId).isEqualTo(100L)
@@ -124,14 +164,16 @@ class TicketVerificationServiceTest {
     @DisplayName("QR 검표 실패 시 다른 티켓의 QR이면 다른 티켓 결과를 반환한다")
     fun validateQr_wrongTicket() {
         val request = TicketDto.TicketValidationRequest(qrToken = "opaque-token")
-        val payload = QrTokenPayload(ticketId = 100L, eventId = 11L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
+        val payload = QrTokenPayload(ticketId = 100L, eventId = 10L, userId = 1L, expiresAtEpochSecond = Instant.now().plusSeconds(30).epochSecond)
 
         given(qrSignatureService.verifyToken("opaque-token")).willReturn(payload)
+        given(ticketRepository.findById(100L)).willReturn(Optional.of(ticket))
+        given(eventRepository.findById(10L)).willReturn(Optional.of(event))
 
         val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.WRONG_TICKET)
-        then(ticketRepository).should(never()).findById(100L)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     @Test
@@ -147,10 +189,10 @@ class TicketVerificationServiceTest {
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
+        val response = ticketVerificationService.validateTicketByQr(55L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.ALREADY_USED)
-        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     @Test
@@ -166,10 +208,10 @@ class TicketVerificationServiceTest {
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
+        val response = ticketVerificationService.validateTicketByQr(55L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
-        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     @Test
@@ -185,10 +227,10 @@ class TicketVerificationServiceTest {
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
+        val response = ticketVerificationService.validateTicketByQr(55L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.NOT_OPEN)
-        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     @Test
@@ -203,10 +245,10 @@ class TicketVerificationServiceTest {
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "7")))
 
-        val response = ticketVerificationService.validateTicketByQr(10L, 7L, request)
+        val response = ticketVerificationService.validateTicketByQr(55L, 7L, request)
 
         assertThat(response.result).isEqualTo(TicketValidationResult.EXPIRED)
-        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     @Test
@@ -232,11 +274,11 @@ class TicketVerificationServiceTest {
         given(issuedTicketRepository.findById(55L))
             .willReturn(Optional.of(com.perfo.backend.entity.IssuedTicket(id = 55L, ownerUserId = "9")))
 
-        assertThatThrownBy { ticketVerificationService.validateTicketByQr(10L, 7L, request) }
+        assertThatThrownBy { ticketVerificationService.validateTicketByQr(55L, 7L, request) }
             .isInstanceOf(AccessDeniedException::class.java)
             .hasMessage("Ticket validation forbidden")
 
-        then(ticketRepository).should(never()).markUsedIfNotUsed(100L, TicketUsageStatus.USED)
+        then(ticketRepository).should(never()).markUsedIfNotUsed(100L)
     }
 
     private fun Event.copyWithWindow(validFrom: LocalDateTime, validUntil: LocalDateTime): Event {

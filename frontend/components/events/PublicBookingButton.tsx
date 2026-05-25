@@ -10,6 +10,7 @@ type PublicBookingButtonProps = {
   idleLabel: string;
   pendingLabel: string;
   errorLabel: string;
+  resultMessages?: Partial<Record<string, string>>;
 };
 
 const PublicBookingButton = ({
@@ -18,6 +19,7 @@ const PublicBookingButton = ({
   idleLabel,
   pendingLabel,
   errorLabel,
+  resultMessages,
 }: PublicBookingButtonProps) => {
   const router = useRouter();
   const [isBooking, setIsBooking] = useState(false);
@@ -45,8 +47,19 @@ const PublicBookingButton = ({
         return;
       }
 
+      const body = await response.json().catch(() => null) as { result?: string; message?: string } | null;
+
       if (!response.ok) {
         throw new Error("booking_failed");
+      }
+
+      if (body?.result !== "SUCCESS") {
+        setError(
+          (body?.result && resultMessages?.[body.result]) ||
+          body?.message ||
+          errorLabel,
+        );
+        return;
       }
 
       router.push("/reserved");

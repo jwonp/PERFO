@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
     formatUsedAt,
+    isRecoverableScannerError,
     resultLabelKey,
     resultMeta,
+    resolveScannerFailureStatus,
     shouldIgnoreDuplicateScan,
 } from "./scan.func";
 
@@ -18,15 +20,31 @@ describe("scan.func", () => {
         expect(resultMeta("SUCCESS")).toEqual(
             expect.objectContaining({
                 badgeVariant: "success",
+                panelClassName: "border-border bg-[var(--surface-raised)]",
                 bodyClassName: "text-[var(--success)]",
             }),
         );
         expect(resultMeta("INVALID")).toEqual(
             expect.objectContaining({
                 badgeVariant: "danger",
+                panelClassName: "border-border bg-[var(--surface-raised)]",
                 bodyClassName: "text-[var(--danger)]",
             }),
         );
+    });
+
+    it("복구 가능한 스캐너 디코드 오류는 fatal 상태로 보지 않는다", () => {
+        expect(isRecoverableScannerError({ name: "NotFoundException" })).toBe(true);
+        expect(isRecoverableScannerError({ name: "ChecksumException" })).toBe(true);
+        expect(isRecoverableScannerError({ name: "FormatException" })).toBe(true);
+        expect(isRecoverableScannerError({ name: "AbortError" })).toBe(false);
+    });
+
+    it("카메라 초기화 실패는 blocked/error 상태로 분리한다", () => {
+        expect(resolveScannerFailureStatus({ name: "NotAllowedError" })).toBe("blocked");
+        expect(resolveScannerFailureStatus({ name: "NotFoundError" })).toBe("blocked");
+        expect(resolveScannerFailureStatus({ name: "NotReadableError" })).toBe("error");
+        expect(resolveScannerFailureStatus(new Error("boom"))).toBe("error");
     });
 
     it("usedAt을 화면용 문자열로 포맷한다", () => {

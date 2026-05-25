@@ -40,7 +40,7 @@ const ScanResultPanel = ({
 
                                 return (
                                     <>
-                                        <div className="rounded-full bg-white/80 p-1.5 shadow-sm">
+                                        <div className="rounded-full bg-[var(--surface-muted)] p-1.5">
                                             <Icon className={cn("h-4 w-4", meta.bodyClassName)} />
                                         </div>
                                         <div className="min-w-0 flex-1">
@@ -48,7 +48,7 @@ const ScanResultPanel = ({
                                                 {translatedResultLabel}
                                             </Badge>
                                             <p className="mt-1 truncate text-sm font-semibold text-[var(--text)]">
-                                                {result.message || translatedResultLabel}
+                                                {translatedResultLabel}
                                             </p>
                                             {recentDetail ? (
                                                 <p className="mt-1 truncate text-[11px] text-[var(--text-muted)]">
