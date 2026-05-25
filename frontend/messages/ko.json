@@ -197,7 +197,7 @@
     "qrStatusExpiredDescription": "만료된 티켓은 QR을 다시 발급할 수 없습니다.",
     "statusBeforeUse": "사용 전",
     "statusWaiting": "순서 대기중",
-    "statusMyTurn": "현재 순서임",
+    "statusMyTurn": "검표 대기중",
     "statusUsed": "사용 완료",
     "empty": "예약한 티켓이 없습니다"
   },
