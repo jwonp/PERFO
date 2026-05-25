@@ -1,11 +1,6 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { EMAIL_LOOKUP_FAILED_MESSAGE } from "@/lib/auth/auth-errors";
+import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,73 +11,20 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLoginPage } from "./use-login-page.hooks";
 
 const LoginPage = () => {
-  const t = useTranslations();
-  const locale = useLocale();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestedCallbackUrl = searchParams.get("callbackUrl");
-  const callbackUrl = requestedCallbackUrl || "/reserved";
-  const hasCallbackUrl = Boolean(requestedCallbackUrl);
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const normalizedEmail = email.trim();
-
-  const handleSocialLogin = (provider: string) => {
-    void signIn(provider, { callbackUrl });
-  };
-
-  const handleEmailContinue = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
-    event.preventDefault();
-    if (!normalizedEmail) {
-      setError(t("login.emailRequired"));
-      return;
-    }
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/auth/check-email?email=${encodeURIComponent(normalizedEmail)}`,
-        {
-          cache: "no-store",
-        },
-      );
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok && body.message !== EMAIL_LOOKUP_FAILED_MESSAGE) {
-        throw new Error(body.message ?? t("login.lookupFailed"));
-      }
-
-      if (body.exists && body.provider === "credentials") {
-        router.push(
-          `/login/password?email=${encodeURIComponent(normalizedEmail)}&callbackUrl=${encodeURIComponent(callbackUrl)}`,
-        );
-        return;
-      }
-
-      if (!body.exists) {
-        router.push(`/signup?email=${encodeURIComponent(normalizedEmail)}`);
-        return;
-      }
-
-      setError(
-        t("login.socialAccountHint", { provider: body.provider ?? "social" }),
-      );
-    } catch (lookupError) {
-      setError(
-        lookupError instanceof Error
-          ? lookupError.message
-          : t("login.lookupFailed"),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const {
+    t,
+    locale,
+    email,
+    error,
+    submitting,
+    hasCallbackUrl,
+    setEmail,
+    handleSocialLogin,
+    handleEmailContinue,
+  } = useLoginPage();
 
   return (
     <Card className="app-card gap-5 px-6 py-8">

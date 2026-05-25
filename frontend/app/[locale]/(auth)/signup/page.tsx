@@ -1,9 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { PasswordRule } from "@/components/auth/password-rules";
 import { Button } from "@/components/ui/button";
@@ -16,99 +13,35 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  SIGNUP_DRAFT_STORAGE_KEY,
-  type SignUpDraft,
-} from "@/lib/auth/auth-flow";
-import { EMAIL_LOOKUP_FAILED_MESSAGE } from "@/lib/auth/auth-errors";
+import { useSignUpPage } from "./use-signup-page.hooks";
 
 const SignUpPage = () => {
-  const t = useTranslations();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email")?.trim() || "user@example.com";
-  const encodedEmail = encodeURIComponent(email);
-  const [displayName, setDisplayName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [termsAgreed, setTermsAgreed] = useState(false);
-  const [privacyAgreed, setPrivacyAgreed] = useState(false);
-  const [marketingAgreed, setMarketingAgreed] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const rules = [
-    { label: t("passwordRules.minLength"), valid: password.length >= 8 },
-    { label: t("passwordRules.uppercase"), valid: /[A-Z]/.test(password) },
-    { label: t("passwordRules.lowercase"), valid: /[a-z]/.test(password) },
-    { label: t("passwordRules.number"), valid: /\d/.test(password) },
-    {
-      label: t("passwordRules.special"),
-      valid: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-    },
-  ];
-
-  const passwordsMatch =
-    password.length > 0 &&
-    confirmPassword.length > 0 &&
-    password === confirmPassword;
-  const passwordIsValid = rules.every((rule) => rule.valid) && passwordsMatch;
-  const canSubmit =
-    displayName.trim().length > 0 &&
-    passwordIsValid &&
-    termsAgreed &&
-    privacyAgreed;
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!canSubmit) return;
-
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const response = await fetch(
-        `/api/auth/check-email?email=${encodeURIComponent(email)}`,
-        {
-          cache: "no-store",
-        },
-      );
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok && body.message !== EMAIL_LOOKUP_FAILED_MESSAGE) {
-        throw new Error(body.message ?? t("signup.submitFailed"));
-      }
-      if (body.exists) {
-        throw new Error(
-          body.provider === "credentials"
-            ? t("signup.emailExists")
-            : t("signup.socialAccountHint", {
-                provider: body.provider ?? "social",
-              }),
-        );
-      }
-
-      const draft: SignUpDraft = {
-        email,
-        name: displayName.trim(),
-        password,
-      };
-      window.sessionStorage.setItem(
-        SIGNUP_DRAFT_STORAGE_KEY,
-        JSON.stringify(draft),
-      );
-      router.push(`/verify?email=${encodedEmail}&mode=signup`);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : t("signup.submitFailed"),
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const {
+    t,
+    email,
+    displayName,
+    password,
+    confirmPassword,
+    showPassword,
+    showConfirm,
+    termsAgreed,
+    privacyAgreed,
+    marketingAgreed,
+    submitting,
+    error,
+    rules,
+    passwordsMatch,
+    canSubmit,
+    setDisplayName,
+    setPassword,
+    setConfirmPassword,
+    setShowPassword,
+    setShowConfirm,
+    setTermsAgreed,
+    setPrivacyAgreed,
+    setMarketingAgreed,
+    handleSubmit,
+  } = useSignUpPage();
 
   return (
     <Card className="app-card gap-6 px-6 py-8">
