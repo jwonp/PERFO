@@ -31,6 +31,8 @@
 - [20_MVP_OPEN_READINESS_PLAN.md](./20_MVP_OPEN_READINESS_PLAN.md): 현재 구현 상태를 기준으로 MVP 오픈 차단 이슈와 우선 개발 계획을 정리한 문서
 - [26_CODE_SPLIT_REFACTORING_PLAN.md](./26_CODE_SPLIT_REFACTORING_PLAN.md): 큰 파일을 `*.types.ts`, `*.constants.ts`, `*.func.ts`, `*.api.ts`, `*.hooks.ts`, 컴포넌트 파일로 나누는 코드 분리 리팩토링 계획
 - [27_CODE_SPLIT_REFACTORING_WORK_PROMPTS.md](./27_CODE_SPLIT_REFACTORING_WORK_PROMPTS.md): 코드 분리 리팩토링을 순서대로 실행하기 위한 작업 프롬프트 모음
+- [28_TICKET_BOOKING_SCAN_UX_FIX_PLAN.md](./28_TICKET_BOOKING_SCAN_UX_FIX_PLAN.md): 공개 예매, 이벤트 상세, QR 검표 UX 이슈 6건의 원인 분석과 수정 방향
+- [29_TICKET_BOOKING_SCAN_UX_FIX_WORK_PROMPTS.md](./29_TICKET_BOOKING_SCAN_UX_FIX_WORK_PROMPTS.md): 티켓 예매, 이벤트 상세, QR 검표 UX 이슈를 PR 단위로 구현하기 위한 작업 프롬프트
 
 ## 개발 원칙
 
