@@ -27,7 +27,7 @@ type ProfileScreenProps = {
     onSaveProfile: (payload: {
         displayName: string;
         profileImageType: MyProfileResponse["profileImageType"];
-        profileImageValue: string;
+        profileImageValue: string | null;
     }) => Promise<void>;
     onUploadProfileImage: (file: File) => Promise<MyProfileResponse>;
 };
