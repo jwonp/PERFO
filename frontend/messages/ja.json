@@ -197,7 +197,7 @@
         "qrStatusExpiredDescription": "期限切れチケットはQRを再発行できません。",
         "statusBeforeUse": "未使用",
         "statusWaiting": "順番待ち",
-        "statusMyTurn": "あなたの番です",
+        "statusMyTurn": "検票待ち",
         "statusUsed": "使用済み",
         "empty": "予約チケットはありません"
     },

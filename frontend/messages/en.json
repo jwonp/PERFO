@@ -197,7 +197,7 @@
         "qrStatusExpiredDescription": "Expired tickets can no longer issue a QR code.",
         "statusBeforeUse": "Not used",
         "statusWaiting": "Waiting",
-        "statusMyTurn": "Your turn!",
+        "statusMyTurn": "Ready to scan",
         "statusUsed": "Used",
         "empty": "No reserved tickets"
     },
