@@ -57,11 +57,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
     return (
         <div className="min-h-dvh bg-background text-foreground">
-            <main className="app-screen min-h-dvh pb-20">
+            <main className="app-screen min-h-dvh pb-nav-safe">
                 {children}
             </main>
 
-            <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-border bg-[var(--surface-raised)]">
+            <nav className="fixed right-0 bottom-0 left-0 z-50 border-t border-border bg-[var(--surface-raised)] pb-[env(safe-area-inset-bottom)]">
                 <div className="app-screen flex h-20 items-center justify-around px-4">
                     {tabs.map(({ href, label, Icon, key }) => {
                         const isActive = pathname.includes(`/${key}`);
