@@ -13,6 +13,7 @@ const TicketCard = ({
     validDate,
     imageUrl,
     usageStatus,
+    statusLabel,
     ticketNumber,
     totalCount,
     qrActionLabel,
@@ -24,7 +25,7 @@ const TicketCard = ({
 
     return (
         <TicketShell
-            badgeLabel={meta.label}
+            badgeLabel={statusLabel}
             badgeVariant={meta.badge}
             title={name}
             venue={venue}

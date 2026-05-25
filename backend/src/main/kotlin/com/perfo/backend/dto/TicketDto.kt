@@ -104,6 +104,7 @@ object TicketDto {
         val totalCount: Int,
         val ticketingStatus: TicketingStatus,
         val usageStatus: ReservedUsageStatus,
+        val imageUrl: String? = null,
     )
 
     data class TicketQrTokenResponse(

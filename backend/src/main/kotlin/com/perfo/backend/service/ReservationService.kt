@@ -5,6 +5,7 @@ import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.IssuedTicketRepository
 import com.perfo.backend.repository.TicketRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -13,6 +14,8 @@ import java.time.LocalDateTime
 class ReservationService(
     private val ticketRepository: TicketRepository,
     private val eventRepository: EventRepository,
+    private val issuedTicketRepository: IssuedTicketRepository,
+    private val ticketImageStorageService: TicketImageStorageService,
 ) {
     fun findAllByUserId(userId: Long): List<TicketDto.ReservationResponse> {
         val reservations = ticketRepository.findByUserIdOrderByIdDesc(userId)
@@ -23,9 +26,14 @@ class ReservationService(
         val eventsById = eventRepository.findAllById(reservations.map { it.eventId })
             .associateBy { it.id }
 
+        val issuedTicketIds = eventsById.values.mapNotNull { it.issuedTicketId }
+        val issuedTicketsById = issuedTicketRepository.findAllById(issuedTicketIds)
+            .associateBy { requireNotNull(it.id) }
+
         return reservations.mapNotNull { reservation ->
             val event = eventsById[reservation.eventId] ?: return@mapNotNull null
             val usageStatus = resolveUsageStatus(reservation.usageStatus, event)
+            val issuedTicket = event.issuedTicketId?.let { issuedTicketsById[it] }
 
             TicketDto.ReservationResponse(
                 id = reservation.id ?: return@mapNotNull null,
@@ -36,6 +44,8 @@ class ReservationService(
                 totalCount = event.totalQuantity,
                 ticketingStatus = reservation.ticketingStatus,
                 usageStatus = usageStatus.toReservedUsageStatus(),
+                imageUrl = issuedTicket?.id?.takeIf { issuedTicket.imageKey != null }
+                    ?.let { ticketImageStorageService.buildPublicTicketImageUrl(it) },
             )
         }
     }
