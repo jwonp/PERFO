@@ -132,6 +132,12 @@ const ReservedPage = () => {
                                     validDate={ticket.validDate}
                                     imageUrl={ticket.imageUrl}
                                     usageStatus={ticket.usageStatus}
+                                    statusLabel={
+                                        ticket.usageStatus === "BEFORE_USE" ? t("reserved.statusBeforeUse")
+                                        : ticket.usageStatus === "WAITING" ? t("reserved.statusWaiting")
+                                        : ticket.usageStatus === "MY_TURN" ? t("reserved.statusMyTurn")
+                                        : t("reserved.statusUsed")
+                                    }
                                     ticketNumber={ticket.ticketNumber}
                                     totalCount={ticket.totalCount}
                                     qrActionLabel={t("reserved.qrShow")}
