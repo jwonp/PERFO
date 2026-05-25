@@ -1,17 +1,10 @@
-import { requireBackendProxyClient } from "@/lib/server/backend-proxy/backend-proxy-client";
-import { jsonFromBackendResponse } from "@/lib/server/backend-proxy/backend-proxy-response";
-import { requireSessionUser } from "@/lib/server/backend-proxy/backend-proxy-session";
+import { proxyBackendJsonRoute, requireBackendRouteClient } from "@/lib/server/backend-proxy/backend-proxy-route";
 
 export const PATCH = async (
     request: Request,
     { params }: { params: Promise<{ ticketId: string }> },
 ) => {
-    const sessionUser = await requireSessionUser();
-    if (!sessionUser.ok) {
-        return sessionUser.response;
-    }
-
-    const proxyClient = requireBackendProxyClient(sessionUser.value, ["tickets"]);
+    const proxyClient = await requireBackendRouteClient(["tickets"]);
     if (!proxyClient.ok) {
         return proxyClient.response;
     }
@@ -19,14 +12,11 @@ export const PATCH = async (
     const { ticketId } = await params;
     const payload = await request.json();
 
-    const response = await fetch(`${proxyClient.value.backendUrl}/api/tickets/${ticketId}`, {
+    return proxyBackendJsonRoute(proxyClient.value, `/api/tickets/${ticketId}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json",
-            ...proxyClient.value.authHeaders,
         },
         body: JSON.stringify(payload),
-    });
-
-    return jsonFromBackendResponse(response, {});
+    }, {});
 };

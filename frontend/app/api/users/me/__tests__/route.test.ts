@@ -68,4 +68,16 @@ describe("/api/users/me route", () => {
         expect(response.status).toBe(401);
         await expect(response.json()).resolves.toEqual({ message: "Unauthorized" });
     });
+
+    it("이메일이 없는 세션이면 401을 반환한다", async () => {
+        getServerSessionMock.mockResolvedValue({ user: { id: "42", email: null } });
+        vi.stubGlobal("fetch", vi.fn());
+
+        const { GET } = await importRoute();
+        const response = await GET();
+
+        expect(fetch).not.toHaveBeenCalled();
+        expect(response.status).toBe(401);
+        await expect(response.json()).resolves.toEqual({ message: "Unauthorized" });
+    });
 });

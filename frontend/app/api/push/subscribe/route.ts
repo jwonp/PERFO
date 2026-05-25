@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { savePushSubscription, disablePushSubscription } from "@/lib/notifications/notification-service";
-import { getRequiredSessionUser } from "@/lib/server/session";
+import { withRequiredSessionRoute, withRouteErrorHandling } from "@/lib/server/session-route";
 import type { PushSubscriptionData } from "@/lib/notifications/notification.types";
 
 const isValidSubscription = (value: unknown): value is PushSubscriptionData => {
@@ -16,13 +16,10 @@ const isValidSubscription = (value: unknown): value is PushSubscriptionData => {
     );
 };
 
-export const POST = async (request: NextRequest) => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    try {
+export const POST = async (request: NextRequest) => withRouteErrorHandling(
+    async () => withRequiredSessionRoute(
+        () => NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 }),
+        async (user) => {
         const subscription = await request.json();
         if (!isValidSubscription(subscription)) {
             return NextResponse.json(
@@ -42,22 +39,21 @@ export const POST = async (request: NextRequest) => {
             success: true,
             message: "푸시 알림 구독 완료",
         });
-    } catch (error) {
+        },
+    ),
+    (error) => {
         console.error("구독 저장 실패:", error);
         return NextResponse.json(
             { success: false, error: "구독 저장 실패" },
             { status: 500 },
         );
-    }
-};
+    },
+);
 
-export const DELETE = async (request: NextRequest) => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-    }
-
-    try {
+export const DELETE = async (request: NextRequest) => withRouteErrorHandling(
+    async () => withRequiredSessionRoute(
+        () => NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 }),
+        async (user) => {
         const body = (await request.json()) as { endpoint?: string };
         if (!body.endpoint) {
             return NextResponse.json(
@@ -72,11 +68,13 @@ export const DELETE = async (request: NextRequest) => {
             success: true,
             message: "푸시 알림 구독 해제 완료",
         });
-    } catch (error) {
+        },
+    ),
+    (error) => {
         console.error("구독 해제 실패:", error);
         return NextResponse.json(
             { success: false, error: "구독 해제 실패" },
             { status: 500 },
         );
-    }
-};
+    },
+);

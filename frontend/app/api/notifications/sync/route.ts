@@ -1,54 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncTicketNotifications } from "@/lib/notifications/notification-service";
-import { isSafeInternalTargetUrl } from "@/lib/notifications/notification.constants";
-import { getRequiredSessionUser } from "@/lib/server/session";
-import type { NotificationSyncTicket, TicketStatusScope } from "@/lib/notifications/notification.types";
+import { withRequiredSessionRoute, withRouteErrorHandling } from "@/lib/server/session-route";
+import { isValidNotificationSyncPayload } from "../notification-route.func";
 
-const isValidScope = (value: string): value is TicketStatusScope => {
-    return value === "reserved" || value === "issued";
-};
-
-const isValidSyncPayload = (value: unknown): value is { tickets: NotificationSyncTicket[] } => {
-    if (!value || typeof value !== "object") {
-        return false;
-    }
-
-    const payload = value as { tickets?: NotificationSyncTicket[] };
-    if (!Array.isArray(payload.tickets)) {
-        return false;
-    }
-
-    return payload.tickets.every((ticket) => {
-        return (
-            typeof ticket.ticketId === "string" &&
-            typeof ticket.ticketName === "string" &&
-            typeof ticket.targetUrl === "string" &&
-            isValidScope(ticket.scope) &&
-            isSafeInternalTargetUrl(ticket.targetUrl) &&
-            Array.isArray(ticket.statuses) &&
-            ticket.statuses.every((candidate) => {
-                return typeof candidate.statusKey === "string" && typeof candidate.statusValue === "string";
-            })
-        );
-    });
-};
-
-export const POST = async (request: NextRequest) => {
-    try {
-        const user = await getRequiredSessionUser();
-        if (!user) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
+export const POST = async (request: NextRequest) => withRouteErrorHandling(
+    async () => withRequiredSessionRoute(
+        () => NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
+        async (user) => {
         const payload = await request.json();
-        if (!isValidSyncPayload(payload)) {
+        if (!isValidNotificationSyncPayload(payload)) {
             return NextResponse.json({ message: "Invalid payload" }, { status: 400 });
         }
 
         const createdNotificationIds = await syncTicketNotifications(user.id, payload.tickets);
         return NextResponse.json({ createdNotificationIds });
-    } catch (error) {
+        },
+    ),
+    (error) => {
         console.error("Notification sync failed:", error);
         return NextResponse.json({ message: "Notification sync failed" }, { status: 500 });
-    }
-};
+    },
+);

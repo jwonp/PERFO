@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import { markNotificationRead } from "@/lib/notifications/notification-service";
-import { getRequiredSessionUser } from "@/lib/server/session";
+import { withRequiredSessionRoute } from "@/lib/server/session-route";
 
 export const PATCH = async (
     _request: Request,
     { params }: { params: Promise<{ notificationId: string }> },
-) => {
-    const user = await getRequiredSessionUser();
-    if (!user) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
+) => withRequiredSessionRoute(
+    () => NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
+    async (user) => {
+        const { notificationId } = await params;
+        const notification = await markNotificationRead(user.id, notificationId);
+        if (!notification) {
+            return NextResponse.json({ message: "Notification not found" }, { status: 404 });
+        }
 
-    const { notificationId } = await params;
-    const notification = await markNotificationRead(user.id, notificationId);
-    if (!notification) {
-        return NextResponse.json({ message: "Notification not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ notification });
-};
+        return NextResponse.json({ notification });
+    },
+);

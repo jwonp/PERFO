@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth.config";
-import { createInternalProxyAuthHeaders } from "@/lib/server/internal-proxy-auth";
-
-const backendUrl = process.env.BACKEND_URL;
+import { createBackendRouteClient, proxyBackendJsonRoute } from "@/lib/server/backend-proxy/backend-proxy-route";
+import { requireSessionUser } from "@/lib/server/backend-proxy/backend-proxy-session";
 const projectionReadApiEnabled = process.env.TICKETING_PROJECTION_READ_API_ENABLED === "true";
 const projectionAllowedUserIds = process.env.TICKETING_PROJECTION_ALLOWED_USER_IDS ?? "";
 
@@ -11,66 +8,31 @@ export const GET = async (
     request: Request,
     context: { params: Promise<{ eventId: string }> },
 ) => {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const sessionUser = await requireSessionUser();
+    if (!sessionUser.ok) {
+        return sessionUser.response;
     }
 
-    if (!projectionReadApiEnabled || !isProjectionUserAllowed(session.user.id)) {
+    if (!projectionReadApiEnabled || !isProjectionUserAllowed(sessionUser.value.id)) {
         return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    if (!backendUrl) {
-        return NextResponse.json(
-            { message: "BACKEND_URL is not configured" },
-            { status: 500 },
-        );
+    const proxyClient = createBackendRouteClient(sessionUser.value, ["ticketing:projection"]);
+    if (!proxyClient.ok) {
+        return proxyClient.response;
     }
 
     const { eventId } = await context.params;
     const url = new URL(request.url);
     const limit = url.searchParams.get("limit");
 
-    let authHeaders: { Authorization: string };
-    try {
-        authHeaders = createInternalProxyAuthHeaders(
-            {
-                id: session.user.id,
-                email: session.user.email,
-            },
-            ["ticketing:projection"],
-        );
-    } catch {
-        return NextResponse.json(
-            { message: "Internal API JWT signing is not configured" },
-            { status: 500 },
-        );
-    }
+    const path = limit
+        ? `/api/ticketing/events/${eventId}/projection?limit=${encodeURIComponent(limit)}`
+        : `/api/ticketing/events/${eventId}/projection`;
 
-    const backendRequestUrl = new URL(`${backendUrl}/api/ticketing/events/${eventId}/projection`);
-    if (limit) {
-        backendRequestUrl.searchParams.set("limit", limit);
-    }
-
-    const response = await fetch(backendRequestUrl.toString(), {
+    return proxyBackendJsonRoute(proxyClient.value, path, {
         method: "GET",
-        headers: {
-            ...authHeaders,
-        },
-    });
-
-    const text = await response.text();
-    const body = text
-        ? (() => {
-              try {
-                  return JSON.parse(text);
-              } catch {
-                  return { message: text };
-              }
-          })()
-        : {};
-
-    return NextResponse.json(body, { status: response.status });
+    }, {});
 };
 
 const isProjectionUserAllowed = (userId: string) => {

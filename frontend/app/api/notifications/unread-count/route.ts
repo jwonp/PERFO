@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { getUnreadNotificationCount } from "@/lib/notifications/notification-service";
-import { getRequiredSessionUser } from "@/lib/server/session";
+import { withRequiredSessionRoute, withRouteErrorHandling } from "@/lib/server/session-route";
 
-export const GET = async () => {
-    try {
-        const user = await getRequiredSessionUser();
-        if (!user) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
-        const count = await getUnreadNotificationCount(user.id);
-        return NextResponse.json({ count });
-    } catch (error) {
+export const GET = async () => withRouteErrorHandling(
+    async () => withRequiredSessionRoute(
+        () => NextResponse.json({ message: "Unauthorized" }, { status: 401 }),
+        async (user) => {
+            const count = await getUnreadNotificationCount(user.id);
+            return NextResponse.json({ count });
+        },
+    ),
+    (error) => {
         console.error("Unread notification count failed:", error);
         return NextResponse.json({ message: "Unread notification count failed" }, { status: 500 });
-    }
-};
+    },
+);
