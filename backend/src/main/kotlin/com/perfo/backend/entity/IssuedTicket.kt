@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
@@ -16,7 +17,10 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 @Entity
-@Table(name = "issued_tickets")
+@Table(
+    name = "issued_tickets",
+    indexes = [Index(name = "idx_issued_tickets_owner_user_id", columnList = "owner_user_id")],
+)
 class IssuedTicket(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -34,6 +34,15 @@ class TicketVerificationService(
         if (ticket.userId != authenticatedUserId) {
             throw AccessDeniedException("Reservation owner mismatch")
         }
+        val event = eventRepository.findById(ticket.eventId)
+            .orElseThrow { IllegalArgumentException("Event not found") }
+        when (resolveUsageStatus(ticket.usageStatus, event)) {
+            TicketUsageStatus.USED -> throw ReservationQrTokenUnavailableException.alreadyUsed()
+            TicketUsageStatus.BEFORE_SERVING,
+            TicketUsageStatus.WAITING -> throw ReservationQrTokenUnavailableException.notOpen()
+            TicketUsageStatus.EXPIRED -> throw ReservationQrTokenUnavailableException.expired()
+            TicketUsageStatus.NOW_SERVING -> Unit
+        }
 
         val (token, expiresAt) = qrSignatureService.issueToken(
             ticketId = ticket.id ?: throw IllegalArgumentException("Reservation not found"),

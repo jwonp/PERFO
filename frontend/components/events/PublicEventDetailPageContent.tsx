@@ -50,6 +50,11 @@ const PublicEventDetailPageContent = ({
 }: PublicEventDetailPageContentProps) => {
   const t = useTranslations();
   const locale = useLocale();
+  const formatDateTime = (value: string) =>
+    new Intl.DateTimeFormat(locale, {
+      dateStyle: "long",
+      timeStyle: "short",
+    }).format(new Date(value));
 
   return (
     <PageShell className="ds-shell">
@@ -61,6 +66,8 @@ const PublicEventDetailPageContent = ({
             badgeVariant={saleStatusBadgeVariant(event.saleStatus)}
             remainingLabel={t("events.remainingLabel")}
             linkOnlyLabel={t("events.discoveryLinkOnly")}
+            showLinkOnlyChip={false}
+            showValidDateRow={false}
             footer={
               <PublicBookingButton
                 callbackPath={`/${locale}/events/${event.id}`}
@@ -68,25 +75,22 @@ const PublicEventDetailPageContent = ({
                 idleLabel={t("events.bookNow")}
                 pendingLabel={t("events.booking")}
                 errorLabel={t("events.bookingFailed")}
+                resultMessages={{
+                  DUPLICATE_PURCHASE: t("events.bookingDuplicatePurchase"),
+                  ALREADY_USED: t("events.bookingAlreadyUsed"),
+                  NOT_OPEN: t("events.bookingNotOpen"),
+                  SALE_CLOSED: t("events.bookingSaleClosed"),
+                }}
               />
             }
           >
             <div className="grid grid-cols-1 gap-2 text-sm text-[var(--text)]">
-              <p>
-                {t("events.detailMetaOpen")}: {event.saleOpenAt}
-              </p>
-              <p>
-                {t("events.detailMetaClose")}: {event.saleCloseAt}
-              </p>
-              <p>
-                {t("events.detailMetaLimit")}: {event.maxPerUser}
-              </p>
-              <p>
-                {t("events.detailMetaDiscovery")}:{" "}
-                {event.discoveryMode === "LISTED"
-                  ? t("events.discoveryListed")
-                  : t("events.discoveryLinkOnly")}
-              </p>
+              <p>{t("events.detailSaleOpenSentence", { date: formatDateTime(event.saleOpenAt) })}</p>
+              <p>{t("events.detailSaleCloseSentence", { date: formatDateTime(event.saleCloseAt) })}</p>
+              <p>{t("events.detailPurchaseLimitSentence", { count: event.maxPerUser })}</p>
+              {event.discoveryMode === "LINK_ONLY" ? (
+                <p>{t("events.detailLinkOnlySentence")}</p>
+              ) : null}
             </div>
           </BookableTicketCard>
         </PageSection>

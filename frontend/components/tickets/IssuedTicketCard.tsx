@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Copy, ImageOff, Pencil, ScanLine, Share2, Sparkles } from "lucide-react";
 
@@ -25,6 +26,7 @@ const IssuedTicketCard = ({
     canShareBookingUrl,
     onCopyBookingUrl,
     onShareBookingUrl,
+    isLCP,
 }: IssuedTicketCardProps) => {
     const progressPct = Math.round((ticket.issuedCount / ticket.totalCount) * 100);
     const [imageUnavailable, setImageUnavailable] = useState(false);
@@ -66,12 +68,15 @@ const IssuedTicketCard = ({
             media={
                 <div className="relative h-[178px] w-full overflow-hidden bg-[linear-gradient(135deg,rgba(16,55,131,0.18),rgba(155,175,217,0.12)_55%,rgba(255,255,255,0.82))]">
                     {ticket.imageUrl && !imageUnavailable ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                             src={ticket.imageUrl}
                             alt={ticket.name}
-                            className="h-full w-full object-cover"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 420px"
+                            className="object-cover"
                             onError={() => setImageUnavailable(true)}
+                            fetchPriority={isLCP ? "high" : undefined}
+                            loading={isLCP ? "eager" : "lazy"}
                         />
                     ) : (
                         <div className="flex h-full w-full items-end justify-between bg-[linear-gradient(180deg,rgba(16,55,131,0.04),rgba(16,55,131,0.16))] p-5">

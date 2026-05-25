@@ -7,6 +7,8 @@ import com.perfo.backend.service.TicketTransitionService
 import com.perfo.backend.service.TicketVerificationService
 import com.perfo.backend.service.ReservationService
 import com.perfo.backend.service.ProfileImageContent
+import com.perfo.backend.service.PublicTicketImageUnavailableException
+import com.perfo.backend.service.ReservationQrTokenUnavailableException
 import jakarta.validation.Valid
 import org.springframework.http.CacheControl
 import org.springframework.http.HttpHeaders
@@ -91,6 +93,18 @@ class TicketController(
         return ResponseEntity.ok()
             .cacheControl(CacheControl.maxAge(0, TimeUnit.SECONDS).mustRevalidate().cachePrivate())
             .header(HttpHeaders.PRAGMA, "no-cache")
+            .contentType(MediaType.parseMediaType(image.contentType))
+            .body(image.bytes)
+    }
+
+    @GetMapping("/public/tickets/{ticketId}/image")
+    fun getPublicTicketImage(
+        @PathVariable ticketId: Long,
+    ): ResponseEntity<ByteArray> {
+        val image: ProfileImageContent = ticketService.getPublicTicketImage(ticketId)
+
+        return ResponseEntity.ok()
+            .cacheControl(CacheControl.maxAge(1, TimeUnit.MINUTES).cachePublic())
             .contentType(MediaType.parseMediaType(image.contentType))
             .body(image.bytes)
     }
@@ -182,6 +196,23 @@ class TicketController(
     @ExceptionHandler(IllegalStateException::class)
     fun handleIllegalState(exception: IllegalStateException): Map<String, String> {
         return mapOf("message" to (exception.message ?: "Storage unavailable"))
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(PublicTicketImageUnavailableException::class)
+    fun handlePublicTicketImageUnavailable(exception: PublicTicketImageUnavailableException): Map<String, String> {
+        return mapOf("message" to (exception.message ?: "Ticket image not found"))
+    }
+
+    @ExceptionHandler(ReservationQrTokenUnavailableException::class)
+    fun handleQrTokenUnavailable(exception: ReservationQrTokenUnavailableException): ResponseEntity<Map<String, String>> {
+        return ResponseEntity.status(exception.status)
+            .body(
+                mapOf(
+                    "code" to exception.code,
+                    "message" to (exception.message ?: "QR token unavailable"),
+                ),
+            )
     }
 
     private fun resolveAuthenticatedUserId(authentication: Authentication): String {

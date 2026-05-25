@@ -1,4 +1,4 @@
-import type { IssueStatusBadgeMap, TicketForm } from "./my-tickets.types";
+import type { IssueStatusBadgeMap, IssueStatusOption, TicketForm } from "./my-tickets.types";
 
 export const EMPTY_FORM: TicketForm = {
     name: "",
@@ -23,3 +23,10 @@ export const STATUS_BADGE_STYLE: IssueStatusBadgeMap = {
     EXPIRED: "danger",
     VERIFYING: "info",
 };
+
+export const ISSUE_STATUS_OPTIONS: IssueStatusOption[] = [
+    { value: "INACTIVE", labelKey: "myTickets.statusInactive" },
+    { value: "ISSUING", labelKey: "myTickets.statusIssuing" },
+    { value: "VERIFYING", labelKey: "myTickets.statusVerifying" },
+    { value: "EXPIRED", labelKey: "myTickets.statusExpired" },
+];

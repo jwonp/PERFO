@@ -1,45 +1,26 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { usePasswordLoginPage } from "./use-password-login-page.hooks";
 
 const PasswordLoginPage = () => {
-    const t = useTranslations();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const email = searchParams.get("email") || "user@example.com";
-    const callbackUrl = searchParams.get("callbackUrl") || "/reserved";
-    const [password, setPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleSubmit = async () => {
-        setSubmitting(true);
-        setError(null);
-        const result = await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-            callbackUrl,
-        });
-        setSubmitting(false);
-
-        if (result?.error) {
-            setError(result.error);
-            return;
-        }
-
-        router.push(result?.url ?? callbackUrl);
-    };
+    const {
+        t,
+        email,
+        password,
+        showPassword,
+        submitting,
+        error,
+        setPassword,
+        setShowPassword,
+        handleSubmit,
+    } = usePasswordLoginPage();
 
     return (
         <Card className="app-card gap-5 px-6 py-8">
