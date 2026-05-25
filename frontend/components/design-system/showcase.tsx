@@ -264,6 +264,7 @@ const DesignSystemShowcase = () => {
                     validDate={ticket.validDate}
                     imageUrl={ticket.imageUrl}
                     usageStatus={ticket.usageStatus}
+                    statusLabel={ticket.usageStatus}
                     ticketNumber={ticket.ticketNumber}
                     totalCount={ticket.totalCount}
                   />

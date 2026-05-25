@@ -6,6 +6,7 @@ export interface TicketCardProps {
     validDate: string;
     imageUrl?: string;
     usageStatus: TicketUsageStatus;
+    statusLabel: string;
     ticketNumber: number;
     totalCount: number;
     qrActionLabel?: string;
