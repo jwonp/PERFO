@@ -13,12 +13,21 @@ const BottomSheet = ({
   children: React.ReactNode
   className?: string
 }) => {
+  React.useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
   if (!open) return null
 
   return (
     <>
       <div className="fixed inset-0 z-[60] bg-foreground/40" onClick={onClose} />
-      <div className={cn("fixed right-0 bottom-0 left-0 z-[70] max-h-[90vh] overflow-y-auto rounded-t-[28px] border border-border/60 bg-[var(--surface-raised)] shadow-2xl", className)}>
+      <div className={cn("fixed right-0 bottom-0 left-0 z-[70] max-h-[90dvh] overflow-x-hidden overflow-y-auto rounded-t-[28px] border border-border/60 bg-[var(--surface-raised)] shadow-2xl", className)}>
         <div className="flex justify-center pt-3 pb-1">
           <div className="h-1 w-10 rounded-full bg-[var(--text-subtle)]/35" />
         </div>
