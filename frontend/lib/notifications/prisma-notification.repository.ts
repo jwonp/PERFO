@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@/app/generated/prisma/client";
 import type { NotificationRecord, PushSubscriptionRecord, TicketStatusSnapshotRecord } from "@/lib/server/json-store";
 import { buildSnapshotId } from "./notification.func";
 import type {
@@ -107,7 +107,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             const rows = await this.prismaClient.ticketStatusSnapshot.findMany({
                 where: { userId },
             });
-            return rows.map(toSnapshotRecord);
+            return rows.map((row) => toSnapshotRecord({ ...row, scope: row.scope as "reserved" | "issued" }));
         } catch (error) {
             console.warn("Notification snapshot query failed, falling back to local store:", error);
             return this.fallbackRepository.listSnapshotsByUser(userId);
