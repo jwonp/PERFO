@@ -40,14 +40,25 @@ export const resultMeta = (status: string): ResultMeta => {
     };
 };
 
+const RECOVERABLE_ZXING_MESSAGES = [
+    "No MultiFormat Readers were able to detect the code.",
+    "Checksum",
+    "Format",
+];
+
 export const isRecoverableScannerError = (error: unknown): boolean => {
     const name = error instanceof Error
         ? error.name
         : typeof error === "object" && error !== null && "name" in error
             ? String((error as { name?: unknown }).name ?? "")
             : "";
+    const message = error instanceof Error ? error.message : "";
 
-    return name === "NotFoundException" || name === "ChecksumException" || name === "FormatException";
+    // Class names are minified in production builds, so check message content as fallback
+    if (name === "NotFoundException" || name === "ChecksumException" || name === "FormatException") {
+        return true;
+    }
+    return RECOVERABLE_ZXING_MESSAGES.some((m) => message.includes(m));
 };
 
 export const resolveScannerFailureStatus = (error: unknown): ScannerStatus => {
