@@ -41,6 +41,7 @@ class SecurityConfig(
                 auth.requestMatchers(
                     "/api/auth/**",
                     "/api/health",
+                    "/api/public/tickets/**",
                     "/api/events",
                     "/api/events/**",
                     "/swagger-ui/**",

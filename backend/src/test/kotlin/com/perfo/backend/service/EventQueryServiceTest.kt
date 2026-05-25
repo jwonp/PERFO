@@ -49,8 +49,8 @@ class EventQueryServiceTest {
             .willReturn(listOf(event(id = 11L, discoveryMode = TicketDiscoveryMode.LISTED, active = false).apply {
                 issuedTicketId = 101L
             }))
-        given(ticketImageStorageService.buildTicketImageUrl(101L))
-            .willReturn("/api/tickets/101/image")
+        given(ticketImageStorageService.buildPublicTicketImageUrl(101L))
+            .willReturn("/api/public/tickets/101/image")
 
         val result = eventQueryService.listPublicEvents()
 
@@ -58,7 +58,7 @@ class EventQueryServiceTest {
         assertThat(result.single().id).isEqualTo(11L)
         assertThat(result.single().issuedTicketId).isEqualTo(101L)
         assertThat(result.single().saleStatus).isNotEqualTo(EventDto.SaleStatus.INACTIVE)
-        assertThat(result.single().imageUrl).isEqualTo("/api/tickets/101/image")
+        assertThat(result.single().imageUrl).isEqualTo("/api/public/tickets/101/image")
     }
 
     @Test

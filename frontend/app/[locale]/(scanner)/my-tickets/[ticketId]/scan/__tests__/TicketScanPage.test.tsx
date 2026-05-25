@@ -3,11 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import TicketScanPage from '../page'
 
-const decodeFromVideoDeviceMock = vi.fn()
+const decodeFromStreamMock = vi.fn()
+const getUserMediaMock = vi.fn()
 
 vi.mock('@zxing/browser', () => ({
   BrowserMultiFormatReader: class BrowserMultiFormatReader {
-    decodeFromVideoDevice = decodeFromVideoDeviceMock
+    decodeFromStream = decodeFromStreamMock
   },
 }))
 
@@ -43,6 +44,7 @@ vi.mock('next-intl', () => ({
       'myTickets.scanSoundOn': '사운드 켜짐',
       'myTickets.scanSoundOff': '사운드 꺼짐',
       'myTickets.scanResultSuccess': '검표 성공',
+      'myTickets.scanResultAlreadyUsed': '이미 사용된 티켓',
       'myTickets.scanResultInvalid': '유효하지 않은 토큰',
     }
     return m[key] ?? key
@@ -51,7 +53,15 @@ vi.mock('next-intl', () => ({
 
 describe('티켓 검표 스캔 페이지', () => {
   beforeEach(() => {
-    decodeFromVideoDeviceMock.mockImplementation(async (_device: unknown, _video: unknown, callback: (result?: { getText: () => string }, error?: unknown) => void) => {
+    getUserMediaMock.mockResolvedValue({
+      getTracks: () => [{ stop: vi.fn() }],
+    })
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: getUserMediaMock },
+    })
+
+    decodeFromStreamMock.mockImplementation(async (_stream: unknown, _video: unknown, callback: (result?: { getText: () => string }, error?: unknown) => void) => {
       callback({ getText: () => ['opaque', 'token', 'from', 'camera'].join('-') })
       return { stop: vi.fn() }
     })
@@ -64,6 +74,7 @@ describe('티켓 검표 스캔 페이지', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    Reflect.deleteProperty(globalThis.navigator, 'mediaDevices')
     vi.clearAllMocks()
   })
 
@@ -79,10 +90,44 @@ describe('티켓 검표 스캔 페이지', () => {
     render(<TicketScanPage />)
 
     await user.click(screen.getByRole('button', { name: '직접 입력' }))
-    await user.clear(screen.getByPlaceholderText('QR 토큰 입력'))
-    await user.type(screen.getByPlaceholderText('QR 토큰 입력'), ['qr', 'token', 'test', '42'].join('-'))
+    const input = screen.getByPlaceholderText('QR 토큰 입력')
+    await user.clear(input)
+    await user.type(input, ['qr', 'token', 'test', '42'].join('-'))
     await user.click(screen.getByRole('button', { name: '검표 요청' }))
 
     await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/tickets/10/validations', expect.objectContaining({ method: 'POST' })))
+    await waitFor(() => expect(input).toHaveValue(''))
+    await waitFor(() => expect(input).toHaveFocus())
+  })
+
+  it('서버 영문 message 대신 번역된 결과 라벨을 우선 표시한다', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ result: 'SUCCESS', message: 'Ticket verified', ticketNumber: 121, usedAt: '2026-04-28T12:00:10Z' }),
+    })) as unknown as typeof fetch)
+
+    render(<TicketScanPage />)
+
+    expect((await screen.findAllByText('검표 성공')).length).toBeGreaterThan(0)
+    expect(screen.queryByText('Ticket verified')).not.toBeInTheDocument()
+  })
+
+  it('수동 입력 실패 후에도 입력값을 비우고 포커스를 유지한다', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ result: 'ALREADY_USED', message: 'Ticket already used', ticketNumber: 121 }),
+    })) as unknown as typeof fetch)
+
+    render(<TicketScanPage />)
+
+    await user.click(screen.getByRole('button', { name: '직접 입력' }))
+    const input = screen.getByPlaceholderText('QR 토큰 입력')
+    await user.type(input, ['qr', 'token', 'used', '42'].join('-'))
+    await user.click(screen.getByRole('button', { name: '검표 요청' }))
+
+    expect((await screen.findAllByText('이미 사용된 티켓')).length).toBeGreaterThan(0)
+    await waitFor(() => expect(input).toHaveValue(''))
+    await waitFor(() => expect(input).toHaveFocus())
   })
 })

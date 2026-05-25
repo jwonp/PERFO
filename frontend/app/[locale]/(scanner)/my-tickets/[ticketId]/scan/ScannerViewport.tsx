@@ -72,16 +72,16 @@ const ScannerViewport = ({
             <div className="pointer-events-none absolute inset-x-3 bottom-3 z-30">
                 <div
                     className={cn(
-                        "flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur",
+                        "flex items-center gap-2 rounded-2xl border bg-[var(--surface-raised)] px-3 py-2 text-sm font-semibold text-[var(--text)] shadow-lg backdrop-blur",
                         bannerResult.result === "SUCCESS"
-                            ? "border-emerald-200/30 bg-emerald-500/78"
-                            : "border-rose-200/30 bg-rose-500/78"
+                            ? "border-[color:color-mix(in_srgb,var(--success)_22%,var(--border))]"
+                            : "border-[color:color-mix(in_srgb,var(--danger)_22%,var(--border))]"
                     )}
                 >
                     {bannerResult.result === "SUCCESS" ? (
-                        <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--success)]" />
                     ) : (
-                        <XCircle className="h-4 w-4 shrink-0" />
+                        <XCircle className="h-4 w-4 shrink-0 text-[var(--danger)]" />
                     )}
                     <span className="truncate">{bannerLabel}</span>
                 </div>

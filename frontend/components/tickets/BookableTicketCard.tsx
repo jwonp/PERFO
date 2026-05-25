@@ -24,6 +24,8 @@ type BookableTicketCardProps = {
     badgeVariant: TicketBadgeVariant;
     remainingLabel: string;
     linkOnlyLabel?: string;
+    showLinkOnlyChip?: boolean;
+    showValidDateRow?: boolean;
     footer?: ReactNode;
     children?: ReactNode;
     className?: string;
@@ -35,6 +37,8 @@ const BookableTicketCard = ({
     badgeVariant,
     remainingLabel,
     linkOnlyLabel,
+    showLinkOnlyChip = true,
+    showValidDateRow = true,
     footer,
     children,
     className,
@@ -59,7 +63,7 @@ const BookableTicketCard = ({
                     {ticket.detailAddress ? (
                         <span className="truncate text-[11px] text-[var(--text-muted)]">{ticket.detailAddress}</span>
                     ) : null}
-                    {ticket.discoveryMode === "LINK_ONLY" && linkOnlyLabel ? (
+                    {showLinkOnlyChip && ticket.discoveryMode === "LINK_ONLY" && linkOnlyLabel ? (
                         <span className="mt-1 inline-flex w-fit rounded-full bg-[var(--surface-muted)] px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[var(--text-muted)]">
                             {linkOnlyLabel}
                         </span>
@@ -67,6 +71,7 @@ const BookableTicketCard = ({
                 </span>
             }
             validDate={ticket.validDate}
+            showValidDateRow={showValidDateRow}
             footer={footer}
             className={className}
             media={

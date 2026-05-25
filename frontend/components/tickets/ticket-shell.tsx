@@ -20,6 +20,7 @@ const TicketShell = ({
     title,
     venue,
     validDate,
+    showValidDateRow = true,
     topActions,
     footer,
     media,
@@ -46,10 +47,12 @@ const TicketShell = ({
                         <TicketPinIcon />
                         {venue}
                     </p>
-                    <p className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
-                        <TicketCalendarIcon />
-                        {validDate}
-                    </p>
+                    {showValidDateRow ? (
+                        <p className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                            <TicketCalendarIcon />
+                            {validDate}
+                        </p>
+                    ) : null}
                 </div>
 
                 {children}

@@ -67,14 +67,14 @@ const TicketScanPage = () => {
 
     return (
         <PageShell
-            className="mx-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-hidden bg-background px-3 pt-[max(env(safe-area-inset-top),0.75rem)] pb-[max(env(safe-area-inset-bottom),0.75rem)]"
+            className="mx-auto flex h-dvh w-full max-w-107.5 flex-col overflow-hidden bg-background px-3 pt-[max(env(safe-area-inset-top),0.75rem)] pb-[max(env(safe-area-inset-bottom),0.75rem)]"
             onPointerDownCapture={() => {
                 void primeAudio();
             }}
         >
             <header className="flex items-center justify-between gap-3 px-1 pb-2">
                 <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--text-subtle)]">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-(--text-subtle)">
                         {t("myTickets.scan")}
                     </p>
                     <h1 className="truncate text-base font-extrabold text-primary">
@@ -86,7 +86,7 @@ const TicketScanPage = () => {
                     variant="outline"
                     size="icon-sm"
                     aria-label={soundEnabled ? t("myTickets.scanSoundOn") : t("myTickets.scanSoundOff")}
-                    className="rounded-full border-border bg-[var(--surface-raised)]"
+                    className="rounded-full border-border bg-(--surface-raised)"
                     onClick={() => void toggleSoundEnabled()}
                 >
                     {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}

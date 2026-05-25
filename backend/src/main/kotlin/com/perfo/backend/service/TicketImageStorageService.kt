@@ -71,6 +71,10 @@ class TicketImageStorageService(
         return "/api/tickets/$ticketId/image"
     }
 
+    fun buildPublicTicketImageUrl(ticketId: Long): String {
+        return "/api/public/tickets/$ticketId/image"
+    }
+
     private fun ensureBucketExists() {
         if (bucketEnsured) {
             return
