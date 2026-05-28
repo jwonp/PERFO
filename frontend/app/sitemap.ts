@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+
+export const dynamic = "force-dynamic";
 import { getPublicEvents } from "@/lib/events/public-events";
 import {
   buildLocaleAlternates,
