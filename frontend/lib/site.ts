@@ -9,7 +9,10 @@ export type AppLocale = (typeof supportedLocales)[number];
 const fallbackSiteUrl = "http://localhost:3000";
 
 export const getSiteUrl = () => {
-  const configuredUrl = process.env.NEXTAUTH_URL?.trim() || fallbackSiteUrl;
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.NEXTAUTH_URL?.trim() ||
+    fallbackSiteUrl;
 
   try {
     return new URL(configuredUrl);
