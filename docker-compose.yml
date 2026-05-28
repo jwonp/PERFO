@@ -88,6 +88,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -123,6 +124,16 @@ services:
       MAIL_REPLY_TO: ${MAIL_REPLY_TO}
       RESEND_API_URL: ${RESEND_API_URL:-https://api.resend.com}
       RESEND_API_KEY: ${RESEND_API_KEY}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:${BACKEND_PORT}/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     profiles:
       - full
 
@@ -229,6 +240,7 @@ services:
       target: prod
       args:
         NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+    restart: unless-stopped
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
@@ -259,6 +271,16 @@ services:
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - REDIS_URL=${REDIS_URL}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - http://127.0.0.1:${FRONTEND_PORT}/api/health >/dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     profiles:
       - full
 
