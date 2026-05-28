@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Bell, ChevronRight, Headphones, Moon, Pencil, Shield } from "lucide-react";
+import { ArrowLeft, Bell, ChevronRight, Gauge, Headphones, Moon, Pencil, Shield } from "lucide-react";
 import PageHeader from "@/components/layout/PageHeader";
 import PageSection from "@/components/layout/PageSection";
 import PageShell from "@/components/layout/PageShell";
@@ -18,11 +18,13 @@ type ProfileScreenProps = {
     displayName: string;
     userId: string;
     darkMode: boolean;
+    isAdmin: boolean;
     sheetOpen: boolean;
     feedbackMessage: string | null;
     onOpenSheet: () => void;
     onCloseSheet: () => void;
     onToggleTheme: () => void;
+    onOpenAdminDashboard: () => void;
     onLogout: () => void;
     onSaveProfile: (payload: {
         displayName: string;
@@ -38,11 +40,13 @@ export const ProfileScreen = ({
     displayName,
     userId,
     darkMode,
+    isAdmin,
     sheetOpen,
     feedbackMessage,
     onOpenSheet,
     onCloseSheet,
     onToggleTheme,
+    onOpenAdminDashboard,
     onLogout,
     onSaveProfile,
     onUploadProfileImage,
@@ -137,6 +141,20 @@ export const ProfileScreen = ({
                 <PageSection className="space-y-4">
                     <h3 className="px-2 text-sm font-semibold text-[var(--text-muted)]">{t("support")}</h3>
                     <div className="app-card overflow-hidden">
+                        {isAdmin ? (
+                            <button
+                                type="button"
+                                onClick={onOpenAdminDashboard}
+                                className="flex h-16 w-full items-center justify-between border-b border-border px-5 text-left"
+                            >
+                                <span className="flex items-center gap-4 text-base font-medium text-[var(--text)]">
+                                    <Gauge className="h-5 w-5 text-primary" />
+                                    {t("adminDashboard")}
+                                </span>
+                                <ChevronRight className="h-5 w-5 text-[var(--text-muted)]" />
+                            </button>
+                        ) : null}
+
                         <button className="flex h-16 w-full items-center justify-between border-b border-border px-5 text-left">
                             <span className="flex items-center gap-4 text-base font-medium text-[var(--text)]">
                                 <Headphones className="h-5 w-5 text-[var(--text-subtle)]" />
