@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.perfo'
-version = '0.2.0-rc.25'
+version = '0.2.0-rc.26'
 
 springBoot {
     mainClass = 'com.perfo.backend.BackendApplicationKt'
