@@ -83,6 +83,23 @@ const toSnapshotRecord = (snapshot: {
     updatedAt: snapshot.updatedAt.toISOString(),
 });
 
+const isMissingNotificationTableError = (error: unknown): boolean => {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: unknown }).code === "P2021"
+    );
+};
+
+const warnFallback = (message: string, error: unknown) => {
+    if (isMissingNotificationTableError(error)) {
+        return;
+    }
+
+    console.warn(message, error);
+};
+
 export class PrismaNotificationRepository implements NotificationRepository {
     constructor(
         private readonly prismaClient: PrismaClient,
@@ -97,7 +114,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return rows.map(toNotificationRecord);
         } catch (error) {
-            console.warn("Notification list query failed, falling back to local store:", error);
+            warnFallback("Notification list query failed, falling back to local store:", error);
             return this.fallbackRepository.listNotificationsByUser(userId);
         }
     }
@@ -109,7 +126,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return rows.map((row) => toSnapshotRecord({ ...row, scope: row.scope as "reserved" | "issued" }));
         } catch (error) {
-            console.warn("Notification snapshot query failed, falling back to local store:", error);
+            warnFallback("Notification snapshot query failed, falling back to local store:", error);
             return this.fallbackRepository.listSnapshotsByUser(userId);
         }
     }
@@ -123,7 +140,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
                 },
             });
         } catch (error) {
-            console.warn("Notification count query failed, falling back to local store:", error);
+            warnFallback("Notification count query failed, falling back to local store:", error);
             return this.fallbackRepository.countUnreadNotifications(userId);
         }
     }
@@ -150,7 +167,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
 
             return toNotificationRecord(updated);
         } catch (error) {
-            console.warn("Notification read update failed, falling back to local store:", error);
+            warnFallback("Notification read update failed, falling back to local store:", error);
             return this.fallbackRepository.markNotificationRead(userId, notificationId);
         }
     }
@@ -163,7 +180,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return result.count;
         } catch (error) {
-            console.warn("Notification bulk read update failed, falling back to local store:", error);
+            warnFallback("Notification bulk read update failed, falling back to local store:", error);
             return this.fallbackRepository.markAllNotificationsRead(userId);
         }
     }
@@ -190,7 +207,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return toPushSubscriptionRecord(subscription);
         } catch (error) {
-            console.warn("Push subscription upsert failed, falling back to local store:", error);
+            warnFallback("Push subscription upsert failed, falling back to local store:", error);
             return this.fallbackRepository.savePushSubscription(input);
         }
     }
@@ -203,7 +220,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return result.count > 0;
         } catch (error) {
-            console.warn("Push subscription disable failed, falling back to local store:", error);
+            warnFallback("Push subscription disable failed, falling back to local store:", error);
             return this.fallbackRepository.disablePushSubscription(userId, endpoint);
         }
     }
@@ -216,7 +233,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             });
             return rows.map(toPushSubscriptionRecord);
         } catch (error) {
-            console.warn("Push subscription query failed, falling back to local store:", error);
+            warnFallback("Push subscription query failed, falling back to local store:", error);
             return this.fallbackRepository.listActiveSubscriptions(userId);
         }
     }
@@ -233,7 +250,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
                 },
             });
         } catch (error) {
-            console.warn("Notification delivery save failed, falling back to local store:", error);
+            warnFallback("Notification delivery save failed, falling back to local store:", error);
             await this.fallbackRepository.recordDelivery(input);
         }
     }
@@ -248,7 +265,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
                 },
             });
         } catch (error) {
-            console.warn("Push subscription failure mark failed, falling back to local store:", error);
+            warnFallback("Push subscription failure mark failed, falling back to local store:", error);
             await this.fallbackRepository.markSubscriptionFailed(endpoint);
         }
     }
@@ -278,7 +295,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
 
             return toNotificationRecord(created);
         } catch (error) {
-            console.warn("Notification create failed, falling back to local store:", error);
+            warnFallback("Notification create failed, falling back to local store:", error);
             return this.fallbackRepository.createNotificationIfAbsent(input);
         }
     }
@@ -306,7 +323,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
                 },
             });
         } catch (error) {
-            console.warn("Ticket status snapshot upsert failed, falling back to local store:", error);
+            warnFallback("Ticket status snapshot upsert failed, falling back to local store:", error);
             await this.fallbackRepository.upsertSnapshot(input);
         }
     }
@@ -318,7 +335,7 @@ export class PrismaNotificationRepository implements NotificationRepository {
             const snapshot = await this.prismaClient.ticketStatusSnapshot.findUnique({ where: { id } });
             return snapshot?.statusValue ?? null;
         } catch (error) {
-            console.warn("Ticket status snapshot lookup failed, falling back to local store:", error);
+            warnFallback("Ticket status snapshot lookup failed, falling back to local store:", error);
             return this.fallbackRepository.getSnapshotStatus(userId, scope as "reserved" | "issued", ticketId, statusKey as "ticketingStatus" | "usageStatus" | "issueStatus");
         }
     }

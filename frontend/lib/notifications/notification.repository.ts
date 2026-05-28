@@ -67,7 +67,7 @@ export const getNotificationRepository = (): NotificationRepository => {
     }
 
     const fallbackRepository = new JsonNotificationRepository();
-    cachedRepository = prisma
+    cachedRepository = process.env.NOTIFICATION_STORE === "prisma" && prisma
         ? new PrismaNotificationRepository(prisma, fallbackRepository)
         : fallbackRepository;
 
