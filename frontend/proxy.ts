@@ -7,7 +7,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 
 // 로그인 후 접근 불가 경로 (로그인 상태면 /reserved 로 리다이렉트)
 const guestOnlyPaths = ["/", "/login", "/signup", "/reset-password", "/verify"];
-const publicPaths = ["/events", "/unauthorized"];
+const publicPaths = ["/events", "/posts", "/unauthorized"];
 
 const isGuestOnlyPath = (pathname: string): boolean => {
     // locale prefix 제거 (e.g., /ko/login -> /login)
