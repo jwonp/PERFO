@@ -7,6 +7,8 @@ import { signOut } from 'next-auth/react'
 const setPreference = vi.fn()
 const update = vi.fn()
 const fetchMock = vi.fn()
+const push = vi.fn()
+let sessionUserRole = 'USER'
 
 vi.stubGlobal('fetch', fetchMock)
 
@@ -18,6 +20,7 @@ vi.mock('next-intl', () => ({
       darkMode: '다크 모드 설정',
       pushNotification: '푸시 알림 설정',
       support: 'SUPPORT',
+      adminDashboard: '어드민 대시보드',
       customerSupport: '고객 문의',
       privacyPolicy: 'Privacy Policy',
       logout: '로그아웃',
@@ -51,6 +54,7 @@ vi.mock('next-auth/react', () => ({
         name: '홍길동',
         email: 'hong@example.com',
         image: null,
+        role: sessionUserRole,
         profileImageType: 'PRESET',
         profileImageValue: 'avatar-blue',
       },
@@ -58,6 +62,10 @@ vi.mock('next-auth/react', () => ({
     update,
   }),
   signOut: vi.fn(),
+}))
+
+vi.mock('@/i18n/navigation', () => ({
+  useRouter: () => ({ push }),
 }))
 
 vi.mock('@/components/push/PushNotification', () => ({
@@ -80,6 +88,7 @@ vi.mock('@/components/providers/ThemeProvider', () => ({
 describe('ProfilePage logout', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    sessionUserRole = 'USER'
     pushState.isSupported = true
     pushState.isSubscribed = false
     pushState.isLoading = false
@@ -110,6 +119,25 @@ describe('ProfilePage logout', () => {
     expect(screen.getByRole('heading', { name: '홍길동' })).toBeInTheDocument()
     expect(screen.getByText('ID: hong')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '로그아웃' })).toBeInTheDocument()
+  })
+
+  it('ADMIN role이면 어드민 대시보드 버튼을 표시하고 /admin으로 이동한다', async () => {
+    const user = userEvent.setup()
+    sessionUserRole = 'ADMIN'
+
+    render(<ProfilePage />)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+
+    await user.click(screen.getByRole('button', { name: '어드민 대시보드' }))
+
+    expect(push).toHaveBeenCalledWith('/admin')
+  })
+
+  it('USER role이면 어드민 대시보드 버튼을 숨긴다', async () => {
+    render(<ProfilePage />)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+
+    expect(screen.queryByRole('button', { name: '어드민 대시보드' })).not.toBeInTheDocument()
   })
 
   it('logs out to the login page', async () => {
