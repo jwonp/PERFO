@@ -48,6 +48,8 @@ class SecurityConfig(
                     "/v3/api-docs/**"
                 )
                     .permitAll()
+                    .requestMatchers("/api/admin", "/api/admin/**")
+                    .hasRole("ADMIN")
                     .requestMatchers("/api/tickets/**")
                     .authenticated()
                     .requestMatchers("/api/ticketing/**")
