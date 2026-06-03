@@ -37,13 +37,13 @@ const saleStatusBadgeVariant = (
 ): TicketBadgeVariant => {
   switch (status) {
     case "OPEN":
-      return "success";
+      return "default";
     case "UPCOMING":
-      return "warning";
+      return "secondary";
     case "SOLD_OUT":
-      return "danger";
+      return "destructive";
     default:
-      return "neutral";
+      return "secondary";
   }
 };
 

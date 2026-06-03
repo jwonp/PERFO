@@ -1,6 +1,6 @@
 import type * as React from "react";
 
-export type TicketBadgeVariant = "info" | "warning" | "success" | "neutral" | "danger";
+export type TicketBadgeVariant = "default" | "secondary" | "outline" | "destructive";
 
 export interface TicketShellProps {
     badgeLabel: React.ReactNode;

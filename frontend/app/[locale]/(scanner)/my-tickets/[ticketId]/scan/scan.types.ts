@@ -18,7 +18,7 @@ export interface RecentScanRecord {
 }
 
 export interface ResultMeta {
-    badgeVariant: "neutral" | "info" | "success" | "warning" | "danger";
+    badgeVariant: "default" | "secondary" | "outline" | "destructive";
     icon: LucideIcon;
     panelClassName: string;
     bodyClassName: string;

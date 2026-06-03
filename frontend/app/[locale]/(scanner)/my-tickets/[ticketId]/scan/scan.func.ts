@@ -25,7 +25,7 @@ export const resultLabelKey = (status: string): string | null => {
 export const resultMeta = (status: string): ResultMeta => {
     if (status === "SUCCESS") {
         return {
-            badgeVariant: "success",
+            badgeVariant: "default",
             icon: CheckCircle2,
             panelClassName: "border-border bg-[var(--surface-raised)]",
             bodyClassName: "text-[var(--success)]",
@@ -33,7 +33,7 @@ export const resultMeta = (status: string): ResultMeta => {
     }
 
     return {
-        badgeVariant: "danger",
+        badgeVariant: "destructive",
         icon: XCircle,
         panelClassName: "border-border bg-[var(--surface-raised)]",
         bodyClassName: "text-[var(--danger)]",

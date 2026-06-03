@@ -192,6 +192,8 @@ services:
       target: dev
       args:
         NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      secrets:
+        - GITHUB_TOKEN
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     volumes:
@@ -200,10 +202,11 @@ services:
     command: >
       sh -c "pnpm config set confirmModulesPurge false &&
       pnpm install --no-frozen-lockfile &&
-      pnpm dev --hostname 0.0.0.0 --port ${FRONTEND_PORT}"
+      pnpm dev --hostname 0.0.0.0 --port ${FRONTEND_PORT} --no-turbopack"
     environment:
       - CI=true
       - PNPM_CONFIG_CONFIRM_MODULES_PURGE=false
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
       - PORT=${FRONTEND_PORT}
       - WATCHPACK_POLLING=true
       - NEXTAUTH_URL=${NEXTAUTH_URL}
@@ -240,6 +243,8 @@ services:
       target: prod
       args:
         NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      secrets:
+        - GITHUB_TOKEN
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
@@ -288,3 +293,7 @@ volumes:
   redis_data:
   postgres_data:
   minio_data:
+
+secrets:
+  GITHUB_TOKEN:
+    environment: GITHUB_TOKEN

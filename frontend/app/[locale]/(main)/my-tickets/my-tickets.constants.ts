@@ -18,10 +18,10 @@ export const EMPTY_FORM: TicketForm = {
 };
 
 export const STATUS_BADGE_STYLE: IssueStatusBadgeMap = {
-    ISSUING: "success",
-    INACTIVE: "neutral",
-    EXPIRED: "danger",
-    VERIFYING: "info",
+    ISSUING: "default",
+    INACTIVE: "secondary",
+    EXPIRED: "destructive",
+    VERIFYING: "outline",
 };
 
 export const ISSUE_STATUS_OPTIONS: IssueStatusOption[] = [

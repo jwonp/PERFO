@@ -7,22 +7,22 @@ export const TICKET_STATUS_META: Record<
 > = {
     BEFORE_USE: {
         label: "BEFORE SERVING",
-        badge: "info",
+        badge: "outline",
         dateSuffix: "오픈",
     },
     WAITING: {
         label: "WAITING",
-        badge: "warning",
+        badge: "secondary",
         dateSuffix: "오픈",
     },
     MY_TURN: {
         label: "NOW SERVING",
-        badge: "success",
+        badge: "default",
         dateSuffix: "까지 유효",
     },
     USED: {
         label: "EXPIRED",
-        badge: "neutral",
+        badge: "secondary",
         dateSuffix: "만료",
     },
 };
