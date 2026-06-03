@@ -1,6 +1,7 @@
 package com.perfo.backend.dto
 
 import com.perfo.backend.entity.TicketDiscoveryMode
+import com.perfo.backend.entity.BookingMode
 
 object EventDto {
     enum class SaleStatus {
@@ -30,8 +31,23 @@ object EventDto {
         val allowDuplicate: Boolean,
         val active: Boolean,
         val saleStatus: SaleStatus,
+        val bookingMode: BookingMode = BookingMode.SIMPLE,
+        val items: List<EventItemResponse> = emptyList(),
         val discoveryMode: TicketDiscoveryMode,
         val publicBookingPath: String,
         val publicBookingUrl: String? = null,
+    )
+
+    data class EventItemResponse(
+        val id: Long,
+        val name: String,
+        val description: String?,
+        val imageUrl: String?,
+        val price: Int?,
+        val totalQuantity: Int,
+        val remainingQuantity: Int,
+        val maxPerUser: Int,
+        val active: Boolean,
+        val sortOrder: Int,
     )
 }

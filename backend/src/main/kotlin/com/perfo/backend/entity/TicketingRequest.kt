@@ -22,6 +22,10 @@ enum class TicketPurchaseResult {
     MAX_PER_USER_EXCEEDED,
     EVENT_INACTIVE,
     EVENT_NOT_FOUND,
+    INVALID_BOOKING_MODE,
+    INSUFFICIENT_ITEM_INVENTORY,
+    ITEM_INACTIVE,
+    ITEM_MAX_PER_USER_EXCEEDED,
 }
 
 @Entity
@@ -44,6 +48,13 @@ class TicketingRequest(
     var quantity: Int = 1,
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "booking_mode", nullable = false, length = 32)
+    var bookingMode: BookingMode = BookingMode.SIMPLE,
+
+    @Column(name = "items_snapshot", columnDefinition = "text")
+    var itemsSnapshot: String? = null,
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var result: TicketPurchaseResult = TicketPurchaseResult.PROCESSING,
 
@@ -55,6 +66,9 @@ class TicketingRequest(
 
     @Column(name = "remaining_quantity")
     var remainingQuantity: Int? = null,
+
+    @Column(name = "shortages_snapshot", columnDefinition = "text")
+    var shortagesSnapshot: String? = null,
 
     @Column(length = 255)
     var message: String? = null,

@@ -16,6 +16,11 @@ enum class TicketDiscoveryMode {
     LINK_ONLY,
 }
 
+enum class BookingMode {
+    SIMPLE,
+    ITEMIZED,
+}
+
 @Entity
 @Table(name = "events")
 class Event(
@@ -60,6 +65,10 @@ class Event(
     var active: Boolean = true,
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "booking_mode", nullable = false, length = 32)
+    var bookingMode: BookingMode = BookingMode.SIMPLE,
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "discovery_mode", nullable = false)
     var discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
 
@@ -81,6 +90,7 @@ class Event(
             allowDuplicate = allowDuplicate,
             nextTicketNumber = nextTicketNumber,
             active = active,
+            bookingMode = bookingMode,
             discoveryMode = discoveryMode,
             issuedTicketId = issuedTicketId,
         )

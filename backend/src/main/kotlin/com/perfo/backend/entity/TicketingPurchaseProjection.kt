@@ -51,6 +51,13 @@ class TicketingPurchaseProjection(
     @Column(name = "remaining_quantity")
     var remainingQuantity: Int? = null,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "booking_mode", nullable = false, length = 32)
+    var bookingMode: BookingMode = BookingMode.SIMPLE,
+
+    @Column(name = "order_items", columnDefinition = "text")
+    var orderItems: String? = null,
+
     @Column(length = 255)
     var message: String? = null,
 
