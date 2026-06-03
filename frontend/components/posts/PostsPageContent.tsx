@@ -9,7 +9,7 @@ import PageFilterBar from "@/components/layout/PageFilterBar"
 import PageHeader from "@/components/layout/PageHeader"
 import PageSection from "@/components/layout/PageSection"
 import PageShell from "@/components/layout/PageShell"
-import { Button } from "@/components/ui/button"
+import { Button } from "@jwonp/design-system"
 import {
   Command,
   CommandEmpty,
@@ -17,9 +17,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Toggle } from "@/components/ui/toggle"
+} from "@jwonp/design-system"
+import { Popover, PopoverContent, PopoverTrigger } from "@jwonp/design-system"
+import { Toggle } from "@jwonp/design-system"
 import { cn } from "@/lib/lib/utils"
 import {
   buildTagsQueryString,
@@ -127,10 +127,11 @@ const PostsPageContent = ({ posts, tags }: PostsPageContentProps) => {
                 {quickTags.map((tag) => (
                   <Toggle
                     key={tag.slug}
-                    variant="pill"
-                    checked={selectedTags.includes(tag.slug)}
+                    variant="outline"
+                    className="rounded-full"
+                    pressed={selectedTags.includes(tag.slug)}
+                    onPressedChange={() => handleToggleTag(tag.slug)}
                     aria-label={tag.label}
-                    onClick={() => handleToggleTag(tag.slug)}
                   >
                     <span>{tag.label}</span>
                     <span className="ml-2 text-xs opacity-80">{tag.count}</span>
@@ -148,8 +149,7 @@ const PostsPageContent = ({ posts, tags }: PostsPageContentProps) => {
                   <PopoverContent align="end" className="p-3">
                     <Command>
                       <CommandInput
-                        value={commandQuery}
-                        onChange={(event) => setCommandQuery(event.target.value)}
+                        onValueChange={setCommandQuery}
                         placeholder={t("posts.searchTags")}
                         aria-label={t("posts.searchTags")}
                       />

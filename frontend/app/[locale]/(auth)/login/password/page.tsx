@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@jwonp/design-system";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@jwonp/design-system";
+import { Input } from "@jwonp/design-system";
+import { Label } from "@jwonp/design-system";
 import { usePasswordLoginPage } from "./use-password-login-page.hooks";
 
 const PasswordLoginPage = () => {

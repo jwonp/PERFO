@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, CheckCircle2, LoaderCircle, ScanLine, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@jwonp/design-system";
 import { cn } from "@/lib/lib/utils";
 import type { ScannerViewportProps } from "./scan.types";
 
@@ -32,12 +32,12 @@ const ScannerViewport = ({
             )}
         />
         <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-2 p-3">
-            <Badge variant="neutral" className="bg-black/45 text-white backdrop-blur">
+            <Badge variant="secondary" className="bg-black/45 text-white backdrop-blur">
                 <ScanLine className="mr-1 h-3 w-3" />
                 {scannerStatusText}
             </Badge>
             {submitting ? (
-                <Badge variant="neutral" className="bg-black/45 text-white backdrop-blur">
+                <Badge variant="secondary" className="bg-black/45 text-white backdrop-blur">
                     <LoaderCircle className="mr-1 h-3 w-3 animate-spin" />
                     {t("myTickets.scanSubmittingShort")}
                 </Badge>

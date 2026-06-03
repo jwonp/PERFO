@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 
 type PublicBookingButtonProps = {
   callbackPath: string;

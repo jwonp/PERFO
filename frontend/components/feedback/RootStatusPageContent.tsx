@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { AlertTriangle, LockKeyhole, SearchX, ShieldAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import StatusPage from "@/components/feedback/StatusPage";
 import { localeErrors, resolveLocaleFromPathname } from "@/components/feedback/root-status-copy";
 

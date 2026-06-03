@@ -1,8 +1,8 @@
 "use client";
 
+import { Tabs, TabsList, TabsTrigger } from "@jwonp/design-system";
 import PageFilterBar from "@/components/layout/PageFilterBar";
-import { Tabs, TabsButton } from "@/components/ui/tabs";
-import type { TicketFilterTabsProps } from "./my-tickets.types";
+import type { DuplicatePurchaseFilter, TicketFilterTabsProps } from "./my-tickets.types";
 
 const TicketFilterTabs = ({
     duplicateFilter,
@@ -10,16 +10,12 @@ const TicketFilterTabs = ({
     t,
 }: TicketFilterTabsProps) => (
     <PageFilterBar>
-        <Tabs className="rounded-full border border-primary/30 bg-transparent p-0">
-            <TabsButton active={duplicateFilter === "ALL"} onClick={() => onChange("ALL")}>
-                {t("myTickets.filterAll")}
-            </TabsButton>
-            <TabsButton active={duplicateFilter === "ALLOW_DUPLICATE"} onClick={() => onChange("ALLOW_DUPLICATE")}>
-                {t("myTickets.filterAllowDuplicate")}
-            </TabsButton>
-            <TabsButton active={duplicateFilter === "NO_DUPLICATE"} onClick={() => onChange("NO_DUPLICATE")}>
-                {t("myTickets.filterNoDuplicate")}
-            </TabsButton>
+        <Tabs value={duplicateFilter} onValueChange={(v) => onChange(v as DuplicatePurchaseFilter)}>
+            <TabsList>
+                <TabsTrigger value="ALL">{t("myTickets.filterAll")}</TabsTrigger>
+                <TabsTrigger value="ALLOW_DUPLICATE">{t("myTickets.filterAllowDuplicate")}</TabsTrigger>
+                <TabsTrigger value="NO_DUPLICATE">{t("myTickets.filterNoDuplicate")}</TabsTrigger>
+            </TabsList>
         </Tabs>
     </PageFilterBar>
 );

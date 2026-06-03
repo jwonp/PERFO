@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import type { QrTokenTerminalCode, QrTokenResponse } from "./reserved-qr.types";
 
 type ReservedQrScreenProps = {

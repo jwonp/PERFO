@@ -12,8 +12,7 @@ import PageShell from "@/components/layout/PageShell";
 import { NotificationButton } from "@/components/notifications/NotificationButton";
 import { useNotificationSnapshotBootstrap } from "@/components/notifications/use-notification-snapshot-bootstrap";
 import { TicketCard } from "@/components/tickets/TicketCard";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsButton } from "@/components/ui/tabs";
+import { Button, Tabs, TabsList, TabsTrigger } from "@jwonp/design-system";
 import type { ReservedTicketFilter, Ticket } from "./reserved.types";
 
 const ReservedPage = () => {
@@ -104,13 +103,11 @@ const ReservedPage = () => {
                         }
                     />
                     <PageFilterBar>
-                        <Tabs className="rounded-full border border-primary/30 bg-transparent p-0">
-                            <TabsButton active={filter === "ALL"} onClick={() => setFilter("ALL")}>
-                                {t("reserved.tabAll")}
-                            </TabsButton>
-                            <TabsButton active={filter === "USED"} onClick={() => setFilter("USED")}>
-                                {t("reserved.tabUsed")}
-                            </TabsButton>
+                        <Tabs value={filter} onValueChange={(v) => setFilter(v as ReservedTicketFilter)}>
+                            <TabsList>
+                                <TabsTrigger value="ALL">{t("reserved.tabAll")}</TabsTrigger>
+                                <TabsTrigger value="USED">{t("reserved.tabUsed")}</TabsTrigger>
+                            </TabsList>
                         </Tabs>
                     </PageFilterBar>
 

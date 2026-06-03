@@ -7,13 +7,12 @@ WORKDIR /app
 
 # Install dependencies
 # --mount=type=cache: pnpm store를 호스트에 캐시 → package.json이 바뀌어도 재다운로드 없음
-COPY package.json pnpm-lock.yaml* ./
-RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
-    if [ -f pnpm-lock.yaml ]; then \
-      pnpm install --frozen-lockfile; \
-    else \
-      pnpm install --no-frozen-lockfile; \
-    fi
+# --mount=type=secret: GITHUB_TOKEN을 레이어에 남기지 않고 @jwonp/design-system 인증에 사용
+COPY package.json pnpm-lock.yaml* .npmrc patches* ./
+RUN --mount=type=secret,id=GITHUB_TOKEN \
+    --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+    GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN 2>/dev/null || echo "") \
+    pnpm install --frozen-lockfile
 
 # Copy source
 COPY . .

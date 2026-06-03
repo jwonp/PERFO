@@ -1,6 +1,6 @@
 import { SearchX } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import StatusPage from "@/components/feedback/StatusPage";
 import { Link } from "@/i18n/navigation";
 

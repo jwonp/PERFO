@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import StatusPage from "@/components/feedback/StatusPage";
 
 describe("StatusPage", () => {

@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowLeft, Bell } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state";
+import { Button } from "@jwonp/design-system";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@jwonp/design-system";
 import type { NotificationListItem } from "@/lib/notifications/notification.types";
 import { formatNotificationDateTime } from "./notifications.func";
 
@@ -63,12 +63,12 @@ export const NotificationsScreen = ({
                 ) : error ? (
                     <p className="text-sm text-[var(--danger)]">{error}</p>
                 ) : notifications.length === 0 ? (
-                    <EmptyState>
-                        <EmptyStateIcon>
-                            <Bell className="h-12 w-12" />
-                        </EmptyStateIcon>
-                        <EmptyStateTitle>{t("empty")}</EmptyStateTitle>
-                    </EmptyState>
+                    <Empty>
+                        <EmptyHeader>
+                            <EmptyMedia><Bell className="h-12 w-12" /></EmptyMedia>
+                            <EmptyTitle>{t("empty")}</EmptyTitle>
+                        </EmptyHeader>
+                    </Empty>
                 ) : (
                     <div className="space-y-3">
                         {notifications.map((notification) => (

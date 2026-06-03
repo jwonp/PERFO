@@ -2,7 +2,7 @@
 
 import { CalendarDays, MapPin } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@jwonp/design-system";
 import { cn } from "@/lib/lib/utils";
 import type { TicketShellProps } from "@/components/tickets/ticket-shell.types";
 

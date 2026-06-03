@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import StatusPage from "@/components/feedback/StatusPage";
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 
 const BadRequestPage = () => {
   const t = useTranslations("errors");

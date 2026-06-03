@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@jwonp/design-system";
 import { PlaceAutocompleteSuggestions } from "./PlaceAutocompleteSuggestions";
 import { usePlaceAutocomplete } from "./use-place-autocomplete.hooks";
 

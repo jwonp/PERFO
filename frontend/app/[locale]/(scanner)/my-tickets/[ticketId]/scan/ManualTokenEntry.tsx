@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@jwonp/design-system";
+import { Input } from "@jwonp/design-system";
 import type { ManualTokenEntryProps } from "./scan.types";
 
 const ManualTokenEntry = ({

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@jwonp/design-system"
 import { cn } from "@/lib/lib/utils"
 import type { PageFabProps } from "@/components/layout/page-shell.types"
 

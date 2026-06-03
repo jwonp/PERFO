@@ -6,7 +6,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import PageSection from "@/components/layout/PageSection";
 import PageShell from "@/components/layout/PageShell";
 import { NotificationButton } from "@/components/notifications/NotificationButton";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import { TicketFilterTabs } from "./TicketFilterTabs";
 import { TicketFormSheet } from "./TicketFormSheet";
 import { TicketList } from "./TicketList";

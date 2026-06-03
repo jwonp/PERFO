@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Volume2, VolumeX } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
-import { Button } from "@/components/ui/button";
+import { Button } from "@jwonp/design-system";
 import { ScannerViewport } from "./ScannerViewport";
 import { ScanResultPanel } from "./ScanResultPanel";
 import { useQrScanner } from "./use-qr-scanner.hooks";

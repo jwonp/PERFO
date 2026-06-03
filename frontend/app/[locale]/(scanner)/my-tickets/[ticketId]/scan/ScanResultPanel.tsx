@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, Button } from "@jwonp/design-system";
 import { cn } from "@/lib/lib/utils";
 import { resultMeta } from "./scan.func";
 import { ManualTokenEntry } from "./ManualTokenEntry";
