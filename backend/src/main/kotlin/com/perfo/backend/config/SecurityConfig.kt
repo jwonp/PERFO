@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.http.HttpMethod
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -42,14 +43,16 @@ class SecurityConfig(
                     "/api/auth/**",
                     "/api/health",
                     "/api/public/tickets/**",
-                    "/api/events",
-                    "/api/events/**",
                     "/swagger-ui/**",
                     "/v3/api-docs/**"
                 )
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/*")
+                    .permitAll()
                     .requestMatchers("/api/admin", "/api/admin/**")
                     .hasRole("ADMIN")
+                    .requestMatchers("/api/events/*/draft")
+                    .authenticated()
                     .requestMatchers("/api/tickets/**")
                     .authenticated()
                     .requestMatchers("/api/ticketing/**")

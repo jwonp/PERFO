@@ -4,6 +4,7 @@ import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.entity.TicketPurchaseResult
+import com.perfo.backend.entity.BookingMode
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -161,6 +162,15 @@ object TicketDto {
         val eventId: Long,
         @field:Min(1)
         @field:Max(10)
+        val quantity: Int = 1,
+        val items: List<TicketingItemRequest> = emptyList(),
+    )
+
+    data class TicketingItemRequest(
+        @field:Min(1)
+        val eventItemId: Long,
+        @field:Min(1)
+        @field:Max(100)
         val quantity: Int,
     )
 
@@ -173,6 +183,31 @@ object TicketDto {
         val ticketNumbers: List<Int>,
         val remainingQuantity: Int?,
         val message: String? = null,
+        val bookingMode: BookingMode = BookingMode.SIMPLE,
+        val items: List<TicketingOrderItemResponse> = emptyList(),
+        val shortages: List<TicketingItemShortageResponse> = emptyList(),
+    )
+
+    data class TicketingOrderItemResponse(
+        val eventItemId: Long,
+        val itemName: String,
+        val quantity: Int,
+    )
+
+    data class TicketingItemShortageResponse(
+        val eventItemId: Long,
+        val requestedQuantity: Int,
+        val availableQuantity: Int,
+    )
+
+    data class BookingDraftResponse(
+        val eventId: Long,
+        val version: Int,
+        val items: List<TicketingItemRequest>,
+    )
+
+    data class BookingDraftSaveRequest(
+        val items: List<TicketingItemRequest>,
     )
 
     data class TicketingProjectionSummaryResponse(

@@ -3,9 +3,11 @@ package com.perfo.backend.service
 import com.perfo.backend.dto.EventDto
 import com.perfo.backend.dto.TicketDto
 import com.perfo.backend.entity.Event
+import com.perfo.backend.entity.EventItem
 import com.perfo.backend.entity.IssuedTicket
 import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.EventItemRepository
 import com.perfo.backend.repository.IssuedTicketRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,6 +18,7 @@ import java.time.ZoneOffset
 @Service
 class EventQueryService(
     private val eventRepository: EventRepository,
+    private val eventItemRepository: EventItemRepository,
     private val issuedTicketRepository: IssuedTicketRepository,
     private val ticketImageStorageService: TicketImageStorageService,
 ) {
@@ -96,6 +99,8 @@ class EventQueryService(
             allowDuplicate = ticket.allowDuplicate,
             active = saleStatus != EventDto.SaleStatus.INACTIVE,
             saleStatus = saleStatus,
+            bookingMode = linkedEvent?.bookingMode ?: ticket.bookingMode,
+            items = linkedEvent?.let { findActiveItemResponses(requireNotNull(it.id)) } ?: emptyList(),
             discoveryMode = ticket.discoveryMode,
             publicBookingPath = "/events/$responseId",
         )
@@ -123,8 +128,31 @@ class EventQueryService(
             allowDuplicate = allowDuplicate,
             active = linkedTicket?.let { resolveSaleStatus(this, now, it) != EventDto.SaleStatus.INACTIVE } ?: active,
             saleStatus = resolveSaleStatus(this, now, linkedTicket),
+            bookingMode = bookingMode,
+            items = findActiveItemResponses(eventId),
             discoveryMode = discoveryMode,
             publicBookingPath = "/events/$eventId",
+        )
+    }
+
+    private fun findActiveItemResponses(eventId: Long): List<EventDto.EventItemResponse> {
+        return eventItemRepository.findByEventIdAndActiveTrueOrderBySortOrderAscIdAsc(eventId)
+            .orEmpty()
+            .map(::toItemResponse)
+    }
+
+    private fun toItemResponse(item: EventItem): EventDto.EventItemResponse {
+        return EventDto.EventItemResponse(
+            id = requireNotNull(item.id) { "Event item id is missing" },
+            name = item.name,
+            description = item.description,
+            imageUrl = item.imageUrl,
+            price = item.price,
+            totalQuantity = item.totalQuantity,
+            remainingQuantity = item.remainingQuantity,
+            maxPerUser = item.maxPerUser,
+            active = item.active,
+            sortOrder = item.sortOrder,
         )
     }
 
@@ -171,11 +199,21 @@ class EventQueryService(
             return EventDto.SaleStatus.CLOSED
         }
 
-        val remainingQuantity = event?.remainingQuantity ?: linkedTicket?.let { (it.totalCount - it.issuedCount).coerceAtLeast(0) } ?: 0
+        val remainingQuantity = resolveRemainingForSaleStatus(event, linkedTicket)
         if (remainingQuantity <= 0) {
             return EventDto.SaleStatus.SOLD_OUT
         }
         return EventDto.SaleStatus.OPEN
+    }
+
+    private fun resolveRemainingForSaleStatus(event: Event?, linkedTicket: IssuedTicket?): Int {
+        if (event?.bookingMode == com.perfo.backend.entity.BookingMode.ITEMIZED) {
+            val eventId = event.id ?: return 0
+            return eventItemRepository.findByEventIdAndActiveTrueOrderBySortOrderAscIdAsc(eventId)
+                .orEmpty()
+                .sumOf { it.remainingQuantity }
+        }
+        return event?.remainingQuantity ?: linkedTicket?.let { (it.totalCount - it.issuedCount).coerceAtLeast(0) } ?: 0
     }
 
     private fun resolveLinkedTicketStatus(ticket: IssuedTicket, now: Instant): TicketDto.IssuedTicketStatus {

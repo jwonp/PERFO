@@ -2,12 +2,17 @@ package com.perfo.backend.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.entity.BookingMode
 import com.perfo.backend.entity.Event
+import com.perfo.backend.entity.EventItem
 import com.perfo.backend.entity.TicketPurchaseResult
 import com.perfo.backend.entity.TicketingOutbox
 import com.perfo.backend.entity.TicketingOutboxEventType
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.EventItemRepository
+import com.perfo.backend.repository.BookingOrderItemRepository
+import com.perfo.backend.repository.BookingOrderRepository
 import com.perfo.backend.repository.TicketRepository
 import com.perfo.backend.repository.TicketingOutboxRepository
 import com.perfo.backend.repository.TicketingRequestRepository
@@ -30,7 +35,16 @@ class TicketingServiceTest {
     private lateinit var eventRepository: EventRepository
 
     @Autowired
+    private lateinit var eventItemRepository: EventItemRepository
+
+    @Autowired
     private lateinit var ticketRepository: TicketRepository
+
+    @Autowired
+    private lateinit var bookingOrderRepository: BookingOrderRepository
+
+    @Autowired
+    private lateinit var bookingOrderItemRepository: BookingOrderItemRepository
 
     @Autowired
     private lateinit var ticketingRequestRepository: TicketingRequestRepository
@@ -49,6 +63,9 @@ class TicketingServiceTest {
 
     @BeforeEach
     fun setUp() {
+        bookingOrderItemRepository.deleteAll()
+        bookingOrderRepository.deleteAll()
+        eventItemRepository.deleteAll()
         ticketRepository.deleteAll()
         ticketingOutboxRepository.deleteAll()
         ticketingRequestRepository.deleteAll()
@@ -265,6 +282,229 @@ class TicketingServiceTest {
         assertThat(persistedEvent.nextTicketNumber).isEqualTo(1)
     }
 
+    @Test
+    @DisplayName("ITEMIZED 요청 성공 시 주문 항목을 저장하고 항목별 재고만 차감한다")
+    fun submitRequest_itemized_successCreatesOrderItemsAndDecrementsItemInventory() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(
+            activeEvent(
+                remainingQuantity = 99,
+                saleOpenAt = now.minusSeconds(60),
+                saleCloseAt = now.plusSeconds(3600),
+                bookingMode = BookingMode.ITEMIZED,
+            ),
+        )
+        val photoCard = eventItemRepository.save(item(event.id!!, name = "Photo card", remainingQuantity = 5, maxPerUser = 3, sortOrder = 1))
+        val keyring = eventItemRepository.save(item(event.id!!, name = "Keyring", remainingQuantity = 2, maxPerUser = 2, sortOrder = 2))
+
+        val response = ticketingService.submitRequest(
+            authenticatedUserId = 20L,
+            request = TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_success_0001",
+                eventId = event.id!!,
+                items = listOf(
+                    TicketDto.TicketingItemRequest(eventItemId = keyring.id!!, quantity = 1),
+                    TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 2),
+                ),
+            ),
+        )
+
+        assertThat(response.result).isEqualTo(TicketPurchaseResult.SUCCESS)
+        assertThat(response.bookingMode).isEqualTo(BookingMode.ITEMIZED)
+        assertThat(response.quantity).isEqualTo(3)
+        assertThat(response.ticketIds).isEmpty()
+        assertThat(response.items.map { it.itemName }).containsExactly("Photo card", "Keyring")
+        assertThat(eventItemRepository.findById(photoCard.id!!).orElseThrow().remainingQuantity).isEqualTo(3)
+        assertThat(eventItemRepository.findById(keyring.id!!).orElseThrow().remainingQuantity).isEqualTo(1)
+        assertThat(eventRepository.findById(event.id!!).orElseThrow().remainingQuantity).isEqualTo(99)
+        assertThat(bookingOrderRepository.findByRequestId("req_itemized_success_0001")).isNotNull
+        assertThat(ticketingOutboxRepository.findByRequestId("req_itemized_success_0001")?.payload).contains("\"bookingMode\":\"ITEMIZED\"")
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 요청에서 한 항목이라도 재고 부족이면 전체 실패하고 부족 항목을 반환한다")
+    fun submitRequest_itemized_inventoryShortageRejectsWholeOrder() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+        val photoCard = eventItemRepository.save(item(event.id!!, name = "Photo card", remainingQuantity = 5, sortOrder = 1))
+        val keyring = eventItemRepository.save(item(event.id!!, name = "Keyring", remainingQuantity = 1, sortOrder = 2))
+
+        val response = ticketingService.submitRequest(
+            authenticatedUserId = 21L,
+            request = TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_short_0001",
+                eventId = event.id!!,
+                items = listOf(
+                    TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 2),
+                    TicketDto.TicketingItemRequest(eventItemId = keyring.id!!, quantity = 2),
+                ),
+            ),
+        )
+
+        assertThat(response.result).isEqualTo(TicketPurchaseResult.INSUFFICIENT_ITEM_INVENTORY)
+        assertThat(response.shortages).containsExactly(
+            TicketDto.TicketingItemShortageResponse(
+                eventItemId = keyring.id!!,
+                requestedQuantity = 2,
+                availableQuantity = 1,
+            ),
+        )
+        assertThat(eventItemRepository.findById(photoCard.id!!).orElseThrow().remainingQuantity).isEqualTo(5)
+        assertThat(eventItemRepository.findById(keyring.id!!).orElseThrow().remainingQuantity).isEqualTo(1)
+        assertThat(bookingOrderRepository.findByRequestId("req_itemized_short_0001")).isNull()
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 요청은 항목별 maxPerUser 누적 제한을 강제한다")
+    fun submitRequest_itemized_respectsItemMaxPerUser() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+        val photoCard = eventItemRepository.save(item(event.id!!, name = "Photo card", remainingQuantity = 5, maxPerUser = 2))
+
+        val first = ticketingService.submitRequest(
+            22L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_limit_0001",
+                eventId = event.id!!,
+                items = listOf(TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 2)),
+            ),
+        )
+        val second = ticketingService.submitRequest(
+            22L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_limit_0002",
+                eventId = event.id!!,
+                items = listOf(TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 1)),
+            ),
+        )
+
+        assertThat(first.result).isEqualTo(TicketPurchaseResult.SUCCESS)
+        assertThat(second.result).isEqualTo(TicketPurchaseResult.ITEM_MAX_PER_USER_EXCEEDED)
+        assertThat(eventItemRepository.findById(photoCard.id!!).orElseThrow().remainingQuantity).isEqualTo(3)
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 요청은 같은 requestId와 같은 items를 순서 무관하게 재시도할 수 있다")
+    fun submitRequest_itemized_idempotencyIgnoresItemOrder() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+        val photoCard = eventItemRepository.save(item(event.id!!, name = "Photo card", remainingQuantity = 5, maxPerUser = 3, sortOrder = 1))
+        val keyring = eventItemRepository.save(item(event.id!!, name = "Keyring", remainingQuantity = 5, maxPerUser = 3, sortOrder = 2))
+
+        val first = ticketingService.submitRequest(
+            23L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_replay_0001",
+                eventId = event.id!!,
+                items = listOf(
+                    TicketDto.TicketingItemRequest(eventItemId = keyring.id!!, quantity = 1),
+                    TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 1),
+                ),
+            ),
+        )
+        val second = ticketingService.submitRequest(
+            23L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_replay_0001",
+                eventId = event.id!!,
+                items = listOf(
+                    TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 1),
+                    TicketDto.TicketingItemRequest(eventItemId = keyring.id!!, quantity = 1),
+                ),
+            ),
+        )
+
+        assertThat(second).isEqualTo(first)
+        assertThat(bookingOrderRepository.findAll()).hasSize(1)
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 같은 requestId에 다른 items를 보내면 거부한다")
+    fun submitRequest_itemized_sameRequestIdDifferentItemsRejected() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+        val photoCard = eventItemRepository.save(item(event.id!!, name = "Photo card", remainingQuantity = 5, maxPerUser = 3))
+
+        ticketingService.submitRequest(
+            24L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_conflict_0001",
+                eventId = event.id!!,
+                items = listOf(TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 1)),
+            ),
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            ticketingService.submitRequest(
+                24L,
+                TicketDto.TicketingRequestSubmitRequest(
+                    requestId = "req_itemized_conflict_0001",
+                    eventId = event.id!!,
+                    items = listOf(TicketDto.TicketingItemRequest(eventItemId = photoCard.id!!, quantity = 2)),
+                ),
+            )
+        }
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 이벤트에 items 없이 quantity만 보내면 INVALID_BOOKING_MODE로 거부한다")
+    fun submitRequest_itemizedEventWithoutItemsRejected() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(remainingQuantity = 99, saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+
+        val response = ticketingService.submitRequest(
+            25L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_no_items_0001",
+                eventId = event.id!!,
+                quantity = 1,
+            ),
+        )
+
+        assertThat(response.result).isEqualTo(TicketPurchaseResult.INVALID_BOOKING_MODE)
+        assertThat(response.message).isEqualTo("Itemized event requires items")
+        assertThat(ticketRepository.findByEventIdAndUserIdOrderByIdAsc(event.id!!, 25L)).isEmpty()
+    }
+
+    @Test
+    @DisplayName("SIMPLE 이벤트에 items를 보내면 INVALID_BOOKING_MODE로 거부한다")
+    fun submitRequest_simpleEventWithItemsRejected() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600)))
+
+        val response = ticketingService.submitRequest(
+            26L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_simple_with_items_0001",
+                eventId = event.id!!,
+                items = listOf(TicketDto.TicketingItemRequest(eventItemId = 1L, quantity = 1)),
+            ),
+        )
+
+        assertThat(response.result).isEqualTo(TicketPurchaseResult.INVALID_BOOKING_MODE)
+        assertThat(response.message).isEqualTo("Event is not itemized")
+    }
+
+    @Test
+    @DisplayName("ITEMIZED 요청에 비활성 item이 포함되면 ITEM_INACTIVE로 거부한다")
+    fun submitRequest_itemizedInactiveItemRejected() {
+        val now = databaseTimeService.currentInstant()
+        val event = eventRepository.save(activeEvent(saleOpenAt = now.minusSeconds(60), saleCloseAt = now.plusSeconds(3600), bookingMode = BookingMode.ITEMIZED))
+        val inactiveItem = eventItemRepository.save(item(event.id!!, name = "Closed item", remainingQuantity = 5, active = false))
+
+        val response = ticketingService.submitRequest(
+            27L,
+            TicketDto.TicketingRequestSubmitRequest(
+                requestId = "req_itemized_inactive_0001",
+                eventId = event.id!!,
+                items = listOf(TicketDto.TicketingItemRequest(eventItemId = inactiveItem.id!!, quantity = 1)),
+            ),
+        )
+
+        assertThat(response.result).isEqualTo(TicketPurchaseResult.ITEM_INACTIVE)
+        assertThat(eventItemRepository.findById(inactiveItem.id!!).orElseThrow().remainingQuantity).isEqualTo(5)
+    }
+
     private fun activeEvent(
         remainingQuantity: Int = 10,
         saleOpenAt: Instant = Instant.now().minusSeconds(60),
@@ -272,6 +512,7 @@ class TicketingServiceTest {
         allowDuplicate: Boolean = false,
         maxPerUser: Int = 2,
         nextTicketNumber: Int = 1,
+        bookingMode: BookingMode = BookingMode.SIMPLE,
     ): Event {
         return Event(
             name = "Phase 1 Event",
@@ -286,6 +527,26 @@ class TicketingServiceTest {
             allowDuplicate = allowDuplicate,
             nextTicketNumber = nextTicketNumber,
             active = true,
+            bookingMode = bookingMode,
+        )
+    }
+
+    private fun item(
+        eventId: Long,
+        name: String,
+        remainingQuantity: Int,
+        maxPerUser: Int = 10,
+        sortOrder: Int = 0,
+        active: Boolean = true,
+    ): EventItem {
+        return EventItem(
+            eventId = eventId,
+            name = name,
+            totalQuantity = remainingQuantity,
+            remainingQuantity = remainingQuantity,
+            maxPerUser = maxPerUser,
+            active = active,
+            sortOrder = sortOrder,
         )
     }
 }
