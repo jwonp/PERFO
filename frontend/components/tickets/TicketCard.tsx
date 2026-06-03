@@ -2,7 +2,7 @@
 
 import { QrCode } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { Button, Small } from "@jwonp/design-system";
 import { TICKET_STATUS_META } from "@/components/tickets/ticket-card.constants";
 import TicketShell from "@/components/tickets/ticket-shell";
 import type { TicketCardProps, TicketUsageStatus } from "@/components/tickets/ticket-card.types";
@@ -68,10 +68,10 @@ const TicketCard = ({
         >
             <div className="pt-1">
                 <div className="flex justify-end pt-1">
-                    <span className="text-sm font-semibold text-primary">
+                    <Small className="font-semibold text-primary">
                         {ticketNumber}{" "}
                         <span className="font-normal text-[var(--text-subtle)]">/ {totalCount}</span>
-                    </span>
+                    </Small>
                 </div>
             </div>
         </TicketShell>

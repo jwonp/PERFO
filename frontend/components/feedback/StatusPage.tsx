@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, Kicker, H1, Muted } from "@jwonp/design-system";
 import PageShell from "@/components/layout/PageShell";
 import { cn } from "@/lib/lib/utils";
 
@@ -27,9 +27,7 @@ const StatusPage = ({
       <main className="mx-auto flex min-h-screen w-full max-w-[430px] items-center px-4 py-10">
         <Card className="app-card w-full gap-0 overflow-hidden">
           <div className="border-b border-border bg-[var(--surface-muted)]/70 px-6 py-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--text-subtle)]">
-              HTTP {code}
-            </p>
+            <Kicker className="text-[var(--text-subtle)]">HTTP {code}</Kicker>
           </div>
 
           <CardHeader className="items-start px-6 pb-0 pt-6 text-left">
@@ -38,12 +36,12 @@ const StatusPage = ({
                 {icon}
               </div>
             ) : null}
-            <h1 className="text-2xl leading-tight font-bold text-primary">
+            <H1 className="text-2xl leading-tight font-bold text-primary">
               {title}
-            </h1>
-            <p className="max-w-sm text-sm leading-6 text-[var(--text-muted)]">
+            </H1>
+            <Muted className="max-w-sm leading-6">
               {description}
-            </p>
+            </Muted>
           </CardHeader>
 
           <CardContent className="space-y-4 px-6 pb-6 pt-6">

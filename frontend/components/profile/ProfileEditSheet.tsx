@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
-import { Button } from "@/components/ui/button";
-import { FormField, FormFieldLabel } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
+import { Button, Drawer, DrawerContent, DrawerHeader, DrawerTitle, Field, FieldError, FieldLabel } from "@jwonp/design-system";
+import { Input } from "@jwonp/design-system";
 import type { MyProfileResponse, ProfileImageType, UpdateMyProfileRequest } from "@/lib/profile/profile.types";
 
 interface ProfileEditSheetProps {
@@ -171,9 +169,12 @@ export const ProfileEditSheet = ({
     };
 
     return (
-        <BottomSheet open={open} onClose={onClose}>
-            <BottomSheetContent>
-                <BottomSheetTitle>{title}</BottomSheetTitle>
+        <Drawer open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle>{title}</DrawerTitle>
+                </DrawerHeader>
+                <div className="px-5 pb-8">
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="flex items-center gap-4 rounded-2xl bg-[var(--surface-muted)] px-4 py-4">
                         <ProfileAvatar
@@ -190,11 +191,11 @@ export const ProfileEditSheet = ({
                         </div>
                     </div>
 
-                    <FormField>
+                    <Field>
                         <div className="flex items-center justify-between">
-                            <FormFieldLabel htmlFor="profile-display-name" className="text-sm font-bold text-[var(--text)]">
+                            <FieldLabel htmlFor="profile-display-name" className="text-sm font-bold text-[var(--text)]">
                                 {displayNameLabel}
-                            </FormFieldLabel>
+                            </FieldLabel>
                             <span className="text-xs font-medium text-[var(--text-subtle)]">
                                 {displayNameCounterLabel(trimmedDisplayName.length, MAX_DISPLAY_NAME_LENGTH)}
                             </span>
@@ -209,14 +210,14 @@ export const ProfileEditSheet = ({
                             className="h-12 rounded-2xl"
                         />
                         {validationMessage && (
-                            <p className="text-sm font-medium text-[var(--danger)]">{validationMessage}</p>
+                            <FieldError className="font-medium">{validationMessage}</FieldError>
                         )}
-                    </FormField>
+                    </Field>
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="profile-image-upload" className="text-sm font-bold text-[var(--text)]">
+                    <Field>
+                        <FieldLabel htmlFor="profile-image-upload" className="text-sm font-bold text-[var(--text)]">
                             {uploadImageLabel}
-                        </FormFieldLabel>
+                        </FieldLabel>
                         <Input
                             key={fileInputKey}
                             id="profile-image-upload"
@@ -230,10 +231,10 @@ export const ProfileEditSheet = ({
                         <p className="text-xs text-[var(--text-subtle)]">
                             {isUploading ? uploadingImageLabel : uploadTodoLabel}
                         </p>
-                    </FormField>
+                    </Field>
 
                     {serverMessage && (
-                        <p className="text-sm font-medium text-[var(--danger)]">{serverMessage}</p>
+                        <FieldError className="font-medium">{serverMessage}</FieldError>
                     )}
 
                     <div className="flex gap-3 pt-1">
@@ -245,7 +246,8 @@ export const ProfileEditSheet = ({
                         </Button>
                     </div>
                 </form>
-            </BottomSheetContent>
-        </BottomSheet>
+                </div>
+            </DrawerContent>
+        </Drawer>
     );
 };

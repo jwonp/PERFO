@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation"
 import PageHeader from "@/components/layout/PageHeader"
 import PageSection from "@/components/layout/PageSection"
 import PageShell from "@/components/layout/PageShell"
-import { Button } from "@/components/ui/button"
+import { Button, Kicker } from "@jwonp/design-system"
 import type {
   AdminDashboardScreenProps,
   AdminDashboardTicketStatus,
@@ -74,9 +74,7 @@ const AdminDashboardScreen = ({
         </section>
 
         <PageSection spacing="md">
-          <h2 className="px-1 text-sm font-semibold text-[var(--text-muted)]">
-            {t("admin.quickActions")}
-          </h2>
+          <Kicker className="px-1">{t("admin.quickActions")}</Kicker>
           <div className="grid gap-2">
             <ActionLink href="/my-tickets" icon={<ClipboardList className="size-5" />}>
               {t("admin.actionManageTickets")}
@@ -104,9 +102,7 @@ const AdminDashboardScreen = ({
 
         <PageSection spacing="md">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-semibold text-[var(--text-muted)]">
-              {t("admin.recentTickets")}
-            </h2>
+            <Kicker>{t("admin.recentTickets")}</Kicker>
             <Button asChild variant="ghost" size="xs">
               <Link href="/my-tickets">{t("admin.more")}</Link>
             </Button>
@@ -165,9 +161,7 @@ const AdminDashboardScreen = ({
 
         <PageSection spacing="md">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-semibold text-[var(--text-muted)]">
-              {t("admin.recentNotifications")}
-            </h2>
+            <Kicker>{t("admin.recentNotifications")}</Kicker>
             <Button asChild variant="ghost" size="xs">
               <Link href="/notifications">{t("admin.more")}</Link>
             </Button>

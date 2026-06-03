@@ -1,16 +1,10 @@
 "use client"
 
-import { Bell, CalendarRange, CircleAlert, Clock3, Filter, Headphones, Search, Shield, Sparkles, Ticket } from "lucide-react"
+import { Bell, CalendarRange, ChevronRight, CircleAlert, Clock3, Filter, Headphones, Search, Shield, Sparkles, Ticket } from "lucide-react"
 
 import { IssuedTicketCard } from "@/components/tickets/IssuedTicketCard"
 import { TicketCard } from "@/components/tickets/TicketCard"
-import { ActionRow, ActionRowChevron, ActionRowLeading, ActionRowText } from "@/components/ui/action-row"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { EmptyState, EmptyStateIcon, EmptyStateTitle } from "@/components/ui/empty-state"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ToggleRow } from "@/components/ui/toggle-row"
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Empty, EmptyHeader, EmptyMedia, EmptyTitle, Input, Item, ItemMedia, ItemContent, ItemTitle, ItemActions, Label, Switch } from "@jwonp/design-system"
 import { COLOR_TOKENS, ISSUED_TICKET_SAMPLE, SAMPLE_TICKETS, SPACING_TOKENS } from "./showcase.constants"
 import type { SectionHeaderProps, TokenSwatchProps } from "./showcase.types"
 
@@ -153,13 +147,11 @@ const DesignSystemShowcase = () => {
                 <Input id="ds-venue" className="h-11 rounded-lg bg-[var(--surface)]" placeholder="Seoul Arts Center" />
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border bg-[var(--surface-muted)] px-4 py-3">
-                <ToggleRow
-                  checked
-                  label="Push notification policy"
-                  icon={<Bell className="size-4" />}
-                  onToggle={() => undefined}
-                  className="w-full py-0"
-                />
+                <Item className="w-full py-0">
+                  <ItemMedia className="text-[var(--text-muted)]"><Bell className="size-4" /></ItemMedia>
+                  <ItemContent><ItemTitle>Push notification policy</ItemTitle></ItemContent>
+                  <ItemActions><Switch checked onCheckedChange={() => undefined} /></ItemActions>
+                </Item>
               </div>
             </CardContent>
           </Card>
@@ -229,7 +221,7 @@ const DesignSystemShowcase = () => {
                 <IssuedTicketCard
                   ticket={ISSUED_TICKET_SAMPLE}
                   statusLabel="Issuing"
-                  badgeVariant="success"
+                  badgeVariant="default"
                   issuedCountLabel="Issued"
                   editLabel="Edit"
                   scanLabel="Scan"
@@ -237,21 +229,21 @@ const DesignSystemShowcase = () => {
                   onEdit={() => undefined}
                 />
                 <div className="rounded-lg border border-border bg-[var(--surface-raised)] px-4">
-                  <ActionRow>
-                    <ActionRowLeading>
-                      <Headphones className="h-5 w-5" />
-                      <ActionRowText>Customer support</ActionRowText>
-                    </ActionRowLeading>
-                    <ActionRowChevron />
-                  </ActionRow>
+                  <Item asChild className="transition-colors hover:text-primary">
+                    <button type="button">
+                      <ItemMedia className="text-[var(--text-muted)]"><Headphones className="h-5 w-5" /></ItemMedia>
+                      <ItemContent><ItemTitle>Customer support</ItemTitle></ItemContent>
+                      <ItemActions><ChevronRight className="h-4 w-4" /></ItemActions>
+                    </button>
+                  </Item>
                   <div className="border-t border-border" />
-                  <ActionRow>
-                    <ActionRowLeading>
-                      <Shield className="h-5 w-5" />
-                      <ActionRowText>Privacy policy</ActionRowText>
-                    </ActionRowLeading>
-                    <ActionRowChevron />
-                  </ActionRow>
+                  <Item asChild className="transition-colors hover:text-primary">
+                    <button type="button">
+                      <ItemMedia className="text-[var(--text-muted)]"><Shield className="h-5 w-5" /></ItemMedia>
+                      <ItemContent><ItemTitle>Privacy policy</ItemTitle></ItemContent>
+                      <ItemActions><ChevronRight className="h-4 w-4" /></ItemActions>
+                    </button>
+                  </Item>
                 </div>
               </div>
 
@@ -271,12 +263,12 @@ const DesignSystemShowcase = () => {
                 ))}
               </div>
 
-              <EmptyState className="py-10">
-                <EmptyStateIcon>
-                  <Ticket className="h-10 w-10" />
-                </EmptyStateIcon>
-                <EmptyStateTitle>No matching ticket modules</EmptyStateTitle>
-              </EmptyState>
+              <Empty className="py-10">
+                <EmptyHeader>
+                  <EmptyMedia><Ticket className="h-10 w-10" /></EmptyMedia>
+                  <EmptyTitle>No matching ticket modules</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
             </CardContent>
           </Card>
         </section>

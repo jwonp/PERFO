@@ -2,11 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import { BottomSheet, BottomSheetContent, BottomSheetTitle } from "@/components/ui/bottom-sheet";
-import { Button } from "@/components/ui/button";
-import { FormField, FormFieldLabel } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { ToggleRow } from "@/components/ui/toggle-row";
+import { Button, Drawer, DrawerContent, DrawerHeader, DrawerTitle, Field, FieldLabel, Item, ItemContent, ItemTitle, ItemActions, Switch } from "@jwonp/design-system";
+import { Input } from "@jwonp/design-system";
 import dynamic from "next/dynamic";
 import { EMPTY_FORM, ISSUE_STATUS_OPTIONS } from "./my-tickets.constants";
 import { isFutureVerifyingRequest, toDateTimeLocalValue } from "./my-tickets.func";
@@ -105,20 +102,18 @@ const TicketFormSheet = ({
         }
     };
 
-    if (!open) {
-        return null;
-    }
-
     return (
-        <BottomSheet open={open} onClose={onClose}>
-            <BottomSheetContent>
-                <BottomSheetTitle>
-                    {isEdit ? t("myTickets.editTitle") : t("myTickets.createTitle")}
-                </BottomSheetTitle>
-
+        <Drawer open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+            <DrawerContent>
+                <DrawerHeader>
+                    <DrawerTitle>
+                        {isEdit ? t("myTickets.editTitle") : t("myTickets.createTitle")}
+                    </DrawerTitle>
+                </DrawerHeader>
+                <div className="px-5 pb-8">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-name">{t("myTickets.fieldName")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-name">{t("myTickets.fieldName")}</FieldLabel>
                         <Input
                             id="ticket-name"
                             required
@@ -127,10 +122,10 @@ const TicketFormSheet = ({
                             placeholder={t("myTickets.fieldNamePlaceholder")}
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
-                    </FormField>
+                    </Field>
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-venue">{t("myTickets.fieldVenue")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-venue">{t("myTickets.fieldVenue")}</FieldLabel>
                         <PlaceAutocompleteInput
                             id="ticket-venue"
                             required
@@ -154,10 +149,10 @@ const TicketFormSheet = ({
                             selectedLabel={t("myTickets.placeAutocompleteSelected")}
                             emptyLabel={t("myTickets.placeAutocompleteEmpty")}
                         />
-                    </FormField>
+                    </Field>
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-detail-address">{t("myTickets.fieldDetailAddress")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-detail-address">{t("myTickets.fieldDetailAddress")}</FieldLabel>
                         <Input
                             id="ticket-detail-address"
                             value={form.detailAddress}
@@ -165,10 +160,10 @@ const TicketFormSheet = ({
                             placeholder={t("myTickets.fieldDetailAddressPlaceholder")}
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
-                    </FormField>
+                    </Field>
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-valid-date">{t("myTickets.fieldDate")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-valid-date">{t("myTickets.fieldDate")}</FieldLabel>
                         <Input
                             id="ticket-valid-date"
                             required
@@ -178,10 +173,10 @@ const TicketFormSheet = ({
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
                         <p className="text-xs text-[var(--text-muted)]">{t("myTickets.fieldDateHint")}</p>
-                    </FormField>
+                    </Field>
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-open-at">{t("myTickets.fieldOpenAt")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-open-at">{t("myTickets.fieldOpenAt")}</FieldLabel>
                         <Input
                             id="ticket-open-at"
                             type="datetime-local"
@@ -190,11 +185,11 @@ const TicketFormSheet = ({
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
                         <p className="text-xs text-[var(--text-muted)]">{t("myTickets.fieldOpenAtHint")}</p>
-                    </FormField>
+                    </Field>
 
                     {isEdit ? (
-                        <FormField>
-                            <FormFieldLabel htmlFor="ticket-status">{t("myTickets.fieldStatus")}</FormFieldLabel>
+                        <Field>
+                            <FieldLabel htmlFor="ticket-status">{t("myTickets.fieldStatus")}</FieldLabel>
                             <select
                                 id="ticket-status"
                                 value={form.status}
@@ -212,7 +207,7 @@ const TicketFormSheet = ({
                                     </option>
                                 ))}
                             </select>
-                        </FormField>
+                        </Field>
                     ) : null}
 
                     {isFutureVerifyingRequest(form.status, form.openAt) ? (
@@ -224,8 +219,8 @@ const TicketFormSheet = ({
                         </div>
                     ) : null}
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-total-count">{t("myTickets.fieldTotal")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-total-count">{t("myTickets.fieldTotal")}</FieldLabel>
                         <Input
                             id="ticket-total-count"
                             required
@@ -236,44 +231,52 @@ const TicketFormSheet = ({
                             placeholder="100"
                             className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                         />
-                    </FormField>
+                    </Field>
 
                     <div className="rounded-xl bg-[var(--surface-muted)] px-4">
-                        <ToggleRow
-                            checked={form.allowDuplicate}
-                            label={t("myTickets.fieldAllowDuplicate")}
-                            onToggle={() =>
-                                setForm((currentForm) => ({
-                                    ...currentForm,
-                                    allowDuplicate: !currentForm.allowDuplicate,
-                                }))
-                            }
-                            labelClassName="cursor-pointer"
-                        />
+                        <Item>
+                            <ItemContent><ItemTitle className="cursor-pointer">{t("myTickets.fieldAllowDuplicate")}</ItemTitle></ItemContent>
+                            <ItemActions>
+                                <Switch
+                                    checked={form.allowDuplicate}
+                                    onCheckedChange={() =>
+                                        setForm((currentForm) => ({
+                                            ...currentForm,
+                                            allowDuplicate: !currentForm.allowDuplicate,
+                                        }))
+                                    }
+                                />
+                            </ItemActions>
+                        </Item>
                     </div>
 
                     <div className="rounded-xl bg-[var(--surface-muted)] px-4">
-                        <ToggleRow
-                            checked={form.discoveryMode === "LISTED"}
-                            label={
-                                form.discoveryMode === "LISTED"
-                                    ? t("myTickets.discoveryModeListed")
-                                    : t("myTickets.discoveryModeLinkOnly")
-                            }
-                            onToggle={() =>
-                                setForm((currentForm) => ({
-                                    ...currentForm,
-                                    discoveryMode: currentForm.discoveryMode === "LISTED" ? "LINK_ONLY" : "LISTED",
-                                }))
-                            }
-                            labelClassName="cursor-pointer"
-                        />
+                        <Item>
+                            <ItemContent>
+                                <ItemTitle className="cursor-pointer">
+                                    {form.discoveryMode === "LISTED"
+                                        ? t("myTickets.discoveryModeListed")
+                                        : t("myTickets.discoveryModeLinkOnly")}
+                                </ItemTitle>
+                            </ItemContent>
+                            <ItemActions>
+                                <Switch
+                                    checked={form.discoveryMode === "LISTED"}
+                                    onCheckedChange={() =>
+                                        setForm((currentForm) => ({
+                                            ...currentForm,
+                                            discoveryMode: currentForm.discoveryMode === "LISTED" ? "LINK_ONLY" : "LISTED",
+                                        }))
+                                    }
+                                />
+                            </ItemActions>
+                        </Item>
                         <p className="pb-3 text-xs text-[var(--text-muted)]">{t("myTickets.discoveryModeHint")}</p>
                     </div>
 
                     {form.allowDuplicate ? (
-                        <FormField>
-                            <FormFieldLabel htmlFor="ticket-max-per-user">{t("myTickets.fieldMaxPerUser")}</FormFieldLabel>
+                        <Field>
+                            <FieldLabel htmlFor="ticket-max-per-user">{t("myTickets.fieldMaxPerUser")}</FieldLabel>
                             <Input
                                 id="ticket-max-per-user"
                                 type="number"
@@ -283,11 +286,11 @@ const TicketFormSheet = ({
                                 placeholder="2"
                                 className="h-11 rounded-xl border-border focus-visible:border-ring focus-visible:ring-ring/20"
                             />
-                        </FormField>
+                        </Field>
                     ) : null}
 
-                    <FormField>
-                        <FormFieldLabel htmlFor="ticket-image">{t("myTickets.fieldImage")}</FormFieldLabel>
+                    <Field>
+                        <FieldLabel htmlFor="ticket-image">{t("myTickets.fieldImage")}</FieldLabel>
                         <Input
                             id="ticket-image"
                             type="file"
@@ -309,7 +312,7 @@ const TicketFormSheet = ({
                                 />
                             </div>
                         ) : null}
-                    </FormField>
+                    </Field>
 
                     {errorMessage ? (
                         <div className="rounded-xl border border-border bg-[color:color-mix(in_srgb,var(--danger)_14%,white)] px-4 py-3 text-sm text-[var(--danger)]">
@@ -336,8 +339,9 @@ const TicketFormSheet = ({
                         </Button>
                     </div>
                 </form>
-            </BottomSheetContent>
-        </BottomSheet>
+                </div>
+            </DrawerContent>
+        </Drawer>
     );
 };
 

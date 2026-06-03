@@ -8,8 +8,7 @@ import { NotificationButton } from "@/components/notifications/NotificationButto
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileEditSheet } from "@/components/profile/ProfileEditSheet";
 import { PushNotification } from "@/components/push/PushNotification";
-import { Button } from "@/components/ui/button";
-import { ToggleRow } from "@/components/ui/toggle-row";
+import { Button, H3, Item, ItemMedia, ItemContent, ItemTitle, ItemActions, Kicker, Switch } from "@jwonp/design-system";
 import type { MyProfileResponse } from "@/lib/profile/profile.types";
 
 type ProfileScreenProps = {
@@ -79,7 +78,7 @@ export const ProfileScreen = ({
                         </Button>
                     </div>
 
-                    <h2 className="mt-4 text-2xl font-bold tracking-tight text-[var(--text)]">{displayName}</h2>
+                    <H3 className="mt-4 text-2xl font-bold tracking-tight text-[var(--text)]">{displayName}</H3>
                     <p className="mt-1.5 text-sm font-medium text-[var(--text-muted)]">ID: {userId}</p>
                     {feedbackMessage && (
                         <p className="mt-4 text-sm font-medium text-primary">{feedbackMessage}</p>
@@ -87,16 +86,14 @@ export const ProfileScreen = ({
                 </PageSection>
 
                 <PageSection className="space-y-4">
-                    <h3 className="px-2 text-sm font-semibold text-[var(--text-muted)]">{t("appSettings")}</h3>
+                    <Kicker className="px-2">{t("appSettings")}</Kicker>
                     <div className="app-card overflow-hidden">
                         <div className="divide-y divide-border">
-                            <ToggleRow
-                                checked={darkMode}
-                                label={t("darkMode")}
-                                icon={<Moon className="h-5 w-5" />}
-                                onToggle={onToggleTheme}
-                                className="min-h-16 px-5"
-                            />
+                            <Item className="min-h-16 px-5">
+                                <ItemMedia className="text-[var(--text-muted)]"><Moon className="h-5 w-5" /></ItemMedia>
+                                <ItemContent><ItemTitle>{t("darkMode")}</ItemTitle></ItemContent>
+                                <ItemActions><Switch checked={darkMode} onCheckedChange={onToggleTheme} /></ItemActions>
+                            </Item>
 
                             <PushNotification>
                                 {({
@@ -108,19 +105,21 @@ export const ProfileScreen = ({
                                     unsubscribe,
                                 }) => (
                                     <>
-                                        <ToggleRow
-                                            checked={isSubscribed}
-                                            label={t("pushNotification")}
-                                            icon={<Bell className="h-5 w-5" />}
-                                            onToggle={() => {
-                                                if (!isSupported || isLoading) {
-                                                    return;
-                                                }
-
-                                                void (isSubscribed ? unsubscribe() : subscribe());
-                                            }}
-                                            className="min-h-16 px-5"
-                                        />
+                                        <Item className="min-h-16 px-5">
+                                            <ItemMedia className="text-[var(--text-muted)]"><Bell className="h-5 w-5" /></ItemMedia>
+                                            <ItemContent><ItemTitle>{t("pushNotification")}</ItemTitle></ItemContent>
+                                            <ItemActions>
+                                                <Switch
+                                                    checked={isSubscribed}
+                                                    onCheckedChange={() => {
+                                                        if (!isSupported || isLoading) {
+                                                            return;
+                                                        }
+                                                        void (isSubscribed ? unsubscribe() : subscribe());
+                                                    }}
+                                                />
+                                            </ItemActions>
+                                        </Item>
                                         {!isSupported && (
                                             <div className="px-5 pb-4 text-sm text-[var(--text-muted)]">
                                                 이 브라우저는 푸시 알림을 지원하지 않습니다
@@ -139,7 +138,7 @@ export const ProfileScreen = ({
                 </PageSection>
 
                 <PageSection className="space-y-4">
-                    <h3 className="px-2 text-sm font-semibold text-[var(--text-muted)]">{t("support")}</h3>
+                    <Kicker className="px-2">{t("support")}</Kicker>
                     <div className="app-card overflow-hidden">
                         {isAdmin ? (
                             <button
