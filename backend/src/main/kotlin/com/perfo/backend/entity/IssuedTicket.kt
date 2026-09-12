@@ -60,6 +60,10 @@ class IssuedTicket(
     var maxPerUser: Int = 1,
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "booking_mode", nullable = false, length = 32)
+    var bookingMode: BookingMode = BookingMode.SIMPLE,
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "discovery_mode", nullable = false)
     var discoveryMode: TicketDiscoveryMode = TicketDiscoveryMode.LISTED,
 

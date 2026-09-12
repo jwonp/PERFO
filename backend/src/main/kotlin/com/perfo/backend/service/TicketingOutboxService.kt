@@ -1,6 +1,8 @@
 package com.perfo.backend.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.perfo.backend.dto.TicketDto
+import com.perfo.backend.entity.BookingMode
 import com.perfo.backend.entity.TicketPurchaseResult
 import com.perfo.backend.entity.TicketingOutbox
 import com.perfo.backend.entity.TicketingOutboxEventType
@@ -24,6 +26,8 @@ class TicketingOutboxService(
         remainingQuantity: Int?,
         message: String?,
         occurredAt: Instant,
+        bookingMode: BookingMode = BookingMode.SIMPLE,
+        items: List<TicketDto.TicketingOrderItemResponse> = emptyList(),
     ): TicketingOutbox {
         return save(
             requestId = requestId,
@@ -41,6 +45,8 @@ class TicketingOutboxService(
                 remainingQuantity = remainingQuantity,
                 message = message,
                 occurredAt = occurredAt,
+                bookingMode = bookingMode,
+                items = items,
             ),
         )
     }
@@ -54,6 +60,9 @@ class TicketingOutboxService(
         remainingQuantity: Int?,
         message: String?,
         occurredAt: Instant,
+        bookingMode: BookingMode = BookingMode.SIMPLE,
+        items: List<TicketDto.TicketingOrderItemResponse> = emptyList(),
+        shortages: List<TicketDto.TicketingItemShortageResponse> = emptyList(),
     ): TicketingOutbox {
         return save(
             requestId = requestId,
@@ -69,6 +78,9 @@ class TicketingOutboxService(
                 remainingQuantity = remainingQuantity,
                 message = message,
                 occurredAt = occurredAt,
+                bookingMode = bookingMode,
+                items = items,
+                shortages = shortages,
             ),
         )
     }
@@ -105,4 +117,7 @@ data class TicketingOutboxPayload(
     val remainingQuantity: Int? = null,
     val message: String? = null,
     val occurredAt: Instant,
+    val bookingMode: BookingMode = BookingMode.SIMPLE,
+    val items: List<TicketDto.TicketingOrderItemResponse> = emptyList(),
+    val shortages: List<TicketDto.TicketingItemShortageResponse> = emptyList(),
 )

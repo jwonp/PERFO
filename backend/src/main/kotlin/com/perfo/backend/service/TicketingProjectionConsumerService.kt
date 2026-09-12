@@ -60,6 +60,8 @@ class TicketingProjectionConsumerService(
                     ticketIds = payload.ticketIds.joinToString(",").ifBlank { null },
                     ticketNumbers = payload.ticketNumbers.joinToString(",").ifBlank { null },
                     remainingQuantity = payload.remainingQuantity,
+                    bookingMode = payload.bookingMode,
+                    orderItems = payload.items.takeIf { it.isNotEmpty() }?.let(objectMapper::writeValueAsString),
                     message = payload.message,
                     occurredAt = payload.occurredAt,
                 ),

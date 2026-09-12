@@ -6,6 +6,7 @@ import com.perfo.backend.entity.Event
 import com.perfo.backend.entity.IssuedTicket
 import com.perfo.backend.entity.TicketDiscoveryMode
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.EventItemRepository
 import com.perfo.backend.repository.IssuedTicketRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -25,6 +26,9 @@ class EventQueryServiceTest {
 
     @org.mockito.Mock
     private lateinit var eventRepository: EventRepository
+
+    @org.mockito.Mock
+    private lateinit var eventItemRepository: EventItemRepository
 
     @org.mockito.Mock
     private lateinit var issuedTicketRepository: IssuedTicketRepository
