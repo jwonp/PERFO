@@ -6,6 +6,7 @@ import com.perfo.backend.entity.Ticket
 import com.perfo.backend.entity.TicketUsageStatus
 import com.perfo.backend.entity.TicketingStatus
 import com.perfo.backend.repository.EventRepository
+import com.perfo.backend.repository.IssuedTicketRepository
 import com.perfo.backend.repository.TicketRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -17,7 +18,14 @@ import java.time.LocalDateTime
 class ReservationServiceTest {
     private val ticketRepository = mock(TicketRepository::class.java)
     private val eventRepository = mock(EventRepository::class.java)
-    private val reservationService = ReservationService(ticketRepository, eventRepository)
+    private val issuedTicketRepository = mock(IssuedTicketRepository::class.java)
+    private val ticketImageStorageService = mock(TicketImageStorageService::class.java)
+    private val reservationService = ReservationService(
+        ticketRepository,
+        eventRepository,
+        issuedTicketRepository,
+        ticketImageStorageService,
+    )
 
     @Test
     @DisplayName("사용자 예약 조회 - 이벤트 정보를 합쳐 예약 목록을 반환한다")

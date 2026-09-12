@@ -61,7 +61,7 @@ services:
       - bluegreen
     restart: unless-stopped
     ports:
-      - "${NGINX_PORT:-4137}:8080"
+      - "127.0.0.1:${NGINX_PORT:-4137}:8080"
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./deploy/nginx/upstreams:/etc/nginx/upstreams:ro
@@ -90,7 +90,7 @@ services:
       - minio
       - minio-init
     ports:
-      - "${BACKEND_BLUE_HOST_PORT:-8274}:8080"
+      - "127.0.0.1:${BACKEND_BLUE_HOST_PORT:-8274}:8080"
     environment:
       <<: *backend-environment
       SERVER_PORT: 8080
@@ -125,7 +125,7 @@ services:
       - minio
       - minio-init
     ports:
-      - "${BACKEND_GREEN_HOST_PORT:-8275}:8080"
+      - "127.0.0.1:${BACKEND_GREEN_HOST_PORT:-8275}:8080"
     environment:
       <<: *backend-environment
       SERVER_PORT: 8080
@@ -161,7 +161,7 @@ services:
     depends_on:
       - backend_blue
     ports:
-      - "${FRONTEND_BLUE_HOST_PORT:-4138}:3000"
+      - "127.0.0.1:${FRONTEND_BLUE_HOST_PORT:-4138}:3000"
     environment:
       <<: *frontend-environment
       PORT: 3000
@@ -194,7 +194,7 @@ services:
     depends_on:
       - backend_green
     ports:
-      - "${FRONTEND_GREEN_HOST_PORT:-4139}:3000"
+      - "127.0.0.1:${FRONTEND_GREEN_HOST_PORT:-4139}:3000"
     environment:
       <<: *frontend-environment
       PORT: 3000

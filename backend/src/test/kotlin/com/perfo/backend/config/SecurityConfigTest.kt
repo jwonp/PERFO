@@ -20,7 +20,11 @@ import java.time.Instant
 import java.util.Date
 
 @WebMvcTest(
-    value = [SecurityConfigTest.AdminProbeController::class],
+    value = [
+        SecurityConfigTest.AdminProbeController::class,
+        SecurityConfigTest.DraftProbeController::class,
+        SecurityConfigTest.ActuatorProbeController::class,
+    ],
     properties = [
         "app.security.internal-jwt.issuer=perfo-frontend",
         "app.security.internal-jwt.audience=perfo-backend-ticketing",
@@ -29,7 +33,14 @@ import java.util.Date
         "app.cors.allowed-origins=http://localhost:14138",
     ],
 )
-@Import(SecurityConfig::class, HeaderAuthenticationFilter::class, InternalApiJwtService::class)
+@Import(
+    SecurityConfig::class,
+    HeaderAuthenticationFilter::class,
+    InternalApiJwtService::class,
+    SecurityConfigTest.AdminProbeController::class,
+    SecurityConfigTest.DraftProbeController::class,
+    SecurityConfigTest.ActuatorProbeController::class,
+)
 class SecurityConfigTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -93,7 +104,62 @@ class SecurityConfigTest {
             .andExpect(status().isUnauthorized)
     }
 
-    private fun createInternalToken(role: String): String {
+    @Test
+    @DisplayName("GET /api/events/{id}/draft - ticketing scope 토큰이면 접근을 허용한다")
+    fun draftRoute_withTicketingScope_returns200() {
+        mockMvc.perform(
+            get("/api/events/1/draft")
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(role = "USER", scope = "ticketing")}"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().string("draft"))
+    }
+
+    @Test
+    @DisplayName("GET /api/events/{id}/draft - 토큰이 없으면 401을 반환한다")
+    fun draftRoute_withoutToken_returns401() {
+        mockMvc.perform(
+            get("/api/events/1/draft")
+                .with(csrf()),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("GET /api/events/{id}/draft - scope가 다르면 401을 반환한다")
+    fun draftRoute_withWrongScope_returns401() {
+        mockMvc.perform(
+            get("/api/events/1/draft")
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(role = "USER", scope = "tickets")}"),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("GET /actuator/** - actuator scope 토큰이면 접근을 허용한다")
+    fun actuatorRoute_withActuatorScope_returns200() {
+        mockMvc.perform(
+            get("/actuator/metrics/hikaricp.connections.active")
+                .with(csrf())
+                .header("Authorization", "Bearer ${createInternalToken(role = "USER", scope = "actuator")}"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().string("metric"))
+    }
+
+    @Test
+    @DisplayName("GET /actuator/** - 토큰이 없으면 401을 반환한다")
+    fun actuatorRoute_withoutToken_returns401() {
+        mockMvc.perform(
+            get("/actuator/metrics/hikaricp.connections.active")
+                .with(csrf()),
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    private fun createInternalToken(role: String, scope: String = "admin"): String {
         val signingKey = Keys.hmacShaKeyFor(
             "test-internal-jwt-secret-key-should-be-long-enough-123456".toByteArray(Charsets.UTF_8),
         )
@@ -111,7 +177,7 @@ class SecurityConfigTest {
             .claim("uid", 1L)
             .claim("email", "admin@example.com")
             .claim("role", role)
-            .claim("scope", listOf("admin"))
+            .claim("scope", listOf(scope))
             .signWith(signingKey)
             .compact()
     }
@@ -123,5 +189,17 @@ class SecurityConfigTest {
 
         @GetMapping("/api/admin/probe")
         fun probe(): String = "ok"
+    }
+
+    @RestController
+    class DraftProbeController {
+        @GetMapping("/api/events/{eventId}/draft")
+        fun draft(): String = "draft"
+    }
+
+    @RestController
+    class ActuatorProbeController {
+        @GetMapping("/actuator/metrics/{name}")
+        fun metric(): String = "metric"
     }
 }

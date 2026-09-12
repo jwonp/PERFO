@@ -78,6 +78,7 @@ class HeaderAuthenticationFilter(
             path == "/api/auth/oauth" -> "auth:oauth"
             path == "/api/admin" -> "admin"
             path.startsWith("/api/admin/") -> "admin"
+            path.matches(Regex("^/api/events/[^/]+/draft/?$")) -> "ticketing"
             path == "/api/reservations" -> "tickets"
             path.startsWith("/api/reservations/") -> "tickets"
             path.matches(Regex("^/api/ticketing/events/[^/]+/projection/?$")) -> "ticketing:projection"
@@ -85,6 +86,8 @@ class HeaderAuthenticationFilter(
             path.startsWith("/api/users/") -> "users"
             path == "/api/tickets" -> "tickets"
             path.startsWith("/api/tickets/") -> "tickets"
+            path == "/actuator" -> "actuator"
+            path.startsWith("/actuator/") -> "actuator"
             else -> null
         }
     }
