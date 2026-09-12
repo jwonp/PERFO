@@ -1,6 +1,6 @@
 {
   "name": "perfo",
-  "version": "0.2.0-rc.26",
+  "version": "0.2.0-rc.27",
   "private": true,
   "scripts": {
     "dev": "next dev",
